@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="libgs" />
+		<Option pch_mode="2" />
+		<Option compiler="mingw-w32" />
+		<Build>
+			<Target title="lib">
+				<Option output="../../lib/gs" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/lib/" />
+				<Option type="2" />
+				<Option compiler="mingw-w32" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+			<Target title="exe">
+				<Option output="../../bin/gs" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/exe/" />
+				<Option type="1" />
+				<Option compiler="mingw-w32" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+			<Target title="exe-debug">
+				<Option output="bin/exe-debug/gs" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/exe-debug/" />
+				<Option type="1" />
+				<Option compiler="mingw-w32" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Linker>
+			<Add option="-static" />
+			<Add option="-lusb-1.0" />
+		</Linker>
+		<Unit filename="src/exe/main.c">
+			<Option compilerVar="CC" />
+			<Option target="exe" />
+			<Option target="exe-debug" />
+		</Unit>
+		<Unit filename="src/exe/ops.c">
+			<Option compilerVar="CC" />
+			<Option target="exe" />
+			<Option target="exe-debug" />
+		</Unit>
+		<Unit filename="src/exe/ops.h">
+			<Option target="exe" />
+			<Option target="exe-debug" />
+		</Unit>
+		<Unit filename="src/exe/progress.c">
+			<Option compilerVar="CC" />
+			<Option target="exe" />
+			<Option target="exe-debug" />
+		</Unit>
+		<Unit filename="src/exe/progress.h">
+			<Option target="exe" />
+			<Option target="exe-debug" />
+		</Unit>
+		<Unit filename="src/exe/vector.c">
+			<Option compilerVar="CC" />
+			<Option target="exe" />
+			<Option target="exe-debug" />
+		</Unit>
+		<Unit filename="src/exe/vector.h">
+			<Option target="exe" />
+			<Option target="exe-debug" />
+		</Unit>
+		<Unit filename="src/lib/codegen.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/lib/codegen.h" />
+		<Unit filename="src/lib/gs_io.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/lib/gs_io.h" />
+		<Unit filename="src/lib/libgs.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/lib/libgs.h" />
+		<Unit filename="src/lib/mips.h" />
+		<Unit filename="src/lib/mos.h" />
+		<Unit filename="src/lib/mos_io.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/lib/mos_io.h" />
+		<Extensions>
+			<code_completion />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
