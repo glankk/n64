@@ -35,8 +35,13 @@
 		<Linker>
 			<Add option="-static" />
 		</Linker>
-		<Unit filename="main.c">
+		<Unit filename="luapatch.c">
 			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="manifest.xml" />
+		<Unit filename="resource.h" />
+		<Unit filename="resource.rc">
+			<Option compilerVar="WINDRES" />
 		</Unit>
 		<Extensions>
 			<code_completion />
