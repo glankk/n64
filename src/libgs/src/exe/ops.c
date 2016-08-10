@@ -1,5 +1,5 @@
 #include <sys/time.h>
-#include "../lib/mips.h"
+#include <mips.h>
 #include "../lib/libgs.h"
 #include "../lib/mos_io.h"
 #include "progress.h"

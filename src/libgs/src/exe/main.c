@@ -3,7 +3,7 @@
 #include <fcntl.h>
 #define MIPS_ASM_BIG_ENDIAN
 #define MIPS_ASM_CONCISE
-#include "../lib/mips.h"
+#include <mips.h>
 #include "../lib/libgs.h"
 #include "../lib/mos_io.h"
 #include "../lib/gs_io.h"

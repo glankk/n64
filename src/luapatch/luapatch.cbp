@@ -31,6 +31,7 @@
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-std=c11" />
+			<Add directory="../../include" />
 		</Compiler>
 		<Linker>
 			<Add option="-static" />

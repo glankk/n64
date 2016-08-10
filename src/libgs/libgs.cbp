@@ -43,6 +43,7 @@
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
+			<Add directory="../../include" />
 		</Compiler>
 		<Linker>
 			<Add option="-static" />

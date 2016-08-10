@@ -3,7 +3,7 @@
 #include <stdint.h>
 #define MIPS_ASM_BIG_ENDIAN
 #define MIPS_ASM_CONCISE
-#include "mips.h"
+#include <mips.h>
 
 
 void *generate_setup(uint32_t payload_entrypoint, uint32_t patch_addr)
