@@ -54,6 +54,24 @@ enum
   BUTTON_A       = 0x8000,
 };
 
+enum
+{
+  BUTTON_INDEX_C_RIGHT = 0,
+  BUTTON_INDEX_C_LEFT  = 1,
+  BUTTON_INDEX_C_DOWN  = 2,
+  BUTTON_INDEX_C_UP    = 3,
+  BUTTON_INDEX_R       = 4,
+  BUTTON_INDEX_L       = 5,
+  BUTTON_INDEX_D_RIGHT = 8,
+  BUTTON_INDEX_D_LEFT  = 9,
+  BUTTON_INDEX_D_DOWN  = 10,
+  BUTTON_INDEX_D_UP    = 11,
+  BUTTON_INDEX_START   = 12,
+  BUTTON_INDEX_Z       = 13,
+  BUTTON_INDEX_B       = 14,
+  BUTTON_INDEX_A       = 15,
+};
+
 typedef union
 {
   struct
