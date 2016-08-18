@@ -72,6 +72,8 @@ SECTIONS
     *(.lit4)
   }
 
+  __bss_start = . ;
+
   .sbss (NOLOAD) :
   {
     *(.sbss .sbss.*)
@@ -85,7 +87,7 @@ SECTIONS
     *(COMMON)
   }
 
-  end = ALIGN(8) ;
+  __bss_end = . ;
 
   .debug 0 :
   {
@@ -159,6 +161,8 @@ SECTIONS
   {
     *(.debug_varnames)
   }
+
+  end = ALIGN(8) ;
 
   /DISCARD/ :
   {

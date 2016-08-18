@@ -10,6 +10,7 @@ extern "C"
 {
 #endif
 
+void clear_bss();
 void do_global_ctors();
 void do_global_dtors();
 

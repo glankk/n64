@@ -2,6 +2,8 @@
  * -glank
  */
 
+#include <stdint.h>
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -10,10 +12,19 @@ extern "C"
 static int global_ctors_done = 0;
 static int global_dtors_done = 0;
 
+extern void *__bss_start, *__bss_end;
 extern void (*__CTOR_LIST__[])();
 extern void (*__CTOR_END__[])();
 extern void (*__DTOR_LIST__[])();
 extern void (*__DTOR_END__[])();
+
+void clear_bss()
+{
+  uint8_t *bss_start = (void*)&__bss_start;
+  uint8_t *bss_end = (void*)&__bss_end;
+  while (bss_start < bss_end)
+    *bss_start++ = 0x00;
+}
 
 void do_global_ctors()
 {
