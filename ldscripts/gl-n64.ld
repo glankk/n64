@@ -73,7 +73,6 @@ SECTIONS
   }
 
   __bss_start = . ;
-
   .sbss (NOLOAD) :
   {
     *(.sbss .sbss.*)
@@ -86,7 +85,6 @@ SECTIONS
     *(.gnu.linkonce.b.*)
     *(COMMON)
   }
-
   __bss_end = . ;
 
   end = ALIGN(8) ;
