@@ -1,27 +1,18 @@
 #!/usr/bin/sh
 
-PREFIX="/opt/n64-toolchain"
-BINUTILS="../binutils.tar.gz"
-GCC="../gcc.tar.gz"
-NEWLIB="../newlib.tar.gz"
+PREFIX="/opt/n64-toolchain-slim"
+BINUTILS=../binutils*.tar*
+GCC=../gcc*.tar*
+NEWLIB=../newlib*.tar*
 
 
 set -e
-rm -rf $PREFIX
-rm -rf binutils
-rm -rf gcc
-rm -rf newlib
-rm -rf build-binutils
-rm -rf build-bootstrap-gcc
-rm -rf build-newlib
-rm -rf build-gcc
+rm -rf $PREFIX binutils gcc newlib build-binutils build-bootstrap-gcc build-newlib build-gcc
 
 export PATH="$PREFIX/bin:$PATH"
 export CFLAGS_FOR_TARGET="-ffunction-sections -fdata-sections\
- -flto -ffat-lto-objects\
  -fno-exceptions -fno-unwind-tables -fno-asynchronous-unwind-tables"
 export CXXFLAGS_FOR_TARGET="-ffunction-sections -fdata-sections\
- -flto -ffat-lto-objects\
  -fno-exceptions -fno-unwind-tables -fno-asynchronous-unwind-tables\
  -fno-rtti"
 export AR_FOR_TARGET="mips64-gcc-ar"
@@ -29,7 +20,7 @@ export NM_FOR_TARGET="mips64-gcc-nm"
 export RANLIB_FOR_TARGET="mips64-gcc-ranlib"
 
 mkdir binutils
-tar xzvf $BINUTILS --strip-components=1 -C binutils
+tar xfv $BINUTILS --strip-components=1 -C binutils
 mkdir build-binutils
 cd build-binutils
 ../binutils/configure\
@@ -41,8 +32,8 @@ make install
 cd ..
 
 mkdir gcc
-tar xzvf $GCC --strip-components=1 -C gcc
-cd gcc
+tar xfv $GCC --strip-components=1 -C gcc
+ cd gcc
 ./contrib/download_prerequisites
 cd ..
 mkdir build-bootstrap-gcc
@@ -62,7 +53,7 @@ make install-gcc
 cd ..
 
 mkdir newlib
-tar xzvf $NEWLIB --strip-components=1 -C newlib
+tar xfv $NEWLIB --strip-components=1 -C newlib
 mkdir build-newlib
 cd build-newlib
 ../newlib/configure\
@@ -97,3 +88,5 @@ cd build-gcc
 make all
 make install
 cd ..
+
+rm -rf binutils gcc newlib build-binutils build-bootstrap-gcc build-newlib build-gcc

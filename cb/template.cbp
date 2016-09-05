@@ -51,8 +51,5 @@
 				</MakeCommands>
 			</Target>
 		</Build>
-		<Extensions>
-			<envvars />
-		</Extensions>
 	</Project>
 </CodeBlocks_project_file>
