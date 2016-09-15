@@ -8,6 +8,8 @@
 
 #define Z64_OOT10     0x00
 #define Z64_OOTDEBUG  0x01
+#define Z64_OOT11     0x02
+#define Z64_OOT12     0x03
 
 #ifndef Z64_VERSION
 #define Z64_VERSION   Z64_OOT10
@@ -112,6 +114,20 @@ typedef void (*SetTextStringProc)(void* DList, const char* format, ...);
 #define SetTextRGBA        ((SetTextRGBAProc)    0x800CBE58)
 #define SetTextXY          ((SetTextXYProc)      0x800CBEC8)
 #define SetTextString      ((SetTextStringProc)  0x800CC588)
+#endif
+
+#if Z64_VERSION == Z64_OOT12
+/*TODO: Resolve 1.2 variable addresses*/
+/*
+#define z64_controller_1   (*(z64_controller_t*) 0x801C84B4)
+#define z64_rupees         (*(uint16_t*)         0x8011A604)
+#define z64_link_pos       (*(z64_xyz_t*)        0x801DAA54)
+#define z64_link_rot       (*(z64_rot_t*)        0x801DAAE4)
+*/
+
+#define SetTextRGBA        ((SetTextRGBAProc)    0x800CC698)
+#define SetTextXY          ((SetTextXYProc)      0x800CC708)
+#define SetTextString      ((SetTextStringProc)  0x800CCDC8)
 #endif
 
 #if Z64_VERSION == Z64_OOTDEBUG
