@@ -49,6 +49,9 @@
 			<Add option="-static" />
 			<Add option="-lusb-1.0" />
 		</Linker>
+		<Unit filename="../../include/vector/vector.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="src/exe/main.c">
 			<Option compilerVar="CC" />
 			<Option target="exe" />
@@ -69,11 +72,6 @@
 			<Option target="exe-debug" />
 		</Unit>
 		<Unit filename="src/exe/progress.h">
-			<Option target="exe" />
-			<Option target="exe-debug" />
-		</Unit>
-		<Unit filename="src/exe/vector.c">
-			<Option compilerVar="CC" />
 			<Option target="exe" />
 			<Option target="exe-debug" />
 		</Unit>

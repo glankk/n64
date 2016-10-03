@@ -5,7 +5,7 @@
 #include <inttypes.h>
 #include <sys/time.h>
 #include <unistd.h>
-#include <libusb-1.0/libusb.h>
+#include <libusb.h>
 #include "libgs.h"
 #include "mos.h"
 #include "mos_io.h"

@@ -4,12 +4,12 @@
 #define MIPS_ASM_BIG_ENDIAN
 #define MIPS_ASM_CONCISE
 #include <mips.h>
+#include <vector/vector.h>
 #include "../lib/libgs.h"
 #include "../lib/mos_io.h"
 #include "../lib/gs_io.h"
 #include "ops.h"
 #include "progress.h"
-#include "vector.h"
 
 #define NO_DETAILS "this option has no detailed information"
 #define HELP_NOTE  "use `gs -h` or `gs --help` for usage instructions"

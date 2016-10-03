@@ -33,7 +33,13 @@ void *vector_at(const struct vector *vector, size_t position)
 void *vector_insert(struct vector *vector, size_t position, size_t num,
                     const void *data)
 {
-  if (num == 0 || position > vector->size)
+  if (num == 0) {
+    if (vector->begin)
+      return vector->begin;
+    else
+      return (void*)1;
+  }
+  if (position > vector->size)
     return 0;
   size_t new_cap = vector->capacity;
   if (new_cap == 0)
