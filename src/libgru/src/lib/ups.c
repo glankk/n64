@@ -180,12 +180,12 @@ enum gru_error gru_ups_make(struct gru_ups *ups, struct gru_blob *src_blob,
   vector_clear(&ups->chunks);
   uint8_t *src_data = src_blob->data;
   uint8_t *dst_data = dst_blob->data;
-  for (size_t i = 0; i < src_blob->size && i < dst_blob->size;  ++i) {
+  for (size_t i = 0; i < src_blob->size || i < dst_blob->size;  ++i) {
     struct ups_chunk chunk;
     chunk.copy_length = 0;
     uint8_t sd;
     uint8_t dd;
-    while (i < src_blob->size && i < dst_blob->size) {
+    while (i < src_blob->size || i < dst_blob->size) {
       sd = (i < src_blob->size ? src_data[i] : 0);
       dd = (i < dst_blob->size ? dst_data[i] : 0);
       if (sd != dd)
@@ -195,7 +195,7 @@ enum gru_error gru_ups_make(struct gru_ups *ups, struct gru_blob *src_blob,
     }
     size_t xor_start = i;
     chunk.xor_length = 0;
-    while (i < src_blob->size && i < dst_blob->size) {
+    while (i < src_blob->size || i < dst_blob->size) {
       ++chunk.xor_length;
       ++i;
       sd = (i < src_blob->size ? src_data[i] : 0);
