@@ -449,17 +449,19 @@ static enum gru_error z64fs_update(struct gru_z64fs *z64fs)
   size_t ftab_size = sizeof(*ftab_data) * (z64fs->files.size + 16);
   if (ftab->prom_size != ftab_size) {
     enum gru_error e = GRU_SUCCESS;
+    gru_bool_t vvolatile = z64fs->vrom_volatile && z64fs->ftab_vvolatile;
+    gru_bool_t pvolatile = z64fs->prom_volatile && z64fs->ftab_pvolatile;
     if (ftab_size > ftab->prom_size) {
       size_t delta = ftab_size - ftab->prom_size;
       e = z64fs_padding_shrink_forwards(z64fs, z64fs->ftab_index,
-                                        z64fs->vrom_volatile ? 0 : delta,
-                                        z64fs->prom_volatile ? 0 : delta);
+                                        vvolatile ? 0 : delta,
+                                        pvolatile ? 0 : delta);
     }
     else if (ftab_size < ftab->prom_size) {
       size_t delta = ftab->prom_size - ftab_size;
       e = z64fs_padding_grow_backwards(z64fs, z64fs->ftab_index,
-                                       z64fs->vrom_volatile ? 0 : delta,
-                                       z64fs->prom_volatile ? 0 : delta,
+                                       vvolatile ? 0 : delta,
+                                       pvolatile ? 0 : delta,
                                        GRU_TRUE);
     }
     if (e)
@@ -514,6 +516,8 @@ enum gru_error gru_z64fs_init(struct gru_z64fs *z64fs)
 {
   vector_init(&z64fs->files, sizeof(struct z64_file));
   z64fs->ftab_index = 0;
+  z64fs->ftab_vvolatile = GRU_TRUE;
+  z64fs->ftab_pvolatile = GRU_TRUE;
   z64fs->vrom_volatile = GRU_FALSE;
   z64fs->prom_volatile = GRU_FALSE;
   struct z64_file *ftab = vector_push_back(&z64fs->files, 1, NULL);
@@ -691,6 +695,28 @@ size_t gru_z64fs_length(struct gru_z64fs *z64fs)
 size_t gru_z64fs_ftab(struct gru_z64fs *z64fs)
 {
   return z64fs->ftab_index;
+}
+
+gru_bool_t gru_z64fs_ftab_vvolatile(struct gru_z64fs *z64fs)
+{
+  return z64fs->ftab_vvolatile;
+}
+
+void gru_z64fs_set_ftab_vvolatile(struct gru_z64fs *z64fs,
+                                  gru_bool_t ftab_vvolatile)
+{
+  z64fs->ftab_vvolatile = ftab_vvolatile;
+}
+
+gru_bool_t gru_z64fs_ftab_pvolatile(struct gru_z64fs *z64fs)
+{
+  return z64fs->ftab_pvolatile;
+}
+
+void gru_z64fs_set_ftab_pvolatile(struct gru_z64fs *z64fs,
+                                  gru_bool_t ftab_pvolatile)
+{
+  z64fs->ftab_pvolatile = ftab_pvolatile;
 }
 
 size_t gru_z64fs_vrom_first(struct gru_z64fs *z64fs)

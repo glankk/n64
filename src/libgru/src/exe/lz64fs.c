@@ -56,6 +56,36 @@ static int lgru_z64fs_ftab(lua_State *L)
   return 1;
 }
 
+static int lgru_z64fs_ftab_vvolatile(lua_State *L)
+{
+  struct gru_z64fs *z64fs = lgru_checkclass(L, 1, "gru_z64fs");
+  lua_pushboolean(L, gru_z64fs_ftab_vvolatile(z64fs));
+  return 1;
+}
+
+static int lgru_z64fs_set_ftab_vvolatile(lua_State *L)
+{
+  struct gru_z64fs *z64fs = lgru_checkclass(L, 1, "gru_z64fs");
+  gru_bool_t ftab_vvolatile = lua_toboolean(L, 2);
+  gru_z64fs_set_ftab_vvolatile(z64fs, ftab_vvolatile);
+  return 0;
+}
+
+static int lgru_z64fs_ftab_pvolatile(lua_State *L)
+{
+  struct gru_z64fs *z64fs = lgru_checkclass(L, 1, "gru_z64fs");
+  lua_pushboolean(L, gru_z64fs_ftab_pvolatile(z64fs));
+  return 1;
+}
+
+static int lgru_z64fs_set_ftab_pvolatile(lua_State *L)
+{
+  struct gru_z64fs *z64fs = lgru_checkclass(L, 1, "gru_z64fs");
+  gru_bool_t ftab_pvolatile = lua_toboolean(L, 2);
+  gru_z64fs_set_ftab_pvolatile(z64fs, ftab_pvolatile);
+  return 0;
+}
+
 static int lgru_z64fs_vrom_first(lua_State *L)
 {
   struct gru_z64fs *z64fs = lgru_checkclass(L, 1, "gru_z64fs");
@@ -620,6 +650,14 @@ void lgru_z64fs_register(lua_State *L)
     lua_setfield(L, -2, "length");
     lua_pushcfunction(L, lgru_z64fs_ftab);
     lua_setfield(L, -2, "ftab");
+    lua_pushcfunction(L, lgru_z64fs_ftab_vvolatile);
+    lua_setfield(L, -2, "ftab_vvolatile");
+    lua_pushcfunction(L, lgru_z64fs_set_ftab_vvolatile);
+    lua_setfield(L, -2, "set_ftab_vvolatile");
+    lua_pushcfunction(L, lgru_z64fs_ftab_pvolatile);
+    lua_setfield(L, -2, "ftab_pvolatile");
+    lua_pushcfunction(L, lgru_z64fs_set_ftab_pvolatile);
+    lua_setfield(L, -2, "set_ftab_pvolatile");
     lua_pushcfunction(L, lgru_z64fs_vrom_first);
     lua_setfield(L, -2, "vrom_first");
     lua_pushcfunction(L, lgru_z64fs_vrom_last);

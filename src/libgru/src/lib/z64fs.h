@@ -11,6 +11,8 @@ struct gru_z64fs
 {
   struct vector files;
   size_t        ftab_index;
+  gru_bool_t    ftab_vvolatile;
+  gru_bool_t    ftab_pvolatile;
   size_t        vrom_size;
   size_t        prom_size;
   gru_bool_t    vrom_volatile;
@@ -27,6 +29,12 @@ enum gru_error gru_z64fs_assemble_rom(struct gru_z64fs *z64fs,
                                       struct gru_n64rom *n64rom);
 size_t gru_z64fs_length(struct gru_z64fs *z64fs);
 size_t gru_z64fs_ftab(struct gru_z64fs *z64fs);
+gru_bool_t gru_z64fs_ftab_vvolatile(struct gru_z64fs *z64fs);
+void gru_z64fs_set_ftab_vvolatile(struct gru_z64fs *z64fs,
+                                  gru_bool_t ftab_vvolatile);
+gru_bool_t gru_z64fs_ftab_pvolatile(struct gru_z64fs *z64fs);
+void gru_z64fs_set_ftab_pvolatile(struct gru_z64fs *z64fs,
+                                  gru_bool_t ftab_pvolatile);
 size_t gru_z64fs_vrom_first(struct gru_z64fs *z64fs);
 size_t gru_z64fs_vrom_last(struct gru_z64fs *z64fs);
 size_t gru_z64fs_prom_first(struct gru_z64fs *z64fs);
