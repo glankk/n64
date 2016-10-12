@@ -243,7 +243,7 @@ enum gru_error gru_ups_apply(struct gru_ups *ups, struct gru_blob *blob,
     dst_p += chunk->copy_length;
     uint8_t *blob_xor = blob_at(blob, dst_p);
     uint8_t *chunk_xor = chunk->xor_data;
-    for (size_t j = 0; j < chunk->xor_length && dst_p < blob->size; ++j)
+    for (size_t j = 0; j < chunk->xor_length && dst_p + j < blob->size; ++j)
       *blob_xor++ ^= *chunk_xor++;
     dst_p += chunk->xor_length + 1;
   }
@@ -275,7 +275,7 @@ enum gru_error gru_ups_undo(struct gru_ups *ups, struct gru_blob *blob,
     src_p += chunk->copy_length;
     uint8_t *blob_xor = blob_at(blob, src_p);
     uint8_t *chunk_xor = chunk->xor_data;
-    for (size_t j = 0; j < chunk->xor_length && src_p < blob->size; ++j)
+    for (size_t j = 0; j < chunk->xor_length && src_p + j < blob->size; ++j)
       *blob_xor++ ^= *chunk_xor++;
     src_p += chunk->xor_length + 1;
   }
