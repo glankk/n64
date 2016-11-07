@@ -5,6 +5,8 @@
 #ifndef N64_H
 #define N64_H
 
+#include <gbi.h>
+
 #if defined(__LANGUAGE_C__)
 #define ENTRY __attribute__((section(".start")))
 #elif defined(__cplusplus)
