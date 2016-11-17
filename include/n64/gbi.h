@@ -1,14 +1,85 @@
 /**
- * gbi.h version 0.1rev0
+ * gbi.h version 0.1rev1
  * n64 graphics microcode interface library
  * compatible with f3dex2 and s2dex2
  * -glank
 **/
 
-#ifndef GBI_H
-#define GBI_H
+#ifndef N64_GBI_H
+#define N64_GBI_H
 
 #include <stdint.h>
+
+/* f3dex2 commands */
+#define G_NOOP                        0x00
+#define G_VTX                         0x01
+#define G_MODIFYVTX                   0x02
+#define G_CULLDL                      0x03
+#define G_BRANCH_Z                    0x04
+#define G_TRI1                        0x05
+#define G_TRI2                        0x06
+#define G_QUAD                        0x07
+#define G_LINE3D                      0x08
+#define G_SPECIAL_3                   0xD3
+#define G_SPECIAL_2                   0xD4
+#define G_SPECIAL_1                   0xD5
+#define G_DMA_IO                      0xD6
+#define G_TEXTURE                     0xD7
+#define G_POPMTX                      0xD8
+#define G_GEOMETRYMODE                0xD9
+#define G_MTX                         0xDA
+#define G_MOVEWORD                    0xDB
+#define G_MOVEMEM                     0xDC
+#define G_LOAD_UCODE                  0xDD
+#define G_DL                          0xDE
+#define G_ENDDL                       0xDF
+#define G_SPNOOP                      0xE0
+#define G_RDPHALF_1                   0xE1
+#define G_SETOTHERMODE_L              0xE2
+#define G_SETOTHERMODE_H              0xE3
+#define G_TEXRECT                     0xE4
+#define G_TEXRECTFLIP                 0xE5
+#define G_RDPLOADSYNC                 0xE6
+#define G_RDPPIPESYNC                 0xE7
+#define G_RDPTILESYNC                 0xE8
+#define G_RDPFULLSYNC                 0xE9
+#define G_SETKEYGB                    0xEA
+#define G_SETKEYR                     0xEB
+#define G_SETCONVERT                  0xEC
+#define G_SETSCISSOR                  0xED
+#define G_SETPRIMDEPTH                0xEE
+#define G_RDPSETOTHERMODE             0xEF
+#define G_LOADTLUT                    0xF0
+#define G_RDPHALF_2                   0xF1
+#define G_SETTILESIZE                 0xF2
+#define G_LOADBLOCK                   0xF3
+#define G_LOADTILE                    0xF4
+#define G_SETTILE                     0xF5
+#define G_FILLRECT                    0xF6
+#define G_SETFILLCOLOR                0xF7
+#define G_SETFOGCOLOR                 0xF8
+#define G_SETBLENDCOLOR               0xF9
+#define G_SETPRIMCOLOR                0xFA
+#define G_SETENVCOLOR                 0xFB
+#define G_SETCOMBINE                  0xFC
+#define G_SETTIMG                     0xFD
+#define G_SETZIMG                     0xFE
+#define G_SETCIMG                     0xFF
+
+/* s2dex2 commands */
+#define G_OBJ_RECTANGLE               0x01
+#define G_OBJ_SPRITE                  0x02
+#define G_SELECT_DL                   0x04
+#define G_OBJ_LOADTXTR                0x05
+#define G_OBJ_LDTX_SPRITE             0x06
+#define G_OBJ_LDTX_RECT               0x07
+#define G_OBJ_LDTX_RECT_R             0x08
+#define G_BG_1CYC                     0x09
+#define G_BG_COPY                     0x0A
+#define G_OBJ_RENDERMODE              0x0B
+#define G_OBJ_RECTANGLE_R             0xDA
+#define G_OBJ_MOVEMEM                 0xDC
+#define G_RDPHALF_0                   0xE4
 
 /* image formats */
 #define G_IM_FMT_RGBA                 0
@@ -776,9 +847,18 @@
 #define G_OBJ_FLAG_FLIPS              (gI_(0b1)<<0)
 #define G_OBJ_FLAG_FLIPT              (gI_(0b1)<<4)
 
-/* instructions */
+/* color macros */
+#define G_MAXZ                        0x03FF
+#define G_MAXFBZ                      0x3FFF
+#define GPACK_RGBA5551(r,g,b,a)       (((gI_(r)<<8)&0xF800)|                  \
+                                       ((gI_(g)<<3)&0x07C0)|                  \
+                                       ((gI_(b)>>2)&0x003E)|                  \
+                                       ((gI_(a)>>0)&0x0001))
+#define GPACK_ZDZ(z,dz)               (gI_(z)<<2|gI_(dz))
+
+/* instruction macros */
 #define                             \
-gsDPFillRectangle(ulx,uly,lrx,lry)    gO_(0xF6,                               \
+gsDPFillRectangle(ulx,uly,lrx,lry)    gO_(G_FILLRECT,                         \
                                           gF_(lrx,10,14)|gF_(lry,10,2),       \
                                           gF_(ulx,10,14)|gF_(uly,10,2))
 #define                             \
@@ -787,10 +867,10 @@ gsDPScisFillRectangle(ulx,uly,lrx,  \
                                                         (uly)<0?0:(uly),      \
                                                         (lrx)<0?0:(lrx),      \
                                                         (lry)<0?0:(lry))
-#define gsDPFullSync()                gO_(0xE9,0,0)
-#define gsDPLoadSync()                gO_(0xE6,0,0)
-#define gsDPTileSync()                gO_(0xE8,0,0)
-#define gsDPPipeSync()                gO_(0xE7,0,0)
+#define gsDPFullSync()                gO_(G_RDPFULLSYNC,0,0)
+#define gsDPLoadSync()                gO_(G_RDPLOADSYNC,0,0)
+#define gsDPTileSync()                gO_(G_RDPTILESYNC,0,0)
+#define gsDPPipeSync()                gO_(G_RDPPIPESYNC,0,0)
 #define gsDPLoadTLUT_pal16(pal,dram)  gsDPLoadTLUT_palN(pal,dram,15)
 #define gsDPLoadTLUT_pal256(dram)     gsDPLoadTLUT_palN(0,dram,255)
 #define                             \
@@ -825,8 +905,8 @@ gsDPLoadTextureBlock(timg,fmt,siz,  \
                                                   cmt,maskt,shiftt,           \
                                                   cms,masks,shifts),          \
                                       gsDPSetTileSize(G_TX_RENDERTILE,0,0,    \
-                                                      ntoqu102((width)-1),    \
-                                                      ntoqu102((height)-1))
+                                                      qu102((width)-1),       \
+                                                      qu102((height)-1))
 #define                             \
 gsDPLoadTextureBlock_4b(timg,fmt,   \
                         width,      \
@@ -856,10 +936,10 @@ gsDPLoadTextureTile(timg,fmt,siz,   \
                                                   cms,masks,shifts),          \
                                       gsDPLoadSync(),                         \
                                       gsDPLoadTile(G_TX_LOADTILE,             \
-                                                   ntoqu102(uls),             \
-                                                   ntoqu102(ult),             \
-                                                   ntoqu102(lrs),             \
-                                                   ntoqu102(lrt)),            \
+                                                   qu102(uls),                \
+                                                   qu102(ult),                \
+                                                   qu102(lrs),                \
+                                                   qu102(lrt)),               \
                                       gsDPPipeSync(),                         \
                                       gsDPSetTile(fmt,siz,                    \
                                                   (((lrs)-(uls)+1)*           \
@@ -868,10 +948,10 @@ gsDPLoadTextureTile(timg,fmt,siz,   \
                                                   cmt,maskt,shiftt,           \
                                                   cms,masks,shifts),          \
                                       gsDPSetTileSize(G_TX_RENDERTILE,        \
-                                                      ntoqu102(uls),          \
-                                                      ntoqu102(ult),          \
-                                                      ntoqu102(lrs),          \
-                                                      ntoqu102(lrt))
+                                                      qu102(uls),             \
+                                                      qu102(ult),             \
+                                                      qu102(lrs),             \
+                                                      qu102(lrt))
 #define                             \
 gsDPLoadTextureTile_4b(timg,fmt,    \
                        width,       \
@@ -888,10 +968,10 @@ gsDPLoadTextureTile_4b(timg,fmt,    \
                                                   cms,masks,shifts),          \
                                       gsDPLoadSync(),                         \
                                       gsDPLoadTile(G_TX_LOADTILE,             \
-                                                   ntoqu102(uls)/2,           \
-                                                   ntoqu102(ult),             \
-                                                   ntoqu102(lrs)/2,           \
-                                                   ntoqu102(lrt)),            \
+                                                   qu102(uls)/2,              \
+                                                   qu102(ult),                \
+                                                   qu102(lrs)/2,              \
+                                                   qu102(lrt)),               \
                                       gsDPPipeSync(),                         \
                                       gsDPSetTile(fmt,G_IM_SIZ_4b,            \
                                                   (((lrs)-(uls)+1)/2+7)/8,    \
@@ -899,45 +979,45 @@ gsDPLoadTextureTile_4b(timg,fmt,    \
                                                   cmt,maskt,shiftt,           \
                                                   cms,masks,shifts),          \
                                       gsDPSetTileSize(G_TX_RENDERTILE,        \
-                                                      ntoqu102(uls),          \
-                                                      ntoqu102(ult),          \
-                                                      ntoqu102(lrs),          \
-                                                      ntoqu102(lrt))
+                                                      qu102(uls),             \
+                                                      qu102(ult),             \
+                                                      qu102(lrs),             \
+                                                      qu102(lrt))
 #define gsDPLoadBlock(tile,uls,ult, \
-                      lrs,dxt)        gO_(0xF3,                               \
+                      lrs,dxt)        gO_(G_LOADBLOCK,                        \
                                           gF_(uls,12,12)|gF_(ult,12,0),       \
                                           gF_(tile,3,24)|gF_(lrs,12,12)|      \
                                           gF_(dxt,12,0))
 #define gsDPNoOp()                    gsDPNoOpTag(0)
-#define gsDPNoOpTag(tag)              gO_(0x00,0,tag)
+#define gsDPNoOpTag(tag)              gO_(G_NOOP,0,tag)
 #define gsDPPipelineMode(mode)        gsSPSetOtherModeHi(G_MDSFT_PIPELINE,    \
                                                          G_MDSIZ_PIPELINE,    \
                                                          mode)
-#define gsDPSetBlendColor(r,g,b,a)    gO_(0xF9,0,                             \
+#define gsDPSetBlendColor(r,g,b,a)    gO_(G_SETBLENDCOLOR,0,                  \
                                           gF_(r,8,24)|gF_(g,8,16)|            \
                                           gF_(b,8,8)|gF_(a,8,0))
-#define gsDPSetEnvColor(r,g,b,a)      gO_(0xFB,0,                             \
+#define gsDPSetEnvColor(r,g,b,a)      gO_(G_SETENVCOLOR,0,                    \
                                           gF_(r,8,24)|gF_(g,8,16)|            \
                                           gF_(b,8,8)|gF_(a,8,0))
-#define gsDPSetFillColor(c)           gO_(0xF7,0,c)
-#define gsDPSetFogColor(r,g,b,a)      gO_(0xF8,0,                             \
+#define gsDPSetFillColor(c)           gO_(G_SETFILLCOLOR,0,c)
+#define gsDPSetFogColor(r,g,b,a)      gO_(G_SETFOGCOLOR,0,                    \
                                           gF_(r,8,24)|gF_(g,8,16)|            \
                                           gF_(b,8,8)|gF_(a,8,0))
-#define gsDPSetPrimColor(m,l,r,g,b,a) gO_(0xFA,                               \
-                                          gF_(m,8,8)|gF_(l,8,0), \
+#define gsDPSetPrimColor(m,l,r,g,b,a) gO_(G_SETPRIMCOLOR,                     \
+                                          gF_(m,8,8)|gF_(l,8,0),              \
                                           gF_(r,8,24)|gF_(g,8,16)|            \
                                           gF_(b,8,8)|gF_(a,8,0))
 #define                             \
 gsDPSetColorImage(fmt,siz,width,    \
-                  img)                gO_(0xFF,                               \
+                  img)                gO_(G_SETCIMG,                          \
                                           gF_(fmt,3,21)|                      \
                                           gF_(siz,2,19)|                      \
                                           gF_((width)-1,12,0),                \
                                           img)
-#define gsDPSetDepthImage(img)        gO_(0xFE,0,img)
+#define gsDPSetDepthImage(img)        gO_(G_SETZIMG,0,img)
 #define                             \
 gsDPSetTextureImage(fmt,siz,width,  \
-                    img)              gO_(0xFD,                               \
+                    img)              gO_(G_SETTIMG,                          \
                                           gF_(fmt,3,21)|                      \
                                           gF_(siz,2,19)|                      \
                                           gF_((width)-1,12,0),                \
@@ -983,7 +1063,7 @@ gsDPSetHilite2Tile(tile,hilite,     \
 gsDPSetCombineLERP(a0,b0,c0,d0,Aa0, \
                    Ab0,Ac0,Ad0,a1,  \
                    b1,c1,d1,Aa1,    \
-                   Ab1,Ac1,Ad1)       gO_(0xFC,                               \
+                   Ab1,Ac1,Ad1)       gO_(G_SETCOMBINE,                       \
                                           gF_(G_CCMUX_##a0,4,20)|             \
                                           gF_(G_CCMUX_##c0,5,15)|             \
                                           gF_(G_ACMUX_##Aa0,3,12)|            \
@@ -1001,7 +1081,7 @@ gsDPSetCombineLERP(a0,b0,c0,d0,Aa0, \
                                           gF_(G_ACMUX_##Ab1,3,3)|             \
                                           gF_(G_ACMUX_##Ad1,3,0))
 #define gsDPSetConvert(k0,k1,k2,    \
-                       k3,k4,k5)      gO_(0xEC,                               \
+                       k3,k4,k5)      gO_(G_SETCONVERT,                       \
                                           gF_(k0,9,13)|gF_(k1,9,4)|           \
                                           gF_(gI_(k2)>>5,4,0),                \
                                           gF_(k2,5,27)|gF_(k3,9,18)|          \
@@ -1019,20 +1099,21 @@ gsDPSetCombineLERP(a0,b0,c0,d0,Aa0, \
                                                          G_MDSIZ_COMBKEY,     \
                                                          type)
 #define gsDPSetKeyGB(cG,sG,wG,      \
-                     cB,sB,wB)        gO_(0xEA,gF_(wG,12,12)|gF_(wB,12,0),    \
+                     cB,sB,wB)        gO_(G_SETKEYGB,                         \
+                                          gF_(wG,12,12)|gF_(wB,12,0),         \
                                           gF_(cG,8,24)|gF_(sG,8,16)|          \
                                           gF_(cB,8,8)|gF_(sB,8,0))
-#define gsDPSetKeyR(cR,sR,wR)         gO_(0xEB,0,                             \
+#define gsDPSetKeyR(cR,sR,wR)         gO_(G_SETKEYR,0,                        \
                                           gF_(wR,12,16)|gF_(cR,8,8)|          \
                                           gF_(sR,8,0))
-#define gsDPSetPrimDepth(z,dz)        gO_(0xEE,0,                             \
+#define gsDPSetPrimDepth(z,dz)        gO_(G_SETPRIMDEPTH,0,                   \
                                           gF_(z,16,16)|gF_(dz,16,0))
 #define gsDPSetRenderMode(mode1,    \
                           mode2)      gsSPSetOtherModeLo(G_MDSFT_RENDERMODE,  \
                                                          G_MDSIZ_RENDERMODE,  \
                                                          gI_(mode1)|gI_(mode2))
 #define gsDPSetScissor(mode,ulx,    \
-                       uly,lrx,lry)   gO_(0xED,                               \
+                       uly,lrx,lry)   gO_(G_SETSCISSOR,                       \
                                           gF_(ulx,10,14)|gF_(uly,10,2),       \
                                           gF_(mode,2,24)|gF_(lrx,10,14)|      \
                                           gF_(lry,10,2))
@@ -1055,7 +1136,7 @@ gsDPSetCombineLERP(a0,b0,c0,d0,Aa0, \
 gsDPSetTile(fmt,siz,line,tmem,      \
             tile,palette,cmt,       \
             maskt,shiftt,cms,masks, \
-            shifts)                   gO_(0xF5,                               \
+            shifts)                   gO_(G_SETTILE,                          \
                                           gF_(fmt,3,21)|gF_(siz,2,19)|        \
                                           gF_(line,9,9)|gF_(tmem,9,0),        \
                                           gF_(tile,3,24)|gF_(palette,4,20)|   \
@@ -1063,11 +1144,11 @@ gsDPSetTile(fmt,siz,line,tmem,      \
                                           gF_(shiftt,4,10)|gF_(cms,2,8)|      \
                                           gF_(masks,4,4)|gF_(shifts,4,0))
 #define gsDPSetTileSize(tile,uls,   \
-                        ult,lrs,lrt)  gO_(0xF2,                               \
+                        ult,lrs,lrt)  gO_(G_SETTILESIZE,                      \
                                           gF_(uls,12,12)|gF_(ult,12,0),       \
                                           gF_(tile,3,24)|gF_(lrs,12,12)|      \
                                           gF_(lrt,12,0))
-#define gsSP1Triangle(v0,v1,v2,flag)  gO_(0x05,                               \
+#define gsSP1Triangle(v0,v1,v2,flag)  gO_(G_TRI1,                             \
                                           gF_(((flag)==0?gI_(v0):             \
                                                (flag)==1?gI_(v1):             \
                                                gI_(v2))*2,8,16)|              \
@@ -1079,7 +1160,7 @@ gsDPSetTile(fmt,siz,line,tmem,      \
                                                gI_(v1))*2,8,0),0)
 #define                             \
 gsSP2Triangles(v00,v01,v02,flag0,   \
-               v10,v11,v12,flag1)     gO_(0x06,                               \
+               v10,v11,v12,flag1)     gO_(G_TRI2,                             \
                                           gF_(((flag0)==0?gI_(v00):           \
                                                (flag0)==1?gI_(v01):           \
                                                gI_(v02))*2,8,16)|             \
@@ -1106,16 +1187,16 @@ gsSPBranchLessZ(branchdl,vtx,zval,  \
 gsSPBranchLessZrg(branchdl,vtx,     \
                   zval,near,far,    \
                   flag,zmin,zmax)     gsDPHalf1(branchdl),                    \
-                                      gO_(0x04,gF_((vtx)*5,12,12)|            \
+                                      gO_(G_BRANCH_Z,gF_((vtx)*5,12,12)|      \
                                           gF_((vtx)*2,12,0),                  \
-                                          ntoqs1616((flag)==G_BZ_PERSP?       \
+                                          qs1616((flag)==G_BZ_PERSP?          \
                                                    (1.f-near/zval)/           \
                                                    (1.f-near/far):            \
                                                    (zval-near)/               \
                                                    (far-near))*               \
                                           ((int32_t)(zmax-zmin)&~1)+          \
-                                          ntoqs1616(zmin))
-#define gsSPBranchList(dl)            gO_(0xDE,gF_(0x01,8,16),dl)
+                                          qs1616(zmin))
+#define gsSPBranchList(dl)            gO_(G_DL,gF_(0x01,8,16),dl)
 #define gsSPClipRatio(r)              gsMoveWd(G_MW_CLIP,G_MWO_CLIP_RNX,      \
                                                (uint16_t)(r)),                \
                                       gsMoveWd(G_MW_CLIP,G_MWO_CLIP_RNY,      \
@@ -1124,10 +1205,10 @@ gsSPBranchLessZrg(branchdl,vtx,     \
                                                (uint16_t)-(r)),               \
                                       gsMoveWd(G_MW_CLIP,G_MWO_CLIP_RPY,      \
                                                (uint16_t)-(r))
-#define gsSPCullDisplayList(v0,vn)    gO_(0x03,gF_((v0)*2,16,0),              \
+#define gsSPCullDisplayList(v0,vn)    gO_(G_CULLDL,gF_((v0)*2,16,0),          \
                                           gF_((vn)*2,16,0))
-#define gsSPDisplayList(dl)           gO_(0xDE,0,dl)
-#define gsSPEndDisplayList()          gO_(0xDF,0,0)
+#define gsSPDisplayList(dl)           gO_(G_DL,0,dl)
+#define gsSPEndDisplayList()          gO_(G_ENDDL,0,0)
 #define gsSPFogPosition(min,max)      gsMoveWd(G_MW_FOG,G_MWO_FOG,            \
                                                gF_(128000/((max)-(min)),      \
                                                    16,16)|                    \
@@ -1139,7 +1220,7 @@ gsSPBranchLessZrg(branchdl,vtx,     \
 #define gsSPSetGeometryMode(mode)     gsSPGeometryMode(0,mode)
 #define gsSPClearGeometryMode(mode)   gsSPGeometryMode(mode,0)
 #define gsSPLine3D(v0,v1,flag)        gsSPLineW3D(v0,v1,0,flag)
-#define gsSPLineW3D(v0,v1,wd,flag)    gO_(0x08,                               \
+#define gsSPLineW3D(v0,v1,wd,flag)    gO_(G_LINE3D,                           \
                                           gF_(((flag)==0?gI_(v0):             \
                                                gI_(v1))*2,8,16)|              \
                                           gF_(((flag)==0?gI_(v1):             \
@@ -1151,14 +1232,15 @@ gsSPBranchLessZrg(branchdl,vtx,     \
                                                 G_MVO_LOOKATX,l),             \
                                       gsMoveMem(sizeof(Light),G_MV_LIGHT,     \
                                                 G_MVO_LOOKATY,gI_(l)+16)
-#define gsSPMatrix(matrix,param)      gO_(0xDA,gF_((sizeof(Mtx)-1)/8,5,19)|   \
+#define gsSPMatrix(matrix,param)      gO_(G_MTX,gF_((sizeof(Mtx)-1)/8,5,19)|  \
                                           gF_(gI_(param)^G_MTX_PUSH,8,0),     \
                                           matrix)
 #define gsSPModifyVertex(vtx,where, \
-                         val)         gO_(0x02,gF_(where,8,16)|               \
+                         val)         gO_(G_MODIFYVTX,gF_(where,8,16)|        \
                                           gF_((vtx)*2,16,0),val)
 #define gsSPPerspNormalize(scale)     gsMoveWd(G_MW_PERSPNORM,0,scale)
-#define gsSPPopMatrix(param)          gO_(0xD8,gF_((sizeof(Mtx)-1)/8,5,19)|   \
+#define gsSPPopMatrix(param)          gO_(G_POPMTX,                           \
+                                          gF_((sizeof(Mtx)-1)/8,5,19)|        \
                                           gF_(2,8,0),sizeof(Mtx))
 #define gsSPSegment(seg,base)         gsMoveWd(G_MW_SEGMENT,(seg)*4,base)
 #define gsSPSetLights0(lites)         gsSPNumLights(NUMLIGHTS_0),             \
@@ -1217,13 +1299,15 @@ gsSPBranchLessZrg(branchdl,vtx,     \
                                       gsMoveWd(G_MW_LIGHTCOL,                 \
                                                G_MWO_b##Lightnum,packedcolor)
 #define gsSPTexture(sc,tc,level,    \
-                    tile,on)          gO_(0xD7,gF_(level,3,11)|gF_(tile,3,8)| \
+                    tile,on)          gO_(G_TEXTURE,                          \
+                                          gF_(level,3,11)|gF_(tile,3,8)|      \
                                           gF_(on,7,1),gF_(sc,16,16)|          \
                                           gF_(tc,16,0))
 #define                             \
 gsSPTextureRectangle(ulx,uly,lrx,   \
                      lry,tile,s,t,  \
-                     dsdx,dtdy)       gO_(0xE4,gF_(lrx,12,12)|gF_(lry,12,0),  \
+                     dsdx,dtdy)       gO_(G_TEXRECT,                          \
+                                          gF_(lrx,12,12)|gF_(lry,12,0),       \
                                           gF_(tile,3,24)|gF_(ulx,12,12)|      \
                                           gF_(uly,12,0)),                     \
                                       gsDPHalf1(gF_(s,16,16)|gF_(t,16,0)),    \
@@ -1232,7 +1316,8 @@ gsSPTextureRectangle(ulx,uly,lrx,   \
 gsSPScisTextureRectangle(ulx,uly,   \
                          lrx,lry,   \
                          tile,s,t,  \
-                         dsdx,dtdy)   gO_(0xE4,gF_((lrx)<0?0:(lrx),12,12)|    \
+                         dsdx,dtdy)   gO_(G_TEXRECT,                          \
+                                          gF_((lrx)<0?0:(lrx),12,12)|         \
                                           gF_((lry)<0?0:(lry),12,0),          \
                                           gF_(tile,3,24)|                     \
                                           gF_((ulx)<0?0:(ulx),12,12)|         \
@@ -1248,41 +1333,44 @@ gsSPScisTextureRectangle(ulx,uly,   \
 gsSPTextureRectangleFlip(ulx,uly,   \
                          lrx,lry,   \
                          tile,s,t,  \
-                         dsdx,dtdy)   gO_(0xE5,gF_(lrx,12,12)|gF_(lry,12,0),  \
+                         dsdx,dtdy)   gO_(G_TEXRECTFLIP,                      \
+                                          gF_(lrx,12,12)|gF_(lry,12,0),       \
                                           gF_(tile,3,24)|gF_(ulx,12,12)|      \
                                           gF_(uly,12,0)),                     \
                                       gsDPHalf1(gF_(s,16,16)|gF_(t,16,0)),    \
                                       gsDPHalf2(gF_(dsdx,16,16)|gF_(dtdy,16,0))
-#define gsSPVertex(v,n,v0)            gO_(0x01,gF_(n,8,12)|gF_((v0)+(n),7,1),v)
+#define gsSPVertex(v,n,v0)            gO_(G_VTX,gF_(n,8,12)|gF_((v0)+(n),7,1),v)
 #define gsSPViewport(v)               gsMoveMem(sizeof(Vp),G_MV_VIEWPORT,0,v)
-#define gsSPBgRectCopy(bg)            gO_(0x0A,0,bg)
-#define gsSPBgRect1Cyc(bg)            gO_(0x09,0,bg)
-#define gsSPObjRectangle(sp)          gO_(0x01,0,sp)
-#define gsSPObjRectangleR(sp)         gO_(0xDA,0,sp)
-#define gsSPObjSprite(sp)             gO_(0x02,0,sp)
-#define gsSPObjMatrix(mtx)            gO_(0xDC,                               \
+#define gsSPBgRectCopy(bg)            gO_(G_BG_COPY,0,bg)
+#define gsSPBgRect1Cyc(bg)            gO_(G_BG_1CYC,0,bg)
+#define gsSPObjRectangle(sp)          gO_(G_OBJ_RECTANGLE,0,sp)
+#define gsSPObjRectangleR(sp)         gO_(G_OBJ_RECTANGLE_R,0,sp)
+#define gsSPObjSprite(sp)             gO_(G_OBJ_SPRITE,0,sp)
+#define gsSPObjMatrix(mtx)            gO_(G_OBJ_MOVEMEM,                      \
                                           gF_(sizeof(uObjMtx)-1,8,16),mtx)
-#define gsSPObjSubMatrix(mtx)         gO_(0xDC,                               \
+#define gsSPObjSubMatrix(mtx)         gO_(G_OBJ_MOVEMEM,                      \
                                           gF_(sizeof(uObjSubMtx)-1,8,16)|     \
                                           gF_(2,16,0),mtx)
-#define gsSPObjRenderMode(mode)       gO_(0x0B,0,mode)
-#define gsSPObjLoadTxtr(tx)           gO_(0x05,23,tx)
-#define gsSPObjLoadTxRect(txsp)       gO_(0x07,47,txsp)
-#define gsSPObjLoadTxRectR(txsp)      gO_(0x08,47,txsp)
-#define gsSPObjLoadTxSprite(txsp)     gO_(0x06,47,txsp)
+#define gsSPObjRenderMode(mode)       gO_(G_OBJ_RENDERMODE,0,mode)
+#define gsSPObjLoadTxtr(tx)           gO_(G_OBJ_LOADTXTR,23,tx)
+#define gsSPObjLoadTxRect(txsp)       gO_(G_OBJ_LDTX_RECT,47,txsp)
+#define gsSPObjLoadTxRectR(txsp)      gO_(G_OBJ_LDTX_RECT_R,47,txsp)
+#define gsSPObjLoadTxSprite(txsp)     gO_(G_OBJ_LDTX_SPRITE,47,txsp)
 #define gsSPSelectDL(ldl,sid,flag,  \
-                     mask)            gO_(0xE4,gF_(sid,8,16)|gF_(ldl,16,0),   \
+                     mask)            gO_(G_RDPHALF_0,                        \
+                                          gF_(sid,8,16)|gF_(ldl,16,0),        \
                                           flag),                              \
-                                      gO_(0x04,gF_(0x00,8,16)|                \
+                                      gO_(G_SELECT_DL,gF_(0x00,8,16)|         \
                                           gF_(gI_(ldl)>>16,16,0),mask)
 #define gsSPSelectBranchDL(bdl,sid, \
-                           flag,mask) gO_(0xE4,gF_(sid,8,16)|gF_(bdl,16,0),   \
+                           flag,mask) gO_(G_RDPHALF_0,                        \
+                                          gF_(sid,8,16)|gF_(bdl,16,0),        \
                                           flag),                              \
-                                      gO_(0x04,gF_(0x01,8,16)|                \
+                                      gO_(G_SELECT_DL,gF_(0x01,8,16)|         \
                                           gF_(gI_(bdl)>>16,16,0),mask)
 
 /* unlisted instructions */
-#define gsDPLoadTLUTCmd(tile,count)   gO_(0xF0,0,gF_(tile,3,24)|              \
+#define gsDPLoadTLUTCmd(tile,count)   gO_(G_LOADTLUT,0,gF_(tile,3,24)|        \
                                           gF_(count,10,14))
 #define gsDPLoadTLUT_palN(pal,dram,n) gsDPSetTextureImage(G_IM_FMT_RGBA,      \
                                                           G_IM_SIZ_16b,1,     \
@@ -1296,15 +1384,16 @@ gsSPTextureRectangleFlip(ulx,uly,   \
                                       gsDPLoadSync(),                         \
                                       gsDPLoadTLUTCmd(G_TX_LOADTILE,n),       \
                                       gsDPPipeSync()
-#define gsDPHalf1(wordhi)             gO_(0xE1,0,wordhi)
-#define gsDPHalf2(wordlo)             gO_(0xF1,0,wordlo)
+#define gsDPHalf1(wordhi)             gO_(G_RDPHALF_1,0,wordhi)
+#define gsDPHalf2(wordlo)             gO_(G_RDPHALF_2,0,wordlo)
 #define gsDPLoadTile(tile,uls,ult,  \
-                     lrs,lrt)         gO_(0xF4,gF_(uls,12,12)|gF_(ult,12,0),  \
+                     lrs,lrt)         gO_(G_LOADTILE,                         \
+                                          gF_(uls,12,12)|gF_(ult,12,0),       \
                                           gF_(tile,3,24)|gF_(lrs,12,12)|      \
                                           gF_(lrt,12,0))
 #define gsSPGeometryMode(clearbits, \
-                         setbits)     gO_(0xD9,gF_(~gI_(clearbits),24,0),     \
-                                          setbits)
+                         setbits)     gO_(G_GEOMETRYMODE,                     \
+                                          gF_(~gI_(clearbits),24,0),setbits)
 #define                             \
 gsSPSetOtherMode(opc,shift,length,  \
                  data)                gO_(opc,                                \
@@ -1312,20 +1401,23 @@ gsSPSetOtherMode(opc,shift,length,  \
                                           gF_((length)-1,8,0),data)
 #define gsSPSetOtherModeLo(shift,   \
                            length,  \
-                           data)      gsSPSetOtherMode(0xE2,shift,length,data)
+                           data)      gsSPSetOtherMode(G_SETOTHERMODE_L,      \
+                                                       shift,length,data)
 #define gsSPSetOtherModeHi(shift,   \
                            length,  \
-                           data)      gsSPSetOtherMode(0xE3,shift,length,data)
-#define gsMoveWd(index,offset,data)   gO_(0xDB,gF_(index,8,16)|               \
+                           data)      gsSPSetOtherMode(G_SETOTHERMODE_H,      \
+                                                       shift,length,data)
+#define gsMoveWd(index,offset,data)   gO_(G_MOVEWORD,gF_(index,8,16)|         \
                                           gF_(offset,16,0),data)
 #define gsMoveMem(size,index,       \
-                  offset,address)     gO_(0xDC,gF_((size-1)/8,5,19)|          \
+                  offset,address)     gO_(G_MOVEMEM,gF_((size-1)/8,5,19)|     \
                                           gF_((offset)/8,8,8)|                \
                                           gF_(index,8,0),address)
 #define                             \
 gsSPLoadUcodeEx(uc_start,uc_dstart, \
                 uc_dsize)             gsDPHalf1(uc_dstart),                   \
-                                      gO_(0xDD,gF_((uc_dsize)-1,16,0),uc_start)
+                                      gO_(G_LOAD_UCODE,                       \
+                                          gF_((uc_dsize)-1,16,0),uc_start)
 
 /* dynamic instruction macros */
 #define gDisplayListPut(gdl,...)      {Gfx Gdl__[]={__VA_ARGS__};             \
@@ -1369,7 +1461,7 @@ gsSPLoadUcodeEx(uc_start,uc_dstart, \
 #define gDPSetAlphaCompare(gdl,...)   gD_(gdl,gsDPSetAlphaCompare,__VA_ARGS__)
 #define gDPSetAlphaDither(gdl,...)    gD_(gdl,gsDPSetAlphaDither,__VA_ARGS__)
 #define gDPSetColorDither(gdl,...)    gD_(gdl,gsDPSetColorDither,__VA_ARGS__)
-#define gDPSetCombineMode(gdl,...)    gD_(gdl,gsDPSetCombineMode,__VA_ARGS__)
+#define gDPSetCombineMode(gdl,...)    gD_(gdl,gsDPSetCombineLERP,__VA_ARGS__)
 #define gDPSetCombineLERP(gdl,...)    gD_(gdl,gsDPSetCombineLERP,__VA_ARGS__)
 #define gDPSetConvert(gdl,...)        gD_(gdl,gsDPSetConvert,__VA_ARGS__)
 #define gDPSetTextureConvert(gdl,...) gD_(gdl,gsDPSetTextureConvert,__VA_ARGS__)
@@ -1446,6 +1538,18 @@ gsSPLoadUcodeEx(uc_start,uc_dstart, \
 #define gSPObjLoadTxSprite(gdl,...)   gD_(gdl,gsSPObjLoadTxSprite,__VA_ARGS__)
 #define gSPSelectDL(gdl,...)          gD_(gdl,gsSPSelectDL,__VA_ARGS__)
 #define gSPSelectBranchDL(gdl,...)    gD_(gdl,gsSPSelectBranchDL,__VA_ARGS__)
+#define gDPLoadTLUTCmd(gdl,...)       gD_(gdl,gsDPLoadTLUTCmd,__VA_ARGS__)
+#define gDPLoadTLUT_palN(gdl,...)     gD_(gdl,gsDPLoadTLUT_palN,__VA_ARGS__)
+#define gDPHalf1(gdl,...)             gD_(gdl,gsDPHalf1,__VA_ARGS__)
+#define gDPHalf2(gdl,...)             gD_(gdl,gsDPHalf2,__VA_ARGS__)
+#define gDPLoadTile(gdl,...)          gD_(gdl,gsDPLoadTile,__VA_ARGS__)
+#define gSPGeometryMode(gdl,...)      gD_(gdl,gsSPGeometryMode,__VA_ARGS__)
+#define gSPSetOtherMode(gdl,...)      gD_(gdl,gsSPSetOtherMode,__VA_ARGS__)
+#define gSPSetOtherModeLo(gdl,...)    gD_(gdl,gsSPSetOtherModeLo,__VA_ARGS__)
+#define gSPSetOtherModeHi(gdl,...)    gD_(gdl,gsSPSetOtherModeHi,__VA_ARGS__)
+#define gMoveWd(gdl,...)              gD_(gdl,gsMoveWd,__VA_ARGS__)
+#define gMoveMem(gdl,...)             gD_(gdl,gsMoveMem,__VA_ARGS__)
+
 
 /* data types and structures */
 typedef int16_t   qs48_t;
@@ -1489,16 +1593,15 @@ typedef union
 } Hilite;
 
 typedef int32_t Mtx_t[4][4];
-typedef int16_t Mtx_ti[4][4];
-typedef uint16_t Mtx_tf[4][4];
 typedef union
 {
   _Alignas(8)
   Mtx_t           m;
+  int32_t         l[16];
   struct
   {
-    Mtx_ti        i;
-    Mtx_tf        f;
+    int16_t       i[16];
+    uint16_t      f[16];
   };
 } Mtx;
 
@@ -1770,18 +1873,18 @@ typedef struct
 #define GS_PAL_NUM(num)               ((num)-1)
 
 /* fixed-point conversion macros */
-#define ntoqs48(n)                    ((qs48_t)((n)*0x0100))
-#define ntoqs510(n)                   ((qs510_t)((n)*0x0400))
-#define ntoqu510(n)                   ((qu510_t)((n)*0x0400))
-#define ntoqs102(n)                   ((qs102_t)((n)*0x0004))
-#define ntoqu102(n)                   ((qu102_t)((n)*0x0004))
-#define ntoqs105(n)                   ((qs105_t)((n)*0x0020))
-#define ntoqu105(n)                   ((qu105_t)((n)*0x0020))
-#define ntoqs132(n)                   ((qs132_t)((n)*0x0004))
-#define ntoqs142(n)                   ((qs142_t)((n)*0x0004))
-#define ntoqs1516(n)                  ((qs1516_t)((n)*0x00010000))
-#define ntoqs1616(n)                  ((qs1616_t)((n)*0x00010000))
-#define ntoqs205(n)                   ((qs205_t)((n)*0x00000020))
+#define qs48(n)                       ((qs48_t)((n)*0x0100))
+#define qs510(n)                      ((qs510_t)((n)*0x0400))
+#define qu510(n)                      ((qu510_t)((n)*0x0400))
+#define qs102(n)                      ((qs102_t)((n)*0x0004))
+#define qu102(n)                      ((qu102_t)((n)*0x0004))
+#define qs105(n)                      ((qs105_t)((n)*0x0020))
+#define qu105(n)                      ((qu105_t)((n)*0x0020))
+#define qs132(n)                      ((qs132_t)((n)*0x0004))
+#define qs142(n)                      ((qs142_t)((n)*0x0004))
+#define qs1516(n)                     ((qs1516_t)((n)*0x00010000))
+#define qs1616(n)                     ((qs1616_t)((n)*0x00010000))
+#define qs205(n)                      ((qs205_t)((n)*0x00000020))
 
 /* private helper macros */
 #define gI_(i)                        ((uint32_t)(i))

@@ -24,6 +24,7 @@ void *vector_insert(struct vector *vector, size_t position, size_t num,
                     const void *data);
 void *vector_push_back(struct vector *vector, size_t num, const void *data);
 int vector_erase(struct vector *vector, size_t position, size_t num);
+int vector_shrink_to_fit(struct vector *vector);
 void *vector_release(struct vector *vector);
 void vector_clear(struct vector *vector);
 void vector_destroy(struct vector *vector);

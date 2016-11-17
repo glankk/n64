@@ -87,80 +87,80 @@ SECTIONS
   }
   __bss_end = . ;
 
+  end = ALIGN(8) ;
+
   .debug 0 :
   {
-    *(.debug)
+    KEEP(*(.debug))
   }
   .line 0 :
   {
-    *(.line)
+    KEEP(*(.line))
   }
   .debug_srcinfo 0 :
   {
-    *(.debug_srcinfo)
+    KEEP(*(.debug_srcinfo))
   }
   .debug_sfnames 0 :
   {
-    *(.debug_sfnames)
+    KEEP(*(.debug_sfnames))
   }
   .debug_aranges 0 :
   {
-    *(.debug_aranges)
+    KEEP(*(.debug_aranges))
   }
   .debug_pubnames 0 :
   {
-    *(.debug_pubnames)
+    KEEP(*(.debug_pubnames))
   }
   .debug_info 0 :
   {
-    *(.debug_info)
+    KEEP(*(.debug_info))
   }
   .debug_abbrev 0 :
   {
-    *(.debug_abbrev)
+    KEEP(*(.debug_abbrev))
   }
   .debug_line 0 :
   {
-    *(.debug_line)
+    KEEP(*(.debug_line))
   }
   .debug_frame 0 :
   {
-    *(.debug_frame)
+    KEEP(*(.debug_frame))
   }
   .debug_str 0 :
   {
-    *(.debug_str)
+    KEEP(*(.debug_str))
   }
   .debug_loc 0 :
   {
-    *(.debug_loc)
+    KEEP(*(.debug_loc))
   }
   .debug_macinfo 0 :
   {
-    *(.debug_macinfo)
+    KEEP(*(.debug_macinfo))
   }
   .debug_ranges 0 :
   {
-    *(.debug_ranges)
+    KEEP(*(.debug_ranges))
   }
   .debug_weaknames 0 :
   {
-    *(.debug_weaknames)
+    KEEP(*(.debug_weaknames))
   }
   .debug_funcnames 0 :
   {
-    *(.debug_funcnames)
+    KEEP(*(.debug_funcnames))
   }
   .debug_typenames 0 :
   {
-    *(.debug_typenames)
+    KEEP(*(.debug_typenames))
   }
   .debug_varnames 0 :
   {
-    *(.debug_varnames)
+    KEEP(*(.debug_varnames))
   }
-
-  end = ALIGN(8) ;
 
   /DISCARD/ :
   {

@@ -51,16 +51,10 @@ void *vector_insert(struct vector *vector, size_t position, size_t num,
       new_cap = vector->size + num;
   }
   if (new_cap != vector->capacity) {
-    char *new_data = (char*)malloc(vector->element_size * new_cap);
+    char *new_data = (char*)realloc(vector->begin,
+                                    vector->element_size * new_cap);
     if (!new_data)
       return 0;
-    if (vector->begin) {
-      memcpy(new_data, vector->begin, vector->element_size * position);
-      memcpy(new_data + vector->element_size * (position + num),
-             (char*)vector->begin + vector->element_size * position,
-             vector->element_size * (vector->size - position));
-      free(vector->begin);
-    }
     vector->begin = new_data;
     vector->rend = new_data - vector->element_size;
     vector->capacity = new_cap;
@@ -97,6 +91,21 @@ int vector_erase(struct vector *vector, size_t position, size_t num)
   vector->size -= num;
   vector->end = (char*)vector->begin + vector->element_size * vector->size;
   vector->rbegin = (char*)vector->end - vector->element_size;
+  return 1;
+}
+
+int vector_shrink_to_fit(struct vector *vector)
+{
+  size_t new_cap = vector->size;
+  char *new_data = (char*)realloc(vector->begin,
+                                  vector->element_size * new_cap);
+  if (!new_data)
+    return 0;
+  vector->begin = new_data;
+  vector->rend = new_data - vector->element_size;
+  vector->end = (char*)vector->begin + vector->element_size * vector->size;
+  vector->rbegin = (char*)vector->end - vector->element_size;
+  vector->capacity = new_cap;
   return 1;
 }
 
