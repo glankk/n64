@@ -9,24 +9,24 @@ struct n64_header
 {
   struct
   {
-    unsigned endian : 8;
-    unsigned rls    : 4;
-    unsigned pgs    : 4;
-    unsigned pwd    : 8;
-    unsigned lat    : 8;
-  };
-  uint32_t clock;
-  uint32_t pc;
-  uint32_t release;
-  uint32_t crc1;
-  uint32_t crc2;
-  char     reserved_0[8];
-  char     name[20];
-  char     reserved_1[7];
-  char     format;
-  char     id[2];
-  char     region;
-  uint8_t  version;
+    uint32_t  endian : 8;
+    uint32_t  rls    : 4;
+    uint32_t  pgs    : 4;
+    uint32_t  pwd    : 8;
+    uint32_t  lat    : 8;
+  }           pi_bsd_dom1;
+  uint32_t    clock;
+  uint32_t    pc;
+  uint32_t    release;
+  uint32_t    crc1;
+  uint32_t    crc2;
+  char        reserved_00_[0x0008];
+  char        name[20];
+  char        reserved_01_[0x0007];
+  char        format;
+  char        id[2];
+  char        region;
+  uint8_t     version;
 };
 
 static struct n64_header *get_header(struct gru_n64rom *n64rom)

@@ -54,6 +54,10 @@ SECTIONS
 
   .data :
   {
+    __RESOURCE_LIST__ = . ;
+    KEEP(*(.data.resource_table))
+    __RESOURCE_END__ = . ;
+    KEEP(*(.data.resource_data))
     *(.data .data.*)
     *(.gnu.linkonce.d.*)
   }
@@ -63,6 +67,7 @@ SECTIONS
     *(.sdata .sdata.*)
     *(.gnu.linkonce.s.*)
   }
+
   .lit8 :
   {
     *(.lit8)
