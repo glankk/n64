@@ -3,13 +3,13 @@
 #include <jansson.h>
 #include "texture.h"
 
-typedef struct
+struct param
 {
   const char   *name;
   const char  **p_str;
-} param_t;
+};
 
-static const char  *g_default_error_message[] =
+static const char    *g_default_error_message[] =
 {
   "success",
   "invalid parameter",
@@ -18,15 +18,16 @@ static const char  *g_default_error_message[] =
   "file output error",
   "data malformed",
 };
-static grc_error_t  g_error_code;
-static char         g_error_message[2048];
+static enum grc_error g_error_code;
+static char           g_error_message[2048];
 
-static grc_res_type_t g_res_types[] =
+static struct grc_res_type g_res_types[] =
 {
   {"texture", make_texture},
 };
 
-grc_error_t grc_set_error(grc_error_t error_code, const char *format, ...)
+enum grc_error grc_set_error(enum grc_error error_code,
+                             const char *format, ...)
 {
   g_error_code = error_code;
   if (format) {
@@ -40,8 +41,8 @@ grc_error_t grc_set_error(grc_error_t error_code, const char *format, ...)
   return g_error_code;
 }
 
-static grc_error_t parse_args(int argc, char *argv[],
-                              param_t params[], size_t no_params)
+static enum grc_error parse_args(int argc, char *argv[],
+                                 struct param params[], size_t no_params)
 {
   for (int i = 1; i < argc; ++i) {
     _Bool match_found = 0;
@@ -73,12 +74,12 @@ static grc_error_t parse_args(int argc, char *argv[],
   return grc_set_error(GRC_SUCCESS, NULL);
 }
 
-static grc_error_t parse_descriptor(const char *descriptor_file,
-                                    const char *descriptor_name,
-                                    json_t **j_root,
-                                    json_t **j_descriptor,
-                                    const char **resource_type,
-                                    const char **resource_name)
+static enum grc_error parse_descriptor(const char *descriptor_file,
+                                       const char *descriptor_name,
+                                       json_t **j_root,
+                                       json_t **j_descriptor,
+                                       const char **resource_type,
+                                       const char **resource_name)
 {
   *j_root = json_load_file(descriptor_file, 0, NULL);
   if (!*j_root)
@@ -129,7 +130,7 @@ int main(int argc, char *argv[])
   const char *descriptor_name = NULL;
   {
     /* parse arguments */
-    param_t params[] =
+    struct param params[] =
     {
       {NULL, &input_file},
       {"-o", &output_file},

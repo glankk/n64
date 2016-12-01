@@ -37,9 +37,9 @@ void operator delete[](void *p) noexcept
 extern "C"
 {
 
-void                 *__dso_handle = nullptr;
-static atexit_entry   atexit_entries[ATEXIT_MAX] {};
-static size_t         atexit_count = 0;
+void                   *__dso_handle = nullptr;
+static atexit_entry_t   atexit_entries[ATEXIT_MAX] {};
+static size_t           atexit_count = 0;
 
 int __cxa_guard_acquire(int64_t *g)
 {

@@ -10,7 +10,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-typedef struct
+struct format_info
 {
   const char   *name;
   size_t        bpp;
@@ -19,7 +19,7 @@ typedef struct
                            size_t width, size_t height);
   uint8_t       im_fmt;
   uint8_t       im_siz;
-} format_info_t;
+};
 
 static uint8_t make_i(uint8_t **src)
 {
@@ -135,10 +135,10 @@ static void make_ia4(void *dest, void *src, size_t line_width,
   uint8_t  *d = dest;
   uint8_t  *s = src;
   uint8_t   b = 0;
-  int       n = 0;
   for (size_t y = 0; y < tile_height; ++y) {
-    uint8_t *l = s;
-    for (size_t x = 0; x < tile_width + y / (tile_height - 1); ++x) {
+    uint8_t  *l = s;
+    int       n = 0;
+    for (size_t x = 0; x <= tile_width; ++x) {
       uint8_t p = 0;
       if (x < width && y < height) {
         uint8_t i = (make_i(&l) * 7  + 127) / 255;
@@ -184,10 +184,10 @@ static void make_i4(void *dest, void *src, size_t line_width,
   uint8_t  *d = dest;
   uint8_t  *s = src;
   uint8_t   b = 0;
-  int       n = 0;
   for (size_t y = 0; y < tile_height; ++y) {
-    uint8_t *l = s;
-    for (size_t x = 0; x < tile_width + y / (tile_height - 1); ++x) {
+    uint8_t  *l = s;
+    int       n = 0;
+    for (size_t x = 0; x <= tile_width; ++x) {
       uint8_t p = 0;
       if (x < width && y < height) {
         p = (make_i(&l) * 15 + 127) / 255;
@@ -205,7 +205,7 @@ static void make_i4(void *dest, void *src, size_t line_width,
   }
 }
 
-static format_info_t format_info[] =
+static struct format_info format_info[] =
 {
   {"rgba32", 32, make_rgba32, G_IM_FMT_RGBA, G_IM_SIZ_32b},
   {"rgba16", 16, make_rgba16, G_IM_FMT_RGBA, G_IM_SIZ_16b},
@@ -216,11 +216,11 @@ static format_info_t format_info[] =
   {"i4",     4,  make_i4,     G_IM_FMT_I,    G_IM_SIZ_4b},
 };
 
-grc_error_t make_texture(const char *input_file, const char *output_file,
-                         const char *resource_name, json_t *j_descriptor)
+enum grc_error make_texture(const char *input_file, const char *output_file,
+                            const char *resource_name, json_t *j_descriptor)
 {
   /* parse descriptor */
-  format_info_t *fi = &format_info[0];
+  struct format_info *fi = &format_info[0];
   int tile_width = 0;
   int tile_height = 0;
   if (j_descriptor) {
@@ -270,8 +270,9 @@ grc_error_t make_texture(const char *input_file, const char *output_file,
                      64 * 64;
   size_t tiles_x = (image_width + tile_width - 1) / tile_width;
   size_t tiles_y = (image_height + tile_height - 1) / tile_height;
-  size_t resource_size = sizeof(grc_texture_t) + tile_size * tiles_x * tiles_y;
-  grc_texture_t *resource_data = malloc(resource_size);
+  size_t resource_size = sizeof(struct grc_texture) +
+                         tile_size * tiles_x * tiles_y;
+  struct grc_texture *resource_data = malloc(resource_size);
   if (!resource_data) {
     stbi_image_free(image_data);
     return grc_set_error(GRC_ERROR_MEMORY, NULL);
@@ -302,8 +303,8 @@ grc_error_t make_texture(const char *input_file, const char *output_file,
   }
   stbi_image_free(image_data);
   /* make resource */
-  grc_error_t e = make_resource(output_file, resource_name, resource_data,
-                                resource_size);
+  enum grc_error e = make_resource(output_file, resource_name, resource_data,
+                                   resource_size);
   free(resource_data);
   if (e)
     return e;

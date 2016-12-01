@@ -5,7 +5,7 @@
 #include <inttypes.h>
 #include "resource.h"
 
-static grc_error_t print_data(FILE *f, const void *data, size_t size)
+static enum grc_error print_data(FILE *f, const void *data, size_t size)
 {
   if (fputs(".byte ", f) == EOF)
     goto io_error;
@@ -25,10 +25,10 @@ io_error:
   return grc_set_error(GRC_ERROR_FILEOUT, NULL);
 }
 
-static grc_error_t make_resource_src(const char *file_name,
-                                     const char *resource_name,
-                                     const void *resource_data,
-                                     size_t resource_size)
+static enum grc_error make_resource_src(const char *file_name,
+                                        const char *resource_name,
+                                        const void *resource_data,
+                                        size_t resource_size)
 {
   FILE *f = fopen(file_name, "w");
   if (!f)
@@ -40,7 +40,7 @@ static grc_error_t make_resource_src(const char *file_name,
   if (fputs(".section .data\n"
             "resource_name: ", f) == EOF)
     goto io_error;
-  grc_error_t e = print_data(f, resource_name, strlen(resource_name) + 1);
+  enum grc_error e = print_data(f, resource_name, strlen(resource_name) + 1);
   if (e)
     return e;
   if (fputs(".section .data.resource_data\n"
@@ -56,8 +56,8 @@ io_error:
   return grc_set_error(GRC_ERROR_FILEOUT, NULL);
 }
 
-grc_error_t make_resource(const char *file_name, const char *resource_name,
-                          const void *resource_data, size_t resource_size)
+enum grc_error make_resource(const char *file_name, const char *resource_name,
+                             const void *resource_data, size_t resource_size)
 {
   const char *as = getenv("AS");
   if (!as)
@@ -69,8 +69,8 @@ grc_error_t make_resource(const char *file_name, const char *resource_name,
   if (!c)
     return grc_set_error(GRC_ERROR_MEMORY, NULL);
   sprintf(c, f, as, resource_src_name, file_name);
-  grc_error_t e = make_resource_src(resource_src_name, resource_name,
-                                    resource_data, resource_size);
+  enum grc_error e = make_resource_src(resource_src_name, resource_name,
+                                       resource_data, resource_size);
   if (e)
     goto exit;
   if (system(c)) {
