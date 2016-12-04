@@ -262,8 +262,11 @@ enum grc_error make_texture(const char *input_file, const char *output_file,
     return grc_set_error(GRC_ERROR_FILEIN, "failed to load image `%s`",
                          input_file);
   /* prepare texture */
-  if (tile_width <= 0)
+  if (tile_width <= 0) {
     tile_width = image_width;
+    if (fi->bpp == 4)
+      tile_width += tile_width % 2;
+  }
   if (tile_height <= 0)
     tile_height = image_height;
   size_t tile_size = ((tile_width * tile_height * fi->bpp + 7) / 8 + 63) /
