@@ -25,6 +25,8 @@ void *list_next_in(const struct list *list, const void *element);
 void *list_at(const struct list *list, size_t position);
 void *list_insert_size(struct list *list, void *element, size_t size,
                        const void *data);
+void  list_transfer(struct list *dest, void *position,
+                    struct list *src, void *element);
 void *list_insert(struct list *list, void *element, const void *data);
 void *list_insert_after_size(struct list *list, void *element, size_t size,
                              const void *data);

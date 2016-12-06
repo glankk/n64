@@ -26,8 +26,8 @@ void list_init(struct list *list, size_t element_size)
 {
   list->element_size = element_size;
   list->size = 0;
-  list->first = 0;
-  list->last = 0;
+  list->first = NULL;
+  list->last = NULL;
 }
 
 void *list_prev(const void *element)
@@ -38,7 +38,7 @@ void *list_prev(const void *element)
   if (header->prev)
     return (char*)header->prev + ELEMENT_HEADER_SIZE;
   else
-    return 0;
+    return NULL;
 }
 
 void *list_next(const void *element)
@@ -49,19 +49,19 @@ void *list_next(const void *element)
   if (header->next)
     return (char*)header->next + ELEMENT_HEADER_SIZE;
   else
-    return 0;
+    return NULL;
 }
 
 void *list_prev_in(const struct list *list, const void *element)
 {
-  if (element == 0)
+  if (!element)
     return list->last;
   return list_prev(element);
 }
 
 void *list_next_in(const struct list *list, const void *element)
 {
-  if (element == 0)
+  if (!element)
     return list->first;
   return list_next(element);
 }
@@ -69,7 +69,7 @@ void *list_next_in(const struct list *list, const void *element)
 void *list_at(const struct list *list, size_t position)
 {
   if (list->size == 0)
-    return 0;
+    return NULL;
   struct list_element_header *header = (struct list_element_header*)
                                        ((char*)list->first -
                                         ELEMENT_HEADER_SIZE);
@@ -77,7 +77,7 @@ void *list_at(const struct list *list, size_t position)
     if (header->next)
       header = header->next;
     else
-      return 0;
+      return NULL;
   }
   return (char*)header + ELEMENT_HEADER_SIZE;
 }
@@ -88,7 +88,7 @@ void *list_insert_size(struct list *list, void *element, size_t size,
   struct list_element_header *new_header = (struct list_element_header*)
                                            malloc(ELEMENT_HEADER_SIZE + size);
   if (!new_header)
-    return 0;
+    return NULL;
   void *new_data = (char*)new_header + ELEMENT_HEADER_SIZE;
   if (data)
     memcpy(new_data, data, size);
@@ -106,7 +106,7 @@ void *list_insert_size(struct list *list, void *element, size_t size,
   }
   else {
     if (list->size == 0) {
-      new_header->prev = 0;
+      new_header->prev = NULL;
       list->first = new_data;
     }
     else {
@@ -114,11 +114,62 @@ void *list_insert_size(struct list *list, void *element, size_t size,
                                                        ELEMENT_HEADER_SIZE);
       new_header->prev->next = new_header;
     }
-    new_header->next = 0;
+    new_header->next = NULL;
     list->last = new_data;
   }
   ++list->size;
   return new_data;
+}
+
+void list_transfer(struct list *dest, void *position,
+                   struct list *src, void *element)
+{
+  struct list_element_header *e_header = (struct list_element_header*)
+                                         ((char*)element -
+                                          ELEMENT_HEADER_SIZE);
+  if (element == src->first) {
+    if (e_header->next)
+      src->first = (void*)((char*)e_header->next + ELEMENT_HEADER_SIZE);
+    else
+      src->first = NULL;
+  }
+  if (element == src->last) {
+    if (e_header->prev)
+      src->last = (void*)((char*)e_header->prev + ELEMENT_HEADER_SIZE);
+    else
+      src->last = NULL;
+  }
+  if (e_header->prev)
+    e_header->prev->next = e_header->next;
+  if (e_header->next)
+    e_header->next->prev = e_header->prev;
+  if (position) {
+    struct list_element_header *p_header = (struct list_element_header*)
+                                           ((char*)position -
+                                            ELEMENT_HEADER_SIZE);
+    e_header->prev = p_header->prev;
+    e_header->next = p_header;
+    if (p_header->prev)
+      p_header->prev->next = e_header;
+    p_header->prev = e_header;
+    if (position == dest->first)
+      dest->first = element;
+  }
+  else {
+    if (dest->size == 0) {
+      e_header->prev = NULL;
+      dest->first = element;
+    }
+    else {
+      e_header->prev = (struct list_element_header*)((char*)dest->last -
+                                                     ELEMENT_HEADER_SIZE);
+      e_header->prev->next = e_header;
+    }
+    e_header->next = NULL;
+    dest->last = element;
+  }
+  --src->size;
+  ++dest->size;
 }
 
 void *list_insert(struct list *list, void *element, const void *data)
@@ -140,12 +191,12 @@ void *list_insert_after(struct list *list, void *element, const void *data)
 
 void *list_push_back_size(struct list *list, size_t size, const void *data)
 {
-  return list_insert_size(list, 0, size, data);
+  return list_insert_size(list, NULL, size, data);
 }
 
 void *list_push_back(struct list *list, const void *data)
 {
-  return list_insert_size(list, 0, list->element_size, data);
+  return list_insert_size(list, NULL, list->element_size, data);
 }
 
 void list_erase(struct list *list, void *element)
@@ -156,13 +207,13 @@ void list_erase(struct list *list, void *element)
     if (header->next)
       list->first = (void*)((char*)header->next + ELEMENT_HEADER_SIZE);
     else
-      list->first = 0;
+      list->first = NULL;
   }
   if (element == list->last) {
     if (header->prev)
       list->last = (void*)((char*)header->prev + ELEMENT_HEADER_SIZE);
     else
-      list->last = 0;
+      list->last = NULL;
   }
   if (header->prev)
     header->prev->next = header->next;
@@ -174,7 +225,7 @@ void list_erase(struct list *list, void *element)
 
 void list_destroy(struct list *list)
 {
-  struct list_element_header *header = 0;
+  struct list_element_header *header = NULL;
   if (list->first)
     header = (struct list_element_header*)((char*)list->first -
                                            ELEMENT_HEADER_SIZE);
