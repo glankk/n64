@@ -1,5 +1,5 @@
 /**
- * gbi.h version 0.1rev2
+ * gbi.h version 0.1rev3
  * n64 graphics microcode interface library
  * compatible with f3dex2 and s2dex2
  * -glank
@@ -709,6 +709,26 @@
                                       0,0,0,COMBINED
 #define G_CC_YUV2RGB                  TEXEL1,K4,K5,TEXEL1,0,0,0,0
 #define G_CC_PASS2                    0,0,0,COMBINED,0,0,0,COMBINED
+#define G_CC_LERP(a0,b0,c0,d0,Aa0,  \
+                  Ab0,Ac0,Ad0,a1,   \
+                  b1,c1,d1,Aa1,     \
+                  Ab1,Ac1,Ad1)        (gFL_(G_CCMUX_##a0,4,52)|               \
+                                       gFL_(G_CCMUX_##c0,5,47)|               \
+                                       gFL_(G_ACMUX_##Aa0,3,44)|              \
+                                       gFL_(G_ACMUX_##Ac0,3,41)|              \
+                                       gFL_(G_CCMUX_##a1,4,37)|               \
+                                       gFL_(G_CCMUX_##c1,5,32)|               \
+                                       gFL_(G_CCMUX_##b0,4,28)|               \
+                                       gFL_(G_CCMUX_##b1,4,24)|               \
+                                       gFL_(G_ACMUX_##Aa1,3,21)|              \
+                                       gFL_(G_ACMUX_##Ac1,3,18)|              \
+                                       gFL_(G_CCMUX_##d0,3,15)|               \
+                                       gFL_(G_ACMUX_##Ab0,3,12)|              \
+                                       gFL_(G_ACMUX_##Ad0,3,9)|               \
+                                       gFL_(G_CCMUX_##d1,3,6)|                \
+                                       gFL_(G_ACMUX_##Ab1,3,3)|               \
+                                       gFL_(G_ACMUX_##Ad1,3,0))
+#define G_CC_MODE(mode1,mode2)        G_CC_LERP(mode1,mode2)
 
 /* scissor modes */
 #define G_SC_NON_INTERLACE            gI_(0b00)
@@ -850,11 +870,11 @@
 /* color macros */
 #define G_MAXZ                        0x03FF
 #define G_MAXFBZ                      0x3FFF
-#define GPACK_RGBA5551(r,g,b,a)       (((gI_(r)<<8)&0xF800)|                  \
-                                       ((gI_(g)<<3)&0x07C0)|                  \
-                                       ((gI_(b)>>2)&0x003E)|                  \
-                                       ((gI_(a)>>0)&0x0001))
-#define GPACK_ZDZ(z,dz)               (gI_(z)<<2|gI_(dz))
+#define GPACK_RGBA5551(r,g,b,a)       (gF_(r,5,11)|gF_(g,5,6)|                \
+                                       gF_(b,5,1)|gF_(a,1,0))
+#define GPACK_RGBA8888(r,g,b,a)       (gF_(r,8,24)|gF_(g,8,16)|                \
+                                       gF_(b,8,8)|gF_(a,8,0))
+#define GPACK_ZDZ(z,dz)               (gF_(z,14,2)|gF_(dz,2,0))
 
 /* structure definition macros */
 #define gdSPDefMtx(xx,xy,xz,xw,     \
@@ -1540,6 +1560,8 @@ gsSPTextureRectangleFlip(ulx,uly,   \
                                           gF_(uls,12,12)|gF_(ult,12,0),       \
                                           gF_(tile,3,24)|gF_(lrs,12,12)|      \
                                           gF_(lrt,12,0))
+#define gsDPSetCombine(c)             gO_(G_SETCOMBINE,(c>>32)&0xFFFFFFFF,    \
+                                          (c>>0)&0xFFFFFFFF)
 #define gsSPGeometryMode(clearbits, \
                          setbits)     gO_(G_GEOMETRYMODE,                     \
                                           gF_(~gI_(clearbits),24,0),setbits)
@@ -1692,6 +1714,7 @@ gsSPLoadUcodeEx(uc_start,uc_dstart, \
 #define gDPHalf1(gdl,...)             gD_(gdl,gsDPHalf1,__VA_ARGS__)
 #define gDPHalf2(gdl,...)             gD_(gdl,gsDPHalf2,__VA_ARGS__)
 #define gDPLoadTile(gdl,...)          gD_(gdl,gsDPLoadTile,__VA_ARGS__)
+#define gDPSetCombine(gdl,...)        gD_(gdl,gsDPSetCombine,__VA_ARGS__)
 #define gSPGeometryMode(gdl,...)      gD_(gdl,gsSPGeometryMode,__VA_ARGS__)
 #define gSPSetOtherMode(gdl,...)      gD_(gdl,gsSPSetOtherMode,__VA_ARGS__)
 #define gSPSetOtherModeLo(gdl,...)    gD_(gdl,gsSPSetOtherModeLo,__VA_ARGS__)
@@ -2037,7 +2060,9 @@ typedef struct
 
 /* private helper macros */
 #define gI_(i)                        ((uint32_t)(i))
+#define gL_(l)                        ((uint64_t)(l))
 #define gF_(i,n,s)                    ((gI_(i)&((gI_(1)<<(n))-1))<<(s))
+#define gFL_(l,n,s)                   ((gL_(l)&((gL_(1)<<(n))-1))<<(s))
 #define gO_(opc,hi,lo)                {gF_(opc,8,24)|gI_(hi),gI_(lo)}
 #define gD_(gdl,m,...)                gDisplayListPut(gdl,m(__VA_ARGS__))
 
