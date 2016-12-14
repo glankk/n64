@@ -13,15 +13,15 @@ extern "C"
 {
 #endif
 
-void clear_bss();
-void do_global_ctors();
-void do_global_dtors();
+void clear_bss(void);
+void do_global_ctors(void);
+void do_global_dtors(void);
 
 #ifdef __cplusplus
 }
 #endif
 
-static inline void init_gp()
+static inline void init_gp(void)
 {
   __asm__ volatile("la $gp, _gp");
 }

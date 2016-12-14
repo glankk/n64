@@ -13,12 +13,12 @@ static int global_ctors_done = 0;
 static int global_dtors_done = 0;
 
 extern void *__bss_start, *__bss_end;
-extern void (*__CTOR_LIST__[])();
-extern void (*__CTOR_END__[])();
-extern void (*__DTOR_LIST__[])();
-extern void (*__DTOR_END__[])();
+extern void (*__CTOR_LIST__[])(void);
+extern void (*__CTOR_END__[])(void);
+extern void (*__DTOR_LIST__[])(void);
+extern void (*__DTOR_END__[])(void);
 
-void clear_bss()
+void clear_bss(void)
 {
   uint8_t *bss_start = (void*)&__bss_start;
   uint8_t *bss_end = (void*)&__bss_end;
@@ -26,7 +26,7 @@ void clear_bss()
     *bss_start++ = 0x00;
 }
 
-void do_global_ctors()
+void do_global_ctors(void)
 {
   if (!global_ctors_done) {
     global_ctors_done = 1;
@@ -38,7 +38,7 @@ void do_global_ctors()
   }
 }
 
-void do_global_dtors()
+void do_global_dtors(void)
 {
   if (global_ctors_done && !global_dtors_done) {
     global_ctors_done = 0;
