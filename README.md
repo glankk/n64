@@ -4,8 +4,8 @@ This is a collection of files and tools used to compile and test code for the n6
 ## Building the GNU toolchain for MIPS
 1.  Download and unpack the [n64 repository](https://github.com/glankk/n64/archive/master.zip).
 2.  Download and install MSYS2 from [here](https://msys2.github.io/).
-    Open an MSYS2 shell and type `update-core`. Restart MSYS2 and type `pacman -Suu`,
-    repeat until there are no more updates available.
+    Open an MSYS2 shell and type `pacman -Syuu`.
+    Restart MSYS2 and repeat until there are no more updates available.
 3.  Install the packages required to build the toolchain by typing `pacman -S mingw-w64-i686-gcc tar make diffutils texinfo`.
 4.  Download the latest [GCC](https://gcc.gnu.org/), [GNU Binutils](https://www.gnu.org/software/binutils/), and [Newlib](https://sourceware.org/newlib/).
     Put them in `n64-master/scripts/toolchain/`.
