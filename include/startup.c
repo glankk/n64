@@ -20,8 +20,8 @@ extern void (*__DTOR_END__[])(void);
 
 void clear_bss(void)
 {
-  uint8_t *bss_start = (void*)&__bss_start;
-  uint8_t *bss_end = (void*)&__bss_end;
+  uint8_t *bss_start = (uint8_t*)&__bss_start;
+  uint8_t *bss_end = (uint8_t*)&__bss_end;
   while (bss_start < bss_end)
     *bss_start++ = 0x00;
 }

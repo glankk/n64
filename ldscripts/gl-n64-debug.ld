@@ -91,6 +91,11 @@ SECTIONS
     *(COMMON)
   }
   __bss_end = . ;
+  
+  .stack ALIGN(8) (NOLOAD) :
+  {
+    *(.stack .stack.*)
+  }
 
   end = ALIGN(8) ;
 

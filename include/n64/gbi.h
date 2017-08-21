@@ -1,5 +1,5 @@
 /**
- * gbi.h version 0.1rev3
+ * gbi.h version 0.1rev4
  * n64 graphics microcode interface library
  * compatible with f3dex2 and s2dex2
  * -glank
@@ -8,6 +8,7 @@
 #ifndef N64_GBI_H
 #define N64_GBI_H
 
+#include <string.h>
 #include <stdint.h>
 
 /* f3dex2 commands */
@@ -189,6 +190,14 @@
                                        ZMODE_OPA|ALPHA_CVG_SEL|               \
                                        GBL_c2(G_BL_CLR_IN,G_BL_A_IN,          \
                                               G_BL_CLR_MEM,G_BL_A_MEM))
+#define G_RM_ZB_OPA_SURF              (Z_CMP|Z_UPD|CVG_DST_FULL|ZMODE_OPA|    \
+                                       ALPHA_CVG_SEL|                         \
+                                       GBL_c1(G_BL_CLR_IN,G_BL_A_IN,          \
+                                              G_BL_CLR_MEM,G_BL_A_MEM))
+#define G_RM_ZB_OPA_SURF2             (Z_CMP|Z_UPD|CVG_DST_FULL|ZMODE_OPA|    \
+                                       ALPHA_CVG_SEL|                         \
+                                       GBL_c2(G_BL_CLR_IN,G_BL_A_IN,          \
+                                              G_BL_CLR_MEM,G_BL_A_MEM))
 #define G_RM_AA_ZB_OPA_SURF           (AA_EN|Z_CMP|Z_UPD|IM_RD|CVG_DST_CLAMP| \
                                        ZMODE_OPA|ALPHA_CVG_SEL|               \
                                        GBL_c1(G_BL_CLR_IN,G_BL_A_IN,          \
@@ -343,6 +352,15 @@
                                        GBL_c2(G_BL_CLR_IN,G_BL_A_IN,          \
                                               G_BL_CLR_MEM,G_BL_1MA))
 
+
+#define G_RM_TEX_EDGE                 (AA_EN|CVG_DST_CLAMP|ZMODE_OPA|         \
+                                       CVG_X_ALPHA|ALPHA_CVG_SEL|FORCE_BL     \
+                                       GBL_c1(G_BL_CLR_IN,G_BL_0,             \
+                                              G_BL_CLR_IN,G_BL_1))
+#define G_RM_TEX_EDGE2                (AA_EN|CVG_DST_CLAMP|ZMODE_OPA|         \
+                                       CVG_X_ALPHA|ALPHA_CVG_SEL|FORCE_BL     \
+                                       GBL_c2(G_BL_CLR_IN,G_BL_0,             \
+                                              G_BL_CLR_IN,G_BL_1))
 #define G_RM_AA_TEX_EDGE              (AA_EN|IM_RD|CVG_DST_CLAMP|ZMODE_OPA|   \
                                        CVG_X_ALPHA|ALPHA_CVG_SEL|             \
                                        GBL_c1(G_BL_CLR_IN,G_BL_A_IN,          \
@@ -511,6 +529,20 @@
 
 #define G_RM_PASS                     GBL_c1(G_BL_CLR_IN,G_BL_0,              \
                                              G_BL_CLR_IN,G_BL_1)
+
+#define G_RM_VISCVG                   (IM_RD|FORCE_BL|                        \
+                                       GBL_c1(G_BL_CLR_IN,G_BL_0,             \
+                                              G_BL_CLR_BL,G_BL_A_MEM))
+#define G_RM_VISCVG2                  (IM_RD|FORCE_BL|                        \
+                                       GBL_c2(G_BL_CLR_IN,G_BL_0,             \
+                                              G_BL_CLR_BL,G_BL_A_MEM))
+
+#define G_RM_OPA_CI                   (CVG_DST_CLAMP|ZMODE_OPA|               \
+                                       GBL_c1(G_BL_CLR_IN,G_BL_0,             \
+                                              G_BL_CLR_IN,G_BL_1))
+#define G_RM_OPA_CI2                  (CVG_DST_CLAMP|ZMODE_OPA|               \
+                                       GBL_c2(G_BL_CLR_IN,G_BL_0,             \
+                                              G_BL_CLR_IN,G_BL_1))
 
 #define G_RM_NOOP                     GBL_c1(0,0,0,0)
 #define G_RM_NOOP2                    GBL_c2(0,0,0,0)
@@ -872,7 +904,7 @@
 #define G_MAXFBZ                      0x3FFF
 #define GPACK_RGBA5551(r,g,b,a)       (gF_(r,5,11)|gF_(g,5,6)|                \
                                        gF_(b,5,1)|gF_(a,1,0))
-#define GPACK_RGBA8888(r,g,b,a)       (gF_(r,8,24)|gF_(g,8,16)|                \
+#define GPACK_RGBA8888(r,g,b,a)       (gF_(r,8,24)|gF_(g,8,16)|               \
                                        gF_(b,8,8)|gF_(a,8,0))
 #define GPACK_ZDZ(z,dz)               (gF_(z,14,2)|gF_(dz,2,0))
 
@@ -1560,8 +1592,9 @@ gsSPTextureRectangleFlip(ulx,uly,   \
                                           gF_(uls,12,12)|gF_(ult,12,0),       \
                                           gF_(tile,3,24)|gF_(lrs,12,12)|      \
                                           gF_(lrt,12,0))
-#define gsDPSetCombine(c)             gO_(G_SETCOMBINE,(c>>32)&0xFFFFFFFF,    \
-                                          (c>>0)&0xFFFFFFFF)
+#define gsDPSetCombine(c)             gO_(G_SETCOMBINE,                       \
+                                          (gL_(c)>>32)&0xFFFFFFFF,            \
+                                          (gL_(c)>>0)&0xFFFFFFFF)
 #define gsSPGeometryMode(clearbits, \
                          setbits)     gO_(G_GEOMETRYMODE,                     \
                                           gF_(~gI_(clearbits),24,0),setbits)
@@ -1599,6 +1632,12 @@ gsSPLoadUcodeEx(uc_start,uc_dstart, \
                                        for(size_t Gi__=0;Gi__<sizeof(Gdl__)/  \
                                            sizeof(*Gdl__);++Gi__)             \
                                          *(*(Gfx**)(pgdl))++=Gdl__[Gi__];}
+#define gDisplayListData(pgdl,d)      (*(Gfx**)(pgdl)-=(sizeof(d)+            \
+                                       sizeof(Gfx)-1)/sizeof(Gfx),            \
+                                       (__typeof__(&(d)))                     \
+                                       memcpy(*(Gfx**)(pgdl),&(d),sizeof(d)))
+#define gDisplayListAlloc(pgdl,s)     ((void*)(*(Gfx**)(pgdl)-=               \
+                                       ((s)+sizeof(Gfx)-1)/sizeof(Gfx)))
 #define gDPFillRectangle(gdl,...)     gD_(gdl,gsDPFillRectangle,__VA_ARGS__)
 #define gDPScisFillRectangle(gdl,...) gD_(gdl,gsDPScisFillRectangle,__VA_ARGS__)
 #define gDPFullSync(gdl)              gDisplayListPut(gdl,gsDPFullSync())
