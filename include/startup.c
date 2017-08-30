@@ -31,9 +31,10 @@ void do_global_ctors(void)
   static int global_ctors_done;
   if (global_ctors_done)
     return;
-  int32_t i = 0;
-  while (__CTOR_LIST__[i + 1])
-    ++i;
+  int32_t i = (int32_t)__CTOR_LIST__[0];
+  if (i == -1)
+    for (i = 0; __CTOR_LIST__[i + 1]; ++i)
+      ;
   while (i > 0)
     __CTOR_LIST__[i--]();
   global_ctors_done = 1;
