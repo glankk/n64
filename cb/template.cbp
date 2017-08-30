@@ -26,11 +26,8 @@
 				<Option compiler="n64" />
 				<Option host_application='$(EMUNAME)&quot; $(emuarg) &quot;$(emurom)' />
 				<Option run_host_application_in_terminal="0" />
-				<Compiler>
-					<Add option="-O3" />
-				</Compiler>
 				<Environment>
-					<Variable name="address" value="80400000" />
+					<Variable name="address" value="80000400" />
 					<Variable name="cflags" value="-std=c11" />
 					<Variable name="cxxflags" value="-std=c++14" />
 					<Variable name="emuarg" value="" />

@@ -1,0 +1,79 @@
+#!/usr/bin/sh
+set -e
+
+PREFIX=/opt/n64-toolchain
+
+echo Removing previous installation...
+rm -rf binutils.tar.gz gcc.tar.gz newlib.tar.gz binutils gcc newlib build-binutils build-gcc build-newlib $PREFIX
+
+echo Installing build dependencies...
+pacman -S --needed --noconfirm mingw-w64-i686-gcc tar make diffutils texinfo
+
+echo Checking package versions...
+BINUTILS_VERSION=`wget -O - -q "https://ftp.gnu.org/gnu/binutils/" | grep -E -o ">binutils-[0-9\\\\.]+tar\\\\.gz<" | tail -n 1 | sed -e s/\\>// -e s/\\\\.tar\\\\.gz\\<//`
+echo Latest Binutils release is $BINUTILS_VERSION
+GCC_VERSION=`wget -O - -q "https://ftp.gnu.org/gnu/gcc/" | grep -E -o ">gcc-[0-9\\\\.]+/<" | tail -n 1 | sed -e s/\\>// -e s/\\\\/\\<//`
+echo Latest GCC release is $GCC_VERSION
+NEWLIB_VERSION=`wget -O - -q "https://sourceware.org/pub/newlib/" | grep -E -o ">newlib-[0-9\\\\.]+tar\\\\.gz<" | head -n 1 | sed -e s/\\>// -e s/\\\\.tar\\\\.gz\\<//`
+echo Latest Newlib release is $NEWLIB_VERSION
+
+echo Downloading packages...
+wget -O binutils.tar.gz "https://ftp.gnu.org/gnu/binutils/$BINUTILS_VERSION.tar.gz"
+wget -O gcc.tar.gz "https://ftp.gnu.org/gnu/gcc/$GCC_VERSION/$GCC_VERSION.tar.gz"
+wget -O newlib.tar.gz "https://sourceware.org/pub/newlib/$NEWLIB_VERSION.tar.gz"
+
+export PATH="$PREFIX/bin:/mingw32/bin:$PATH"
+export CFLAGS_FOR_TARGET="-ffunction-sections -fdata-sections"
+export CXXFLAGS_FOR_TARGET="-ffunction-sections -fdata-sections"
+
+echo Building Binutils...
+mkdir binutils
+tar xfv binutils.tar.gz --strip-components=1 -C binutils
+mkdir build-binutils
+cd build-binutils
+../binutils/configure --prefix="$PREFIX" --build=i686-w64-mingw32 --host=i686-w64-mingw32 --target=mips64 \
+                      --disable-nls LDFLAGS="--static"
+make all
+make install
+cd ..
+
+echo Building GCC executables...
+mkdir gcc
+tar xfv gcc.tar.gz --strip-components=1 -C gcc
+cd gcc
+./contrib/download_prerequisites
+cd ..
+mkdir build-gcc
+cd build-gcc
+../gcc/configure --prefix="$PREFIX" --build=i686-w64-mingw32 --host=i686-w64-mingw32 --target=mips64 \
+                 --with-arch=vr4300 --with-abi=32 --with-newlib --enable-languages=c,c++,lto --enable-target-optspace \
+                 --enable-sjlj-exceptions --disable-multilib --disable-threads --disable-nls LDFLAGS="--static"
+make all-gcc
+make install-gcc
+cd ..
+
+echo Building Newlib...
+mkdir newlib
+tar xfv newlib.tar.gz --strip-components=1 -C newlib
+mkdir build-newlib
+cd build-newlib
+../newlib/configure --prefix="$PREFIX" --target=mips64 --with-newlib --enable-target-optspace \
+                    --enable-newlib-global-atexit \
+                    --disable-newlib-fvwrite-in-streamio \
+                    --disable-newlib-wide-orient \
+                    --enable-newlib-nano-malloc \
+                    --disable-newlib-unbuf-stream-opt \
+                    --disable-newlib-supplied-syscalls \
+                    --enable-lite-exit
+make all
+make install
+cd ..
+
+echo Building GCC...
+cd build-gcc
+make all
+make install
+cd ..
+
+echo Cleaning up...
+rm -rf binutils.tar.gz gcc.tar.gz newlib.tar.gz binutils gcc newlib build-binutils build-gcc build-newlib

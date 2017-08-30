@@ -7,15 +7,25 @@ OUTPUT_ARCH(mips)
 ENTRY(_start)
 SECTIONS
 {
+  PROVIDE(start = 0x80000400) ;
   . = start ;
 
   .text :
   {
-    *(.start .start.*)
-    *(.init)
-    *(.fini)
+    PROVIDE(_start = .) ;
+    KEEP(*(SORT_NONE(.text.startup)))
+    KEEP(*(SORT(.text.startup.*)))
+    KEEP(*crt0.o(.text SORT(.text.*)))
     *(.text .text.*)
     *(.gnu.linkonce.t.*)
+  }
+  .init :
+  {
+    KEEP(*(SORT_NONE(.init)))
+  }
+  .fini :
+  {
+    KEEP(*(SORT_NONE(.fini)))
   }
 
   .eh_frame_hdr :
@@ -41,15 +51,30 @@ SECTIONS
 
   .ctors :
   {
-    __CTOR_LIST__ = . ;
+    PROVIDE(__CTOR_LIST__ = .) ;
+    KEEP(*(.ctor_i))
+    KEEP(*crtbegin.o(.ctors))
+    KEEP(*crtbegin?.o(.ctors))
+    KEEP(*(EXCLUDE_FILE(*crtend.o *crtend?.o) .ctors))
+    KEEP(*(SORT(.ctors.*)))
     KEEP(*(.ctors))
-    __CTOR_END__ = . ;
+    KEEP(*(.ctor_n))
   }
   .dtors :
   {
-    __DTOR_LIST__ = . ;
+    PROVIDE(__DTOR_LIST__ = .) ;
+    KEEP(*(.dtor_i))
+    KEEP(*crtbegin.o(.dtors))
+    KEEP(*crtbegin?.o(.dtors))
+    KEEP(*(EXCLUDE_FILE(*crtend.o *crtend?.o) .dtors))
+    KEEP(*(SORT(.dtors.*)))
     KEEP(*(.dtors))
-    __DTOR_END__ = . ;
+    KEEP(*(.dtor_n))
+  }
+
+  .tm_clone_table :
+  {
+    *(.tm_clone_table)
   }
 
   .data :
@@ -61,9 +86,10 @@ SECTIONS
     *(.data .data.*)
     *(.gnu.linkonce.d.*)
   }
-  .sdata ALIGN(16) :
+
+  HIDDEN (_gp = ALIGN(16) + 0x7FF0);
+  .sdata :
   {
-    _gp = . ;
     *(.sdata .sdata.*)
     *(.gnu.linkonce.s.*)
   }
@@ -91,13 +117,66 @@ SECTIONS
     *(COMMON)
   }
   __bss_end = . ;
-
+  
   .stack ALIGN(8) (NOLOAD) :
   {
     *(.stack .stack.*)
   }
 
   end = ALIGN(8) ;
+
+  .debug_info 0 :
+  {
+    *(.debug_info .gnu.linkonce.wi.*)
+  }
+  .debug_abbrev 0 :
+  {
+    *(.debug_abbrev)
+  }
+  .debug_frame 0 :
+  {
+    *(.debug_frame)
+  }
+  .debug_str 0 :
+  {
+    *(.debug_str)
+  }
+  .debug_loc 0 :
+  {
+    *(.debug_loc)
+  }
+  .debug_line 0 :
+  {
+    *(.debug_line .debug_line.* .debug_line_end)
+  }
+  .debug_aranges 0 :
+  {
+    *(.debug_aranges)
+  }
+  .debug_ranges 0 :
+  {
+    *(.debug_ranges)
+  }
+  .debug_pubtypes 0 :
+  {
+    *(.debug_pubtypes)
+  }
+  .debug_pubnames 0 :
+  {
+    *(.debug_pubnames)
+  }
+  .debug_macinfo 0 :
+  {
+    *(.debug_macinfo)
+  }
+  .debug_macro 0 :
+  {
+    *(.debug_macro)
+  }
+  .debug_addr 0 :
+  {
+    *(.debug_addr)
+  }
 
   /DISCARD/ :
   {
