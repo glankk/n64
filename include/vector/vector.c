@@ -59,10 +59,9 @@ void *vector_insert(struct vector *vector, size_t position, size_t num,
     vector->rend = new_data - vector->element_size;
     vector->capacity = new_cap;
   }
-  else
-    memmove((char*)vector->begin + vector->element_size * (position + num),
-            (char*)vector->begin + vector->element_size * position,
-            vector->element_size * (vector->size - position));
+  memmove((char*)vector->begin + vector->element_size * (position + num),
+          (char*)vector->begin + vector->element_size * position,
+          vector->element_size * (vector->size - position));
   if (data)
     memcpy((char*)vector->begin + vector->element_size * position, data,
            vector->element_size * num);
@@ -99,7 +98,7 @@ int vector_shrink_to_fit(struct vector *vector)
   size_t new_cap = vector->size;
   char *new_data = (char*)realloc(vector->begin,
                                   vector->element_size * new_cap);
-  if (!new_data)
+  if (new_cap > 0 && !new_data)
     return 0;
   vector->begin = new_data;
   vector->rend = new_data - vector->element_size;

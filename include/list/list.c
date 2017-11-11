@@ -172,6 +172,29 @@ void list_transfer(struct list *dest, void *position,
   ++dest->size;
 }
 
+void list_splice(struct list *dest, struct list *src)
+{
+  if (!src->first)
+    return;
+  dest->size += src->size;
+  if (dest->last) {
+    struct list_element_header *f_header = (struct list_element_header*)
+                                           ((char*)src->first -
+                                            ELEMENT_HEADER_SIZE);
+    struct list_element_header *l_header = (struct list_element_header*)
+                                           ((char*)dest->last -
+                                            ELEMENT_HEADER_SIZE);
+    f_header->prev = l_header;
+    l_header->next = f_header;
+  }
+  else
+    dest->first = src->first;
+  dest->last = src->last;
+  src->first = NULL;
+  src->last = NULL;
+  src->size = 0;
+}
+
 void *list_insert(struct list *list, void *element, const void *data)
 {
   return list_insert_size(list, element, list->element_size, data);
@@ -229,8 +252,11 @@ void list_destroy(struct list *list)
   if (list->first)
     header = (struct list_element_header*)((char*)list->first -
                                            ELEMENT_HEADER_SIZE);
-  for (; header; header = header->next)
+  while (header) {
+    struct list_element_header *next_header = header->next;
     free(header);
+    header = next_header;
+  }
 }
 
 #ifdef __cplusplus
