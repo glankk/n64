@@ -1,5 +1,5 @@
 /**
- * mips.h version 0.1rc4
+ * mips.h version 0.1rc5
  * nec vr4300, mips iii
  * note: providing arguments with side-effects to these macros should
  * be considered unsafe in general, as they may be evaluated more than once
@@ -607,98 +607,76 @@
 #define MIPS_ABS(rd,rs)           MIPS_BGEZ(rs,0x0008), \
                                   MIPS_OR(rd,rs,MIPS_R0), \
                                   MIPS_SUB(rd,MIPS_R0,rs)
-#define MIPS_B(of)                MIPS_BEQ(MIPS_R0,MIPS_R0,MIPS_I_(of)+0x04), \
-                                  MIPS_NOP
-#define MIPS_BAL(of)              MIPS_BGEZAL(MIPS_R0,MIPS_I_(of)+0x04), \
-                                  MIPS_NOP
-#define MIPS_BEQZ(rs,of)          MIPS_BEQ(rs,MIPS_R0,MIPS_I_(of)+0x04), \
-                                  MIPS_NOP
-#define MIPS_BEQZL(rs,of)         MIPS_BEQL(rs,MIPS_R0,MIPS_I_(of)+0x04), \
-                                  MIPS_NOP
+#define MIPS_B(of)                MIPS_BEQ(MIPS_R0,MIPS_R0,MIPS_I_(of))
+#define MIPS_BAL(of)              MIPS_BGEZAL(MIPS_R0,MIPS_I_(of))
+#define MIPS_BEQZ(rs,of)          MIPS_BEQ(rs,MIPS_R0,MIPS_I_(of))
+#define MIPS_BEQZL(rs,of)         MIPS_BEQL(rs,MIPS_R0,MIPS_I_(of))
 #define MIPS_BGEI(rs1,is2,of)     MIPS_LA(MIPS_AT,is2), \
                                   MIPS_BGER(rs1,MIPS_AT,of)
 #define MIPS_BGELI(rs1,is2,of)    MIPS_LA(MIPS_AT,is2), \
                                   MIPS_BGELR(rs1,MIPS_AT,of)
 #define MIPS_BGELR(rs1,rs2,of)    MIPS_SLT(MIPS_AT,rs1,rs2), \
-                                  MIPS_BEQL(MIPS_AT,MIPS_R0,MIPS_I_(of)+0x04), \
-                                  MIPS_NOP
+                                  MIPS_BEQL(MIPS_AT,MIPS_R0,MIPS_I_(of))
 #define MIPS_BGELUI(rs1,is2,of)   MIPS_LA(MIPS_AT,is2), \
                                   MIPS_BGELUR(rs1,MIPS_AT,of)
 #define MIPS_BGELUR(rs1,rs2,of)   MIPS_SLTU(MIPS_AT,rs1,rs2), \
-                                  MIPS_BEQL(MIPS_AT,MIPS_R0,MIPS_I_(of)+0x04), \
-                                  MIPS_NOP
+                                  MIPS_BEQL(MIPS_AT,MIPS_R0,MIPS_I_(of))
 #define MIPS_BGER(rs1,rs2,of)     MIPS_SLT(MIPS_AT,rs1,rs2), \
-                                  MIPS_BEQ(MIPS_AT,MIPS_R0,MIPS_I_(of)+0x04), \
-                                  MIPS_NOP
+                                  MIPS_BEQ(MIPS_AT,MIPS_R0,MIPS_I_(of))
 #define MIPS_BGEUI(rs1,is2,of)    MIPS_LA(MIPS_AT,is2), \
                                   MIPS_BGEUR(rs1,MIPS_AT,of)
 #define MIPS_BGEUR(rs1,rs2,of)    MIPS_SLTU(MIPS_AT,rs1,rs2), \
-                                  MIPS_BEQ(MIPS_AT,MIPS_R0,MIPS_I_(of)+0x04), \
-                                  MIPS_NOP
+                                  MIPS_BEQ(MIPS_AT,MIPS_R0,MIPS_I_(of))
 #define MIPS_BGTI(rs1,is2,of)     MIPS_LA(MIPS_AT,is2), \
                                   MIPS_BGTR(rs1,MIPS_AT,of)
 #define MIPS_BGTLI(rs1,is2,of)    MIPS_LA(MIPS_AT,is2), \
                                   MIPS_BGTLR(rs1,MIPS_AT,of)
 #define MIPS_BGTLR(rs1,rs2,of)    MIPS_SLT(MIPS_AT,rs2,rs1), \
-                                  MIPS_BNEL(MIPS_AT,MIPS_R0,MIPS_I_(of)+0x04), \
-                                  MIPS_NOP
+                                  MIPS_BNEL(MIPS_AT,MIPS_R0,MIPS_I_(of))
 #define MIPS_BGTLUI(rs1,is2,of)   MIPS_LA(MIPS_AT,is2), \
                                   MIPS_BGTLUR(rs1,MIPS_AT,of)
 #define MIPS_BGTLUR(rs1,rs2,of)   MIPS_SLTU(MIPS_AT,rs2,rs1), \
-                                  MIPS_BNEL(MIPS_AT,MIPS_R0,MIPS_I_(of)+0x04), \
-                                  MIPS_NOP
+                                  MIPS_BNEL(MIPS_AT,MIPS_R0,MIPS_I_(of))
 #define MIPS_BGTR(rs1,rs2,of)     MIPS_SLT(MIPS_AT,rs2,rs1), \
-                                  MIPS_BNE(MIPS_AT,MIPS_R0,MIPS_I_(of)+0x04), \
-                                  MIPS_NOP
+                                  MIPS_BNE(MIPS_AT,MIPS_R0,MIPS_I_(of))
 #define MIPS_BGTUI(rs1,is2,of)    MIPS_LA(MIPS_AT,is2), \
                                   MIPS_BGTUR(rs1,MIPS_AT,of)
 #define MIPS_BGTUR(rs1,rs2,of)    MIPS_SLTU(MIPS_AT,rs2,rs1), \
-                                  MIPS_BNE(MIPS_AT,MIPS_R0,MIPS_I_(of)+0x04), \
-                                  MIPS_NOP
+                                  MIPS_BNE(MIPS_AT,MIPS_R0,MIPS_I_(of))
 #define MIPS_BLEI(rs1,is2,of)     MIPS_LA(MIPS_AT,is2), \
                                   MIPS_BLER(rs1,MIPS_AT,of)
 #define MIPS_BLELI(rs1,is2,of)    MIPS_LA(MIPS_AT,is2), \
                                   MIPS_BLELR(rs1,MIPS_AT,of)
 #define MIPS_BLELR(rs1,rs2,of)    MIPS_SLT(MIPS_AT,rs2,rs1), \
-                                  MIPS_BEQL(MIPS_AT,MIPS_R0,MIPS_I_(of)+0x04), \
-                                  MIPS_NOP
+                                  MIPS_BEQL(MIPS_AT,MIPS_R0,MIPS_I_(of))
 #define MIPS_BLELUI(rs1,is2,of)   MIPS_LA(MIPS_AT,is2), \
                                   MIPS_BLELUR(rs1,MIPS_AT,of)
 #define MIPS_BLELUR(rs1,rs2,of)   MIPS_SLTU(MIPS_AT,rs2,rs1), \
-                                  MIPS_BEQL(MIPS_AT,MIPS_R0,MIPS_I_(of)+0x04), \
-                                  MIPS_NOP
+                                  MIPS_BEQL(MIPS_AT,MIPS_R0,MIPS_I_(of))
 #define MIPS_BLER(rs1,rs2,of)     MIPS_SLT(MIPS_AT,rs2,rs1), \
-                                  MIPS_BEQ(MIPS_AT,MIPS_R0,MIPS_I_(of)+0x04), \
-                                  MIPS_NOP
+                                  MIPS_BEQ(MIPS_AT,MIPS_R0,MIPS_I_(of))
 #define MIPS_BLEUI(rs1,is2,of)    MIPS_LA(MIPS_AT,is2), \
                                   MIPS_BLEUR(rs1,MIPS_AT,of)
 #define MIPS_BLEUR(rs1,rs2,of)    MIPS_SLTU(MIPS_AT,rs2,rs1), \
-                                  MIPS_BEQ(MIPS_AT,MIPS_R0,MIPS_I_(of)+0x04), \
-                                  MIPS_NOP
+                                  MIPS_BEQ(MIPS_AT,MIPS_R0,MIPS_I_(of))
 #define MIPS_BLTI(rs1,is2,of)     MIPS_LA(MIPS_AT,is2), \
                                   MIPS_BLTR(rs1,MIPS_AT,of)
 #define MIPS_BLTLI(rs1,is2,of)    MIPS_LA(MIPS_AT,is2), \
                                   MIPS_BLTLR(rs1,MIPS_AT,of)
 #define MIPS_BLTLR(rs1,rs2,of)    MIPS_SLT(MIPS_AT,rs1,rs2), \
-                                  MIPS_BNEL(MIPS_AT,MIPS_R0,MIPS_I_(of)+0x04), \
-                                  MIPS_NOP
+                                  MIPS_BNEL(MIPS_AT,MIPS_R0,MIPS_I_(of))
 #define MIPS_BLTLUI(rs1,is2,of)   MIPS_LA(MIPS_AT,is2), \
                                   MIPS_BLTLUR(rs1,MIPS_AT,of)
 #define MIPS_BLTLUR(rs1,rs2,of)   MIPS_SLTU(MIPS_AT,rs1,rs2), \
-                                  MIPS_BNEL(MIPS_AT,MIPS_R0,MIPS_I_(of)+0x04), \
-                                  MIPS_NOP
+                                  MIPS_BNEL(MIPS_AT,MIPS_R0,MIPS_I_(of))
 #define MIPS_BLTR(rs1,rs2,of)     MIPS_SLT(MIPS_AT,rs1,rs2), \
-                                  MIPS_BNE(MIPS_AT,MIPS_R0,MIPS_I_(of)+0x04), \
-                                  MIPS_NOP
+                                  MIPS_BNE(MIPS_AT,MIPS_R0,MIPS_I_(of))
 #define MIPS_BLTUI(rs1,is2,of)    MIPS_LA(MIPS_AT,is2), \
                                   MIPS_BLTUR(rs1,MIPS_AT,of)
 #define MIPS_BLTUR(rs1,rs2,of)    MIPS_SLTU(MIPS_AT,rs1,rs2), \
-                                  MIPS_BNE(MIPS_AT,MIPS_R0,MIPS_I_(of)+0x04), \
-                                  MIPS_NOP
-#define MIPS_BNEZ(rs,of)          MIPS_BNE(rs,MIPS_R0,MIPS_I_(of)+0x04), \
-                                  MIPS_NOP
-#define MIPS_BNEZL(rs,of)         MIPS_BNEL(rs,MIPS_R0,MIPS_I_(of)+0x04), \
-                                  MIPS_NOP
+                                  MIPS_BNE(MIPS_AT,MIPS_R0,MIPS_I_(of))
+#define MIPS_BNEZ(rs,of)          MIPS_BNE(rs,MIPS_R0,MIPS_I_(of))
+#define MIPS_BNEZL(rs,of)         MIPS_BNEL(rs,MIPS_R0,MIPS_I_(of))
 #define MIPS_DIVR(rd,rs1,rs2)     MIPS_BNE(rs2,MIPS_R0,0x0008), \
                                   MIPS_DIV(rs1,rs2), \
                                   MIPS_BREAK, \
@@ -1096,44 +1074,44 @@
 
 /* pseudo-instructions */
 #define MIPS_ABS_SIZE             0x0C
-#define MIPS_B_SIZE               0x08
-#define MIPS_BAL_SIZE             0x08
-#define MIPS_BEQZ_SIZE            0x08
-#define MIPS_BEQZL_SIZE           0x08
+#define MIPS_B_SIZE               0x04
+#define MIPS_BAL_SIZE             0x04
+#define MIPS_BEQZ_SIZE            0x04
+#define MIPS_BEQZL_SIZE           0x04
 #define MIPS_BGEI_SIZE            (MIPS_LA_SIZE+MIPS_BGER_SIZE)
 #define MIPS_BGELI_SIZE           (MIPS_LA_SIZE+MIPS_BGELR_SIZE)
-#define MIPS_BGELR_SIZE           0x0C
+#define MIPS_BGELR_SIZE           0x08
 #define MIPS_BGELUI_SIZE          (MIPS_LA_SIZE+MIPS_BGELUR_SIZE)
-#define MIPS_BGELUR_SIZE          0x0C
-#define MIPS_BGER_SIZE            0x0C
+#define MIPS_BGELUR_SIZE          0x08
+#define MIPS_BGER_SIZE            0x08
 #define MIPS_BGEUI_SIZE           (MIPS_LA_SIZE+MIPS_BGEUR_SIZE)
-#define MIPS_BGEUR_SIZE           0x0C
+#define MIPS_BGEUR_SIZE           0x08
 #define MIPS_BGTI_SIZE            (MIPS_LA_SIZE+MIPS_BGTR_SIZE)
 #define MIPS_BGTLI_SIZE           (MIPS_LA_SIZE+MIPS_BGTLR_SIZE)
-#define MIPS_BGTLR_SIZE           0x0C
+#define MIPS_BGTLR_SIZE           0x08
 #define MIPS_BGTLUI_SIZE          (MIPS_LA_SIZE+MIPS_BGTLUR_SIZE)
-#define MIPS_BGTLUR_SIZE          0x0C
-#define MIPS_BGTR_SIZE            0x0C
+#define MIPS_BGTLUR_SIZE          0x08
+#define MIPS_BGTR_SIZE            0x08
 #define MIPS_BGTUI_SIZE           (MIPS_LA_SIZE+MIPS_BGTUR_SIZE)
-#define MIPS_BGTUR_SIZE           0x0C
+#define MIPS_BGTUR_SIZE           0x08
 #define MIPS_BLEI_SIZE            (MIPS_LA_SIZE+MIPS_BLER_SIZE)
 #define MIPS_BLELI_SIZE           (MIPS_LA_SIZE+MIPS_BLELR_SIZE)
-#define MIPS_BLELR_SIZE           0x0C
+#define MIPS_BLELR_SIZE           0x08
 #define MIPS_BLELUI_SIZE          (MIPS_LA_SIZE+MIPS_BLELUR_SIZE)
-#define MIPS_BLELUR_SIZE          0x0C
-#define MIPS_BLER_SIZE            0x0C
+#define MIPS_BLELUR_SIZE          0x08
+#define MIPS_BLER_SIZE            0x08
 #define MIPS_BLEUI_SIZE           (MIPS_LA_SIZE+MIPS_BLEUR_SIZE)
-#define MIPS_BLEUR_SIZE           0x0C
+#define MIPS_BLEUR_SIZE           0x08
 #define MIPS_BLTI_SIZE            (MIPS_LA_SIZE+MIPS_BLTR_SIZE)
 #define MIPS_BLTLI_SIZE           (MIPS_LA_SIZE+MIPS_BLTLR_SIZE)
-#define MIPS_BLTLR_SIZE           0x0C
+#define MIPS_BLTLR_SIZE           0x08
 #define MIPS_BLTLUI_SIZE          (MIPS_LA_SIZE+MIPS_BLTLUR_SIZE)
-#define MIPS_BLTLUR_SIZE          0x0C
-#define MIPS_BLTR_SIZE            0x0C
+#define MIPS_BLTLUR_SIZE          0x08
+#define MIPS_BLTR_SIZE            0x08
 #define MIPS_BLTUI_SIZE           (MIPS_LA_SIZE+MIPS_BLTUR_SIZE)
-#define MIPS_BLTUR_SIZE           0x0C
-#define MIPS_BNEZ_SIZE            0x08
-#define MIPS_BNEZL_SIZE           0x08
+#define MIPS_BLTUR_SIZE           0x08
+#define MIPS_BNEZ_SIZE            0x04
+#define MIPS_BNEZL_SIZE           0x04
 #define MIPS_DIVR_SIZE            0x30
 #define MIPS_DIVUI_SIZE           (MIPS_LA_SIZE+MIPS_DIVUR_SIZE)
 #define MIPS_DIVUIR_SIZE          (MIPS_LA_SIZE+MIPS_DIVUR_SIZE)
