@@ -906,6 +906,7 @@
                                        gF_(b,5,1)|gF_(a,1,0))
 #define GPACK_RGBA8888(r,g,b,a)       (gF_(r,8,24)|gF_(g,8,16)|               \
                                        gF_(b,8,8)|gF_(a,8,0))
+#define GPACK_RGB24A8(rgb,a)          (gF_(rgb,24,8)|gF_(a,8,0))
 #define GPACK_ZDZ(z,dz)               (gF_(z,14,2)|gF_(dz,2,0))
 
 /* structure definition macros */
