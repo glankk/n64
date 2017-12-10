@@ -1,5 +1,5 @@
 /**
- * mips.h version 0.1rc5
+ * mips.h version 0.1rc6
  * nec vr4300, mips iii
  * note: providing arguments with side-effects to these macros should
  * be considered unsafe in general, as they may be evaluated more than once
@@ -214,6 +214,8 @@
 #define MIPS_CACHE_D              1
 
 /* cache operations */
+#define MIPS_CACHEOP(c,o)         (MIPS_MAKE_FIELD(MIPS_CACHE,c)|             \
+                                   MIPS_MAKE_FIELD(MIPS_CACHEOP,o))
 #define MIPS_CACHEOPMASK          MIPS_I_(0x1C)
 #define MIPS_CACHEOPSHIFT         2
 #define MIPS_CACHEOP_II           0

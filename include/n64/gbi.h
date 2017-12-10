@@ -1,5 +1,5 @@
 /**
- * gbi.h version 0.1rev5
+ * gbi.h version 0.1rev6
  * n64 graphics microcode interface library
  * compatible with f3dex2 and s2dex2
  * -glank
@@ -739,6 +739,7 @@
                                       0,0,0,TEXEL0
 #define G_CC_HILITERGBPASSA2          ENVIRONMENT,COMBINED,TEXEL0,COMBINED,   \
                                       0,0,0,COMBINED
+#define G_CC_CHROMA_KEY2              TEXEL0,CENTER,SCALE,0,0,0,0,0
 #define G_CC_YUV2RGB                  TEXEL1,K4,K5,TEXEL1,0,0,0,0
 #define G_CC_PASS2                    0,0,0,COMBINED,0,0,0,COMBINED
 #define G_CC_LERP(a0,b0,c0,d0,Aa0,  \
@@ -1395,6 +1396,32 @@ gsSP2Triangles(v00,v01,v02,flag0,   \
                                                (flag1)==1?gI_(v10):           \
                                                gI_(v11))*2,8,0))
 #define                             \
+gsSP1Quadrangle(v0,v1,v2,v3,flag)     gO_(G_QUAD,                             \
+                                          gF_(((flag)==0?gI_(v0):             \
+                                               (flag)==1?gI_(v1):             \
+                                               (flag)==2?gI_(v2):             \
+                                               gI_(v3))*2,8,16)|              \
+                                          gF_(((flag)==0?gI_(v1):             \
+                                               (flag)==1?gI_(v2):             \
+                                               (flag)==2?gI_(v3):             \
+                                               gI_(v0))*2,8,8)|               \
+                                          gF_(((flag)==0?gI_(v2):             \
+                                               (flag)==1?gI_(v3):             \
+                                               (flag)==2?gI_(v0):             \
+                                               gI_(v1))*2,8,0),               \
+                                          gF_(((flag)==0?gI_(v0):             \
+                                               (flag)==1?gI_(v1):             \
+                                               (flag)==2?gI_(v2):             \
+                                               gI_(v3))*2,8,16)|              \
+                                          gF_(((flag)==0?gI_(v2):             \
+                                               (flag)==1?gI_(v3):             \
+                                               (flag)==2?gI_(v0):             \
+                                               gI_(v1))*2,8,8)|               \
+                                          gF_(((flag)==0?gI_(v3):             \
+                                               (flag)==1?gI_(v0):             \
+                                               (flag)==2?gI_(v1):             \
+                                               gI_(v2))*2,8,0))
+#define                             \
 gsSPBranchLessZ(branchdl,vtx,zval,  \
                 near,far,flag)        gsSPBranchLessZrg(branchdl,vtx,zval,    \
                                                         near,far,flag,0,0x3FF)
@@ -1402,16 +1429,9 @@ gsSPBranchLessZ(branchdl,vtx,zval,  \
 gsSPBranchLessZrg(branchdl,vtx,     \
                   zval,near,far,    \
                   flag,zmin,zmax)     gsDPHalf1(branchdl),                    \
-                                      gO_(G_BRANCH_Z,gF_((vtx)*5,12,12)|      \
-                                          gF_((vtx)*2,12,0),                  \
-                                          qs1616((flag)==G_BZ_PERSP?          \
-                                                   (1.f-near/zval)/           \
-                                                   (1.f-near/far):            \
-                                                   (zval-near)/               \
-                                                   (far-near))*               \
-                                          ((int32_t)(zmax-zmin)&~1)+          \
-                                          qs1616(zmin))
-#define gsSPBranchList(dl)            gO_(G_DL,gF_(0x01,8,16),dl)
+                                      gsBranchZ(vtx,zval,near,far,flag,       \
+                                                zmin,zmax)
+#define gsSPBranchList(dl)            gsDisplayList(dl,1)
 #define gsSPClipRatio(r)              gsMoveWd(G_MW_CLIP,G_MWO_CLIP_RNX,      \
                                                (uint16_t)(r)),                \
                                       gsMoveWd(G_MW_CLIP,G_MWO_CLIP_RNY,      \
@@ -1422,7 +1442,7 @@ gsSPBranchLessZrg(branchdl,vtx,     \
                                                (uint16_t)-(r))
 #define gsSPCullDisplayList(v0,vn)    gO_(G_CULLDL,gF_((v0)*2,16,0),          \
                                           gF_((vn)*2,16,0))
-#define gsSPDisplayList(dl)           gO_(G_DL,0,dl)
+#define gsSPDisplayList(dl)           gsDisplayList(dl,0)
 #define gsSPEndDisplayList()          gO_(G_ENDDL,0,0)
 #define gsSPFogPosition(min,max)      gsMoveWd(G_MW_FOG,G_MWO_FOG,            \
                                                gF_(128000/((max)-(min)),      \
@@ -1434,6 +1454,7 @@ gsSPBranchLessZrg(branchdl,vtx,     \
                                       gsMoveWd(G_MW_FORCEMTX,0,0x10000)
 #define gsSPSetGeometryMode(mode)     gsSPGeometryMode(0,mode)
 #define gsSPClearGeometryMode(mode)   gsSPGeometryMode(mode,0)
+#define gsSPLoadGeometryMode(mode)    gsSPGeometryMode(~gI_(0),mode)
 #define gsSPLine3D(v0,v1,flag)        gsSPLineW3D(v0,v1,0,flag)
 #define gsSPLineW3D(v0,v1,wd,flag)    gO_(G_LINE3D,                           \
                                           gF_(((flag)==0?gI_(v0):             \
@@ -1454,9 +1475,10 @@ gsSPBranchLessZrg(branchdl,vtx,     \
                          val)         gO_(G_MODIFYVTX,gF_(where,8,16)|        \
                                           gF_((vtx)*2,16,0),val)
 #define gsSPPerspNormalize(scale)     gsMoveWd(G_MW_PERSPNORM,0,scale)
-#define gsSPPopMatrix(param)          gO_(G_POPMTX,                           \
+#define gsSPPopMatrix(param)          gsSPPopMatrixN(param,1)
+#define gsSPPopMatrixN(param,n)       gO_(G_POPMTX,                           \
                                           gF_((sizeof(Mtx)-1)/8,5,19)|        \
-                                          gF_(2,8,0),sizeof(Mtx))
+                                          gF_(2,8,0),sizeof(Mtx)*(n))
 #define gsSPSegment(seg,base)         gsMoveWd(G_MW_SEGMENT,(seg)*4,base)
 #define gsSPSetLights0(lites)         gsSPNumLights(NUMLIGHTS_0),             \
                                       gsSPLight(&(lites).l[0],1),             \
@@ -1521,22 +1543,18 @@ gsSPBranchLessZrg(branchdl,vtx,     \
 #define                             \
 gsSPTextureRectangle(ulx,uly,lrx,   \
                      lry,tile,s,t,  \
-                     dsdx,dtdy)       gO_(G_TEXRECT,                          \
-                                          gF_(lrx,12,12)|gF_(lry,12,0),       \
-                                          gF_(tile,3,24)|gF_(ulx,12,12)|      \
-                                          gF_(uly,12,0)),                     \
+                     dsdx,dtdy)       gsTexRect(ulx,uly,lrx,lry,tile),        \
                                       gsDPHalf1(gF_(s,16,16)|gF_(t,16,0)),    \
                                       gsDPHalf2(gF_(dsdx,16,16)|gF_(dtdy,16,0))
 #define                             \
 gsSPScisTextureRectangle(ulx,uly,   \
                          lrx,lry,   \
                          tile,s,t,  \
-                         dsdx,dtdy)   gO_(G_TEXRECT,                          \
-                                          gF_((lrx)<0?0:(lrx),12,12)|         \
-                                          gF_((lry)<0?0:(lry),12,0),          \
-                                          gF_(tile,3,24)|                     \
-                                          gF_((ulx)<0?0:(ulx),12,12)|         \
-                                          gF_((uly)<0?0:(uly),12,0)),         \
+                         dsdx,dtdy)   gsTexRect((ulx)<0?0:(ulx),              \
+                                                (uly)<0?0:(uly),              \
+                                                (lrx)<0?0:(lrx),              \
+                                                (lry)<0?0:(lry),              \
+                                                tile),                        \
                                       gsDPHalf1(gF_((s)+(ulx)*(dsdx)*         \
                                                     ((ulx)<0)*((dsdx)<0?1:-1)/\
                                                     0x80,16,16)|              \
@@ -1548,10 +1566,7 @@ gsSPScisTextureRectangle(ulx,uly,   \
 gsSPTextureRectangleFlip(ulx,uly,   \
                          lrx,lry,   \
                          tile,s,t,  \
-                         dsdx,dtdy)   gO_(G_TEXRECTFLIP,                      \
-                                          gF_(lrx,12,12)|gF_(lry,12,0),       \
-                                          gF_(tile,3,24)|gF_(ulx,12,12)|      \
-                                          gF_(uly,12,0)),                     \
+                         dsdx,dtdy)   gsTexRectFlip(ulx,uly,lrx,lry,tile),    \
                                       gsDPHalf1(gF_(s,16,16)|gF_(t,16,0)),    \
                                       gsDPHalf2(gF_(dsdx,16,16)|gF_(dtdy,16,0))
 #define gsSPVertex(v,n,v0)            gO_(G_VTX,gF_(n,8,12)|gF_((v0)+(n),7,1),v)
@@ -1599,6 +1614,18 @@ gsSPTextureRectangleFlip(ulx,uly,   \
                                       gsDPLoadSync(),                         \
                                       gsDPLoadTLUTCmd(G_TX_LOADTILE,n),       \
                                       gsDPPipeSync()
+#define gsBranchZ(vtx,zval,         \
+                  near,far,         \
+                  flag,zmin,zmax)     gO_(G_BRANCH_Z,gF_((vtx)*5,12,12)|      \
+                                          gF_((vtx)*2,12,0),                  \
+                                          qs1616((flag)==G_BZ_PERSP?          \
+                                                   (1.f-near/zval)/           \
+                                                   (1.f-near/far):            \
+                                                   (zval-near)/               \
+                                                   (far-near))*               \
+                                          ((int32_t)(zmax-zmin)&~1)+          \
+                                          qs1616(zmin))
+#define gsDisplayList(dl,branch)      gO_(G_DL,gF_(branch,8,16),dl)
 #define gsDPHalf1(wordhi)             gO_(G_RDPHALF_1,0,wordhi)
 #define gsDPHalf2(wordlo)             gO_(G_RDPHALF_2,0,wordlo)
 #define gsDPLoadTile(tile,uls,ult,  \
@@ -1625,6 +1652,9 @@ gsSPSetOtherMode(opc,shift,length,  \
                            length,  \
                            data)      gsSPSetOtherMode(G_SETOTHERMODE_H,      \
                                                        shift,length,data)
+#define                             \
+gsDPSetOtherMode(mode0,mode1)         gO_(G_RDPSETOTHERMODE,gF_(mode0,24,0),  \
+                                          mode1)
 #define gsMoveWd(index,offset,data)   gO_(G_MOVEWORD,gF_(index,8,16)|         \
                                           gF_(offset,16,0),data)
 #define gsMoveMem(size,index,       \
@@ -1632,10 +1662,32 @@ gsSPSetOtherMode(opc,shift,length,  \
                                           gF_((offset)/8,8,8)|                \
                                           gF_(index,8,0),address)
 #define                             \
+gsSPDma_io(flag,dmem,dram,size)       gO_(G_DMA_IO,gF_(flag,1,23)|            \
+                                          gF_((dmem)/8,10,13)|                \
+                                          gF_((size)-1,12,0),dram)
+#define gsSPDmaRead(dmem,dram,size)   gsSPDma_io(0,dmem,dram,size)
+#define gsSPDmaWrite(dmem,dram,size)  gsSPDma_io(1,dmem,dram,size)
+#define                             \
+gsLoadUcode(uc_start,uc_dsize)        gO_(G_LOAD_UCODE,                       \
+                                          gF_((uc_dsize)-1,16,0),uc_start)
+#define                             \
 gsSPLoadUcodeEx(uc_start,uc_dstart, \
                 uc_dsize)             gsDPHalf1(uc_dstart),                   \
-                                      gO_(G_LOAD_UCODE,                       \
-                                          gF_((uc_dsize)-1,16,0),uc_start)
+                                      gsLoadUcode(uc_start,uc_dsize)
+#define                             \
+gsTexRect(ulx,uly,lrx,lry,tile)       gO_(G_TEXRECT,                          \
+                                          gF_(lrx,12,12)|gF_(lry,12,0),       \
+                                          gF_(tile,3,24)|gF_(ulx,12,12)|      \
+                                          gF_(uly,12,0))
+#define                             \
+gsTexRectFlip(ulx,uly,lrx,lry,tile)   gO_(G_TEXRECTFLIP,                      \
+                                          gF_(lrx,12,12)|gF_(lry,12,0),       \
+                                          gF_(tile,3,24)|gF_(ulx,12,12)|      \
+                                          gF_(uly,12,0))
+#define gsSPNoOp()                    gO_(G_SPNOOP,0,0)
+#define gsSpecial3(hi,lo)             gO_(G_SPECIAL_3,hi,lo)
+#define gsSpecial2(hi,lo)             gO_(G_SPECIAL_2,hi,lo)
+#define gsSpecial1(hi,lo)             gO_(G_SPECIAL_1,hi,lo)
 
 /* dynamic instruction macros */
 #define gDisplayListPut(gdl,...)      ({Gfx Gdl__[]={__VA_ARGS__};            \
@@ -1708,6 +1760,7 @@ gsSPLoadUcodeEx(uc_start,uc_dstart, \
 #define gDPSetTileSize(gdl,...)       gD_(gdl,gsDPSetTileSize,__VA_ARGS__)
 #define gSP1Triangle(gdl,...)         gD_(gdl,gsSP1Triangle,__VA_ARGS__)
 #define gSP2Triangles(gdl,...)        gD_(gdl,gsSP2Triangles,__VA_ARGS__)
+#define gSP1Quadrangle(gdl,...)       gD_(gdl,gsSP1Quadrangle,__VA_ARGS__)
 #define gSPBranchLessZ(gdl,...)       gD_(gdl,gsSPBranchLessZ,__VA_ARGS__)
 #define gSPBranchLessZrg(gdl,...)     gD_(gdl,gsSPBranchLessZrg,__VA_ARGS__)
 #define gSPBranchList(gdl,...)        gD_(gdl,gsSPBranchList,__VA_ARGS__)
@@ -1719,6 +1772,7 @@ gsSPLoadUcodeEx(uc_start,uc_dstart, \
 #define gSPForceMatrix(gdl,...)       gD_(gdl,gsSPForceMatrix,__VA_ARGS__)
 #define gSPSetGeometryMode(gdl,...)   gD_(gdl,gsSPSetGeometryMode,__VA_ARGS__)
 #define gSPClearGeometryMode(gdl,...) gD_(gdl,gsSPClearGeometryMode,__VA_ARGS__)
+#define gSPLoadGeometryMode(gdl,...)  gD_(gdl,gsSPLoadGeometryMode,__VA_ARGS__)
 #define gSPLine3D(gdl,...)            gD_(gdl,gsSPLine3D,__VA_ARGS__)
 #define gSPLineW3D(gdl,...)           gD_(gdl,gsSPLineW3D,__VA_ARGS__)
 #define gSPLoadUcode(gdl,...)         gD_(gdl,gsSPLoadUcode,__VA_ARGS__)
@@ -1727,6 +1781,7 @@ gsSPLoadUcodeEx(uc_start,uc_dstart, \
 #define gSPModifyVertex(gdl,...)      gD_(gdl,gsSPModifyVertex,__VA_ARGS__)
 #define gSPPerspNormalize(gdl,...)    gD_(gdl,gsSPPerspNormalize,__VA_ARGS__)
 #define gSPPopMatrix(gdl,...)         gD_(gdl,gsSPPopMatrix,__VA_ARGS__)
+#define gSPPopMatrixN(gdl,...)        gD_(gdl,gsSPPopMatrixN,__VA_ARGS__)
 #define gSPSegment(gdl,...)           gD_(gdl,gsSPSegment,__VA_ARGS__)
 #define gSPSetLights0(gdl,...)        gD_(gdl,gsSPSetLights0,__VA_ARGS__)
 #define gSPSetLights1(gdl,...)        gD_(gdl,gsSPSetLights1,__VA_ARGS__)
@@ -1766,6 +1821,8 @@ gsSPLoadUcodeEx(uc_start,uc_dstart, \
 #define gSPSelectBranchDL(gdl,...)    gD_(gdl,gsSPSelectBranchDL,__VA_ARGS__)
 #define gDPLoadTLUTCmd(gdl,...)       gD_(gdl,gsDPLoadTLUTCmd,__VA_ARGS__)
 #define gDPLoadTLUT_palN(gdl,...)     gD_(gdl,gsDPLoadTLUT_palN,__VA_ARGS__)
+#define gBranchZ(gdl,...)             gD_(gdl,gsBranchZ,__VA_ARGS__)
+#define gDisplayList(gdl,...)         gD_(gdl,gsDisplayList,__VA_ARGS__)
 #define gDPHalf1(gdl,...)             gD_(gdl,gsDPHalf1,__VA_ARGS__)
 #define gDPHalf2(gdl,...)             gD_(gdl,gsDPHalf2,__VA_ARGS__)
 #define gDPLoadTile(gdl,...)          gD_(gdl,gsDPLoadTile,__VA_ARGS__)
@@ -1774,8 +1831,20 @@ gsSPLoadUcodeEx(uc_start,uc_dstart, \
 #define gSPSetOtherMode(gdl,...)      gD_(gdl,gsSPSetOtherMode,__VA_ARGS__)
 #define gSPSetOtherModeLo(gdl,...)    gD_(gdl,gsSPSetOtherModeLo,__VA_ARGS__)
 #define gSPSetOtherModeHi(gdl,...)    gD_(gdl,gsSPSetOtherModeHi,__VA_ARGS__)
+#define gDPSetOtherMode(gdl,...)      gD_(gdl,gsDPSetOtherMode,__VA_ARGS__)
 #define gMoveWd(gdl,...)              gD_(gdl,gsMoveWd,__VA_ARGS__)
 #define gMoveMem(gdl,...)             gD_(gdl,gsMoveMem,__VA_ARGS__)
+#define gSPDma_io(gdl,...)            gD_(gdl,gsSPDma_io,__VA_ARGS__)
+#define gSPDmaRead(gdl,...)           gD_(gdl,gsSPDmaRead,__VA_ARGS__)
+#define gSPDmaWrite(gdl,...)          gD_(gdl,gsSPDmaWrite,__VA_ARGS__)
+#define gLoadUcode(gdl,...)           gD_(gdl,gsLoadUcode,__VA_ARGS__)
+#define gSPLoadUcodeEx(gdl,...)       gD_(gdl,gsSPLoadUcodeEx,__VA_ARGS__)
+#define gTexRect(gdl,...)             gD_(gdl,gsTexRect,__VA_ARGS__)
+#define gTexRectFlip(gdl,...)         gD_(gdl,gsTexRectFlip,__VA_ARGS__)
+#define gSPNoOp(gdl)                  gDisplayListPut(gdl,gsSPNoOp())
+#define gSpecial3(gdl,...)            gD_(gdl,gsSpecial3,__VA_ARGS__)
+#define gSpecial2(gdl,...)            gD_(gdl,gsSpecial2,__VA_ARGS__)
+#define gSpecial1(gdl,...)            gD_(gdl,gsSpecial1,__VA_ARGS__)
 
 
 /* data types and structures */
