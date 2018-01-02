@@ -11,7 +11,14 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#ifdef __linux__
+#include <endian.h>
+#define BYTE_ORDER    __BYTE_ORDER
+#define BIG_ENDIAN    __BIG_ENDIAN
+#define LITTLE_ENDIAN __LITTLE_ENDIAN
+#else
 #include <sys/param.h>
+#endif
 
 /**
  * private helper macros

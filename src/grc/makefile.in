@@ -1,0 +1,21 @@
+CPPFLAGS    = -I@srcdir@/../../include
+CFLAGS      = -std=gnu11 -Wall -O2
+LDFLAGS     = -s -Wl,-rpath=\$$ORIGIN/../lib,--as-needed @LDFLAGS@
+LDLIBS      = -ljansson @LIBS@
+SRC         = @srcdir@/*.c
+PROGNAME    = grc
+INSTALLDIR  = /opt/n64/bin
+
+.PHONY      : all install clean
+
+all         : $(PROGNAME)
+install     : $(INSTALLDIR)/
+	@INSTALL@ $(PROGNAME) $(INSTALLDIR)
+clean       :
+	rm -f $(PROGNAME)
+distclean   :
+	rm -f makefile
+$(PROGNAME) : $(SRC)
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $^ $(LDLIBS) -o $@
+%/          :
+	@MKDIR_P@ $@

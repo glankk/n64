@@ -16,7 +16,7 @@ struct gsc_code
   uint16_t value;
 };
 
-static char *getline(FILE *file)
+static char *get_line(FILE *file)
 {
   const size_t buffer_size = 256;
   char *line = NULL;
@@ -71,7 +71,7 @@ enum gru_error gru_gsc_load(struct gru_gsc *gsc, const char *filename)
   if (!file)
     return GRU_ERROR_FILEIN;
   while (!feof(file)) {
-    char *line = getline(file);
+    char *line = get_line(file);
     if (!line) {
       fclose(file);
       return GRU_ERROR_FILEIN;

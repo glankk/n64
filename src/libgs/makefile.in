@@ -1,0 +1,21 @@
+CPPFLAGS    = -I@srcdir@/../../include
+CFLAGS      = -std=gnu11 -Wall -O2
+LDFLAGS     = -s -Wl,-rpath=\$$ORIGIN/../lib,--as-needed @LDFLAGS@
+LDLIBS      = -lusb-1.0 @LIBS@
+SRC         = @srcdir@/src/lib/*.c @srcdir@/src/exe/*.c @srcdir@/../../include/vector/vector.c
+PROGNAME    = gs
+INSTALLDIR  = /opt/n64/bin
+
+.PHONY      : all install clean
+
+all         : $(PROGNAME)
+install     : $(INSTALLDIR)/
+	@INSTALL@ $(PROGNAME) $(INSTALLDIR)
+clean       :
+	rm -f $(PROGNAME)
+distclean   :
+	rm -f makefile
+$(PROGNAME) : $(SRC)
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $^ $(LDLIBS) -o $@
+%/          :
+	@MKDIR_P@ $@

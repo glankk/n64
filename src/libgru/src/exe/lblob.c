@@ -1,6 +1,12 @@
 #include <stdlib.h>
+#include <config.h>
+#ifdef HAVE_LUA5_3_LUA_H
+#include <lua5.3/lua.h>
+#include <lua5.3/lauxlib.h>
+#else
 #include <lua.h>
 #include <lauxlib.h>
+#endif
 #include "lgru.h"
 #include "lblob.h"
 #include "../lib/libgru.h"

@@ -1,7 +1,7 @@
 #ifndef LIBGS_H
 #define LIBGS_H
 #include <stdint.h>
-#include <libusb.h>
+#include <libusb-1.0/libusb.h>
 
 #define GS_ERROR_LENGTH 512
 

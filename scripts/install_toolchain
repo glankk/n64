@@ -1,13 +1,11 @@
-#!/usr/bin/sh
+#!/usr/bin/env sh
 set -e
 
-PREFIX=/opt/n64-toolchain
+PREFIX="/opt/n64"
+N64ROOT="$(readlink -f "$(dirname "$0")/..")"
+LDFLAGS=""
 
-echo Removing previous installation...
-rm -rf binutils.tar.gz gcc.tar.gz newlib.tar.gz binutils gcc newlib build-binutils build-gcc build-newlib $PREFIX
-
-echo Installing build dependencies...
-pacman -S --needed --noconfirm mingw-w64-i686-gcc tar make diffutils texinfo
+case "`$N64ROOT/config.guess`" in *-mingw32|*-msys) LDFLAGS="LDFLAGS=-static";; esac
 
 echo Checking package versions...
 BINUTILS_VERSION=`wget -O - -q "https://ftp.gnu.org/gnu/binutils/" | grep -E -o ">binutils-[0-9\\\\.]+tar\\\\.gz<" | tail -n 1 | sed -e s/\\>// -e s/\\\\.tar\\\\.gz\\<//`
@@ -17,44 +15,50 @@ echo Latest GCC release is $GCC_VERSION
 NEWLIB_VERSION=`wget -O - -q "https://sourceware.org/pub/newlib/" | grep -E -o ">newlib-[0-9\\\\.]+tar\\\\.gz<" | head -n 1 | sed -e s/\\>// -e s/\\\\.tar\\\\.gz\\<//`
 echo Latest Newlib release is $NEWLIB_VERSION
 
-echo Downloading packages...
-wget -O binutils.tar.gz "https://ftp.gnu.org/gnu/binutils/$BINUTILS_VERSION.tar.gz"
-wget -O gcc.tar.gz "https://ftp.gnu.org/gnu/gcc/$GCC_VERSION/$GCC_VERSION.tar.gz"
-wget -O newlib.tar.gz "https://sourceware.org/pub/newlib/$NEWLIB_VERSION.tar.gz"
-
-export PATH="$PREFIX/bin:/mingw32/bin:$PATH"
+export PATH="$PREFIX/bin:$PATH"
 export CFLAGS_FOR_TARGET="-ffunction-sections -fdata-sections"
 export CXXFLAGS_FOR_TARGET="-ffunction-sections -fdata-sections"
 
+echo Downloading Binutils...
+wget -O binutils.tar.gz "https://ftp.gnu.org/gnu/binutils/$BINUTILS_VERSION.tar.gz"
 echo Building Binutils...
 mkdir binutils
 tar xfv binutils.tar.gz --strip-components=1 -C binutils
+rm -f binutils.tar.gz
 mkdir build-binutils
 cd build-binutils
-../binutils/configure --prefix="$PREFIX" --build=i686-w64-mingw32 --host=i686-w64-mingw32 --target=mips64 \
-                      --disable-nls LDFLAGS="--static"
+../binutils/configure --prefix="$PREFIX" --target=mips64 --disable-nls $LDFLAGS
 make all
 make install
 cd ..
+echo Cleaning up Binutils...
+rm -rf binutils build-binutils
 
+echo Downloading GCC...
+wget -O gcc.tar.gz "https://ftp.gnu.org/gnu/gcc/$GCC_VERSION/$GCC_VERSION.tar.gz"
 echo Building GCC executables...
 mkdir gcc
 tar xfv gcc.tar.gz --strip-components=1 -C gcc
+rm -f gcc.tar.gz
 cd gcc
 ./contrib/download_prerequisites
 cd ..
 mkdir build-gcc
 cd build-gcc
-../gcc/configure --prefix="$PREFIX" --build=i686-w64-mingw32 --host=i686-w64-mingw32 --target=mips64 \
-                 --with-arch=vr4300 --with-abi=32 --with-newlib --enable-languages=c,c++,lto --enable-target-optspace \
-                 --enable-sjlj-exceptions --disable-multilib --disable-threads --disable-nls LDFLAGS="--static"
+../gcc/configure --prefix="$PREFIX" --target=mips64 --with-arch=vr4300 --with-abi=32 \
+                 --with-newlib --with-headers="$N64ROOT/include" --with-libs="$N64ROOT/lib" \
+                 --enable-languages=c,c++,lto --enable-sjlj-exceptions --enable-target-optspace \
+                 --disable-multilib --disable-threads --disable-nls $LDFLAGS
 make all-gcc
 make install-gcc
 cd ..
 
+echo Downloading Newlib...
+wget -O newlib.tar.gz "https://sourceware.org/pub/newlib/$NEWLIB_VERSION.tar.gz"
 echo Building Newlib...
 mkdir newlib
 tar xfv newlib.tar.gz --strip-components=1 -C newlib
+rm -f newlib.tar.gz
 mkdir build-newlib
 cd build-newlib
 ../newlib/configure --prefix="$PREFIX" --target=mips64 --with-newlib --enable-target-optspace \
@@ -68,12 +72,13 @@ cd build-newlib
 make all
 make install
 cd ..
+echo Cleaning up Newlib...
+rm -rf newlib build-newlib
 
 echo Building GCC...
 cd build-gcc
 make all
 make install
 cd ..
-
-echo Cleaning up...
-rm -rf binutils.tar.gz gcc.tar.gz newlib.tar.gz binutils gcc newlib build-binutils build-gcc build-newlib
+echo Cleaning up GCC...
+rm -rf gcc build-gcc

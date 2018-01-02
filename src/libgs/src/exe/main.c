@@ -1,6 +1,6 @@
 #include <stdio.h>
+#include <string.h>
 #include <inttypes.h>
-#include <fcntl.h>
 #define MIPS_ASM_BIG_ENDIAN
 #define MIPS_ASM_CONCISE
 #include <mips.h>
@@ -166,8 +166,8 @@ static enum option_error option_handler_write(int argc, const char *argv[],
   FILE *file = NULL;
   int close_file;
   uint32_t address;
-  size_t data_size = 0;
-  size_t data_chunk_size = 0;
+  uint32_t data_size = 0;
+  uint32_t data_chunk_size = 0;
   struct vector code_vector;
   vector_init(&code_vector, sizeof(struct gs_code));
   struct vector data_vector;
@@ -187,12 +187,12 @@ static enum option_error option_handler_write(int argc, const char *argv[],
     const char *next_option = option_get_next(argc, argv, argp);
     if (!next_option)
       return OPTION_ERROR_END;
-    if (sscanf(next_option, "0x%" PRIx32, &address) != 1)
-      if (sscanf(next_option, "%" PRIu32, &address) != 1)
+    if (sscanf(next_option, "0x%" SCNx32, &address) != 1)
+      if (sscanf(next_option, "%" SCNu32, &address) != 1)
         return OPTION_ERROR_UNEXPECTED;
     next_option = option_peek_next(argc, argv, argp);
-    if (next_option && (sscanf(next_option, "0x%x", &data_chunk_size) == 1 ||
-                        sscanf(next_option, "%u", &data_chunk_size) == 1))
+    if (next_option && (sscanf(next_option, "0x%" SCNx32, &data_chunk_size) == 1 ||
+                        sscanf(next_option, "%" SCNu32, &data_chunk_size) == 1))
       ++*argp;
   }
 
@@ -209,7 +209,7 @@ static enum option_error option_handler_write(int argc, const char *argv[],
       return OPTION_ERROR_FOPEN;
     close_file = 1;
   }
-  _setmode(_fileno(file), format == FORMAT_TEXT ? _O_TEXT : _O_BINARY);
+  file = freopen(NULL, format == FORMAT_TEXT ? "r" : "rb", file);
 
   if (format == FORMAT_TEXT) {
     while (!feof(file)) {
@@ -269,7 +269,7 @@ exit:
   vector_destroy(&code_vector);
   vector_destroy(&data_vector);
   if (file) {
-    _setmode(_fileno(file), _O_TEXT);
+    file = freopen(NULL, "r", file);
     if (close_file)
       fclose(file);
   }

@@ -1,0 +1,56 @@
+#!/usr/bin/env sh
+set -e
+
+DEPS="wget tar make diffutils texinfo"
+RCDEPS="$DEPS gcc g++ lua5.3 jansson libusb-1.0"
+PKM=""
+
+echo Checking platform...
+if type apt >/dev/null 2>&1; then
+  echo Found apt, assuming Debian.
+  DEPS="$DEPS gcc g++ liblua5.3-dev libjansson-dev libusb-1.0-0-dev"
+  PKM="apt"
+elif type yum >/dev/null 2>&1; then
+  echo Found yum, assuming Red Hat.
+  DEPS="$DEPS gcc gcc-c++ lua-devel jansson-devel libusb-devel"
+  PKM="yum"
+elif type zypper >/dev/null 2>&1; then
+  echo Found zypper, assuming openSUSE.
+  DEPS="$DEPS gcc gcc-c++ lua53 libjansson-devel libusb-1_0-devel"
+  PKM="zypper"
+elif type emerge >/dev/null 2>&1; then
+  echo Found emerge, assuming Gentoo.
+  if type equo >/dev/null 2>&1; then
+    read -p "Warning: Also found equo. If you're running Sabayon, then this will probably not work. Continue? (y/n) " yn
+    case "$yn" in [Yy]*) ;; *) exit;; esac
+  fi
+  DEPS="$DEPS gcc lua:5.3 jansson libusb"
+  PKM="emerge"
+elif type pacman >/dev/null 2>&1; then
+  if [ "$(uname -o)" = "Msys" ]; then
+    echo Found pacman with \`uname -o\` = "Msys", assuming MSYS2.
+    DEPS="$DEPS mingw-w64-i686-gcc mingw-w64-i686-lua mingw-w64-i686-jansson mingw-w64-i686-libusb"
+    PKM="pacman"
+    BUILD="--build=i686-w64-mingw32"
+    LDFLAGS="LDFLAGS=\"--static\""
+    export PATH="/mingw32/bin:$PATH"
+  else
+    echo Found pacman, assuming Arch.
+    DEPS="$DEPS gcc lua jansson libusb"
+    PKM="pacman"
+  fi
+fi
+
+if [ -z "$PKM" ]; then
+  echo Unrecognized platform, skipping automatic package installation.
+  echo Make sure these packages are installed: $RCDEPS
+else
+  echo Installing dependencies...
+  case "$PKM" in
+    apt)    apt install -y $DEPS;;
+    yum)    yum install -y $DEPS;;
+    zypper) zypper install -y $DEPS;;
+    emerge) emerge -n --autounmask-write $DEPS || ( dispatch-conf && emerge -n $DEPS );;
+    pacman) pacman -S --needed --noconfirm $DEPS;;
+  esac
+fi

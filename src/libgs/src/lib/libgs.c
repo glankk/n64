@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdint.h>
 #include <stdarg.h>
-#include <inttypes.h>
+#include <time.h>
 #include <sys/time.h>
-#include <unistd.h>
-#include <libusb.h>
+#include <inttypes.h>
+#include <libusb-1.0/libusb.h>
 #include "libgs.h"
 #include "mos.h"
 #include "mos_io.h"
@@ -14,7 +15,7 @@
 #define GS_MAX_ATTEMPTS 16
 
 static void gs_ram_write_start(struct gs_context *gs, uint32_t address,
-                               size_t data_size);
+                               uint32_t data_size);
 static void gs_ram_write_byte(struct gs_context *gs, uint8_t data);
 static void gs_ram_write_end(struct gs_context *gs, uint8_t checksum);
 static uint8_t gs_end_transaction(struct gs_context *gs, uint8_t checksum);

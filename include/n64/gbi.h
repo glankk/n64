@@ -1,5 +1,5 @@
 /**
- * gbi.h version 0.1rev6
+ * gbi.h version 0.1rev7
  * n64 graphics microcode interface library
  * compatible with f3dex2 and s2dex2
  * -glank
@@ -354,11 +354,11 @@
 
 
 #define G_RM_TEX_EDGE                 (AA_EN|CVG_DST_CLAMP|ZMODE_OPA|         \
-                                       CVG_X_ALPHA|ALPHA_CVG_SEL|FORCE_BL     \
+                                       CVG_X_ALPHA|ALPHA_CVG_SEL|FORCE_BL|    \
                                        GBL_c1(G_BL_CLR_IN,G_BL_0,             \
                                               G_BL_CLR_IN,G_BL_1))
 #define G_RM_TEX_EDGE2                (AA_EN|CVG_DST_CLAMP|ZMODE_OPA|         \
-                                       CVG_X_ALPHA|ALPHA_CVG_SEL|FORCE_BL     \
+                                       CVG_X_ALPHA|ALPHA_CVG_SEL|FORCE_BL|    \
                                        GBL_c2(G_BL_CLR_IN,G_BL_0,             \
                                               G_BL_CLR_IN,G_BL_1))
 #define G_RM_AA_TEX_EDGE              (AA_EN|IM_RD|CVG_DST_CLAMP|ZMODE_OPA|   \
@@ -797,21 +797,21 @@
 #define G_MWO_CLIP_RPX                gI_(0x14)
 #define G_MWO_CLIP_RPY                gI_(0x1C)
 #define G_MWO_SEGMENT_0               gI_(0x00)
-#define G_MWO_SEGMENT_1               gI_(0x01)
-#define G_MWO_SEGMENT_2               gI_(0x02)
-#define G_MWO_SEGMENT_3               gI_(0x03)
-#define G_MWO_SEGMENT_4               gI_(0x04)
-#define G_MWO_SEGMENT_5               gI_(0x05)
-#define G_MWO_SEGMENT_6               gI_(0x06)
-#define G_MWO_SEGMENT_7               gI_(0x07)
-#define G_MWO_SEGMENT_8               gI_(0x08)
-#define G_MWO_SEGMENT_9               gI_(0x09)
-#define G_MWO_SEGMENT_A               gI_(0x0A)
-#define G_MWO_SEGMENT_B               gI_(0x0B)
-#define G_MWO_SEGMENT_C               gI_(0x0C)
-#define G_MWO_SEGMENT_D               gI_(0x0D)
-#define G_MWO_SEGMENT_E               gI_(0x0E)
-#define G_MWO_SEGMENT_F               gI_(0x0F)
+#define G_MWO_SEGMENT_1               gI_(0x04)
+#define G_MWO_SEGMENT_2               gI_(0x08)
+#define G_MWO_SEGMENT_3               gI_(0x0C)
+#define G_MWO_SEGMENT_4               gI_(0x10)
+#define G_MWO_SEGMENT_5               gI_(0x14)
+#define G_MWO_SEGMENT_6               gI_(0x18)
+#define G_MWO_SEGMENT_7               gI_(0x1C)
+#define G_MWO_SEGMENT_8               gI_(0x20)
+#define G_MWO_SEGMENT_9               gI_(0x24)
+#define G_MWO_SEGMENT_A               gI_(0x28)
+#define G_MWO_SEGMENT_B               gI_(0x2C)
+#define G_MWO_SEGMENT_C               gI_(0x30)
+#define G_MWO_SEGMENT_D               gI_(0x34)
+#define G_MWO_SEGMENT_E               gI_(0x38)
+#define G_MWO_SEGMENT_F               gI_(0x3C)
 #define G_MWO_FOG                     gI_(0x00)
 #define G_MWO_aLIGHT_1                gI_(0x00)
 #define G_MWO_bLIGHT_1                gI_(0x04)
@@ -1087,18 +1087,17 @@ gsDPScisFillRectangle(ulx,uly,lrx,  \
 #define gsDPLoadSync()                gO_(G_RDPLOADSYNC,0,0)
 #define gsDPTileSync()                gO_(G_RDPTILESYNC,0,0)
 #define gsDPPipeSync()                gO_(G_RDPPIPESYNC,0,0)
-#define gsDPLoadTLUT_pal16(pal,dram)  gsDPLoadTLUT_palN(pal,dram,15)
-#define gsDPLoadTLUT_pal256(dram)     gsDPLoadTLUT_palN(0,dram,255)
+#define gsDPLoadTLUT_pal16(pal,dram)  gsDPLoadTLUT(16,256+(gI_(pal)&0xF)*16,  \
+                                                   dram)
+#define gsDPLoadTLUT_pal256(dram)     gsDPLoadTLUT(256,256,dram)
 #define                             \
-gsDPLoadTextureBlock(timg,fmt,siz,  \
-                     width,height,  \
-                     pal,cms,cmt,   \
-                     masks,maskt,   \
-                     shifts,shiftt)   gsDPSetTextureImage(fmt,                \
+gLTB_(timg,fmt,siz,width,height,pal,\
+      cms,cmt,masks,maskt,          \
+      shifts,shiftt,dxt,tmem,rt,line) gsDPSetTextureImage(fmt,                \
                                                           G_SIZ_LDSIZ(siz),   \
                                                           1,timg),            \
                                       gsDPSetTile(fmt,G_SIZ_LDSIZ(siz),0,     \
-                                                  0x0,G_TX_LOADTILE,0,        \
+                                                  tmem,G_TX_LOADTILE,0,       \
                                                   cmt,maskt,shiftt,           \
                                                   cms,masks,shifts),          \
                                       gsDPLoadSync(),                         \
@@ -1107,22 +1106,33 @@ gsDPLoadTextureBlock(timg,fmt,siz,  \
                                                      G_SIZ_BITS(siz)-1)/      \
                                                     G_SIZ_BITS(               \
                                                      G_SIZ_LDSIZ(siz))-1,     \
-                                                    (width)*G_SIZ_BITS(siz)<= \
-                                                    64?(1<<11):               \
-                                                    ((1<<11)+(width)*         \
-                                                     G_SIZ_BITS(siz)/64-1)/   \
-                                                    ((width)*                 \
-                                                     G_SIZ_BITS(siz)/64)),    \
+                                                    dxt),                     \
                                       gsDPPipeSync(),                         \
-                                      gsDPSetTile(fmt,siz,                    \
-                                                  ((width)*                   \
-                                                   G_SIZ_LDBITS(siz)+63)/64,  \
-                                                  0x0,G_TX_RENDERTILE,pal,    \
+                                      gsDPSetTile(fmt,siz,line,tmem,rt,pal,   \
                                                   cmt,maskt,shiftt,           \
                                                   cms,masks,shifts),          \
-                                      gsDPSetTileSize(G_TX_RENDERTILE,0,0,    \
+                                      gsDPSetTileSize(rt,0,0,                 \
                                                       qu102((width)-1),       \
                                                       qu102((height)-1))
+#define                             \
+gsDPLoadTextureBlock(timg,fmt,siz,  \
+                     width,height,  \
+                     pal,cms,cmt,   \
+                     masks,maskt,   \
+                     shifts,shiftt)   gLTB_(timg,fmt,siz,width,height,pal,    \
+                                            cms,cmt,masks,maskt,shifts,shiftt,\
+                                            G_DXT(siz,width),0x0,             \
+                                            G_TX_RENDERTILE,                  \
+                                            ((width)*G_SIZ_LDBITS(siz)+63)/64)
+#define                             \
+gsDPLoadTextureBlockS(timg,fmt,siz, \
+                      width,height, \
+                      pal,cms,cmt,  \
+                      masks,maskt,  \
+                      shifts,shiftt)  gLTB_(timg,fmt,siz,width,height,pal,    \
+                                            cms,cmt,masks,maskt,shifts,shiftt,\
+                                            0,0x0,G_TX_RENDERTILE,            \
+                                            ((width)*G_SIZ_LDBITS(siz)+63)/64)
 #define                             \
 gsDPLoadTextureBlock_4b(timg,fmt,   \
                         width,      \
@@ -1131,11 +1141,231 @@ gsDPLoadTextureBlock_4b(timg,fmt,   \
                         masks,      \
                         maskt,      \
                         shifts,     \
-                        shiftt)       gsDPLoadTextureBlock(timg,fmt,          \
-                                                           G_IM_SIZ_4b,width, \
-                                                           height,pal,cms,    \
-                                                           cmt,masks,maskt,   \
-                                                           shifts,shiftt)
+                        shiftt)       gLTB_(timg,fmt,G_IM_SIZ_4b,             \
+                                            width,height,pal,                 \
+                                            cms,cmt,masks,maskt,shifts,shiftt,\
+                                            G_DXT(G_IM_SIZ_4b,width),0x0,     \
+                                            G_TX_RENDERTILE,((width)*4+63)/64)
+#define                             \
+gsDPLoadTextureBlock_4bS(timg,fmt,  \
+                         width,     \
+                         height,pal,\
+                         cms,cmt,   \
+                         masks,     \
+                         maskt,     \
+                         shifts,    \
+                         shiftt)      gLTB_(timg,fmt,G_IM_SIZ_4b,             \
+                                            width,height,pal,                 \
+                                            cms,cmt,masks,maskt,shifts,shiftt,\
+                                            0,0x0,G_TX_RENDERTILE,            \
+                                            ((width)*4+63)/64)
+#define                             \
+gsDPLoadTextureBlockYuv(timg,fmt,   \
+                        siz,        \
+                        width,      \
+                        height,     \
+                        pal,        \
+                        cms,cmt,    \
+                        masks,      \
+                        maskt,      \
+                        shifts,     \
+                        shiftt)       gLTB_(timg,fmt,siz,width,height,pal,    \
+                                            cms,cmt,masks,maskt,shifts,shiftt,\
+                                            G_DXT(siz,width),0x0,             \
+                                            G_TX_RENDERTILE,((width)+7)/8)
+#define                             \
+gsDPLoadTextureBlockYuvS(timg,fmt,  \
+                         siz,       \
+                         width,     \
+                         height,    \
+                         pal,       \
+                         cms,cmt,   \
+                         masks,     \
+                         maskt,     \
+                         shifts,    \
+                         shiftt)      gLTB_(timg,fmt,siz,width,height,pal,    \
+                                            cms,cmt,masks,maskt,shifts,shiftt,\
+                                            0,0x0,G_TX_RENDERTILE,            \
+                                            ((width)+7)/8)
+#define                             \
+_gsDPLoadTextureBlock(timg,tmem,    \
+                      fmt,siz,      \
+                      width,height, \
+                      pal,cms,cmt,  \
+                      masks,maskt,  \
+                      shifts,shiftt)  gLTB_(timg,fmt,siz,width,height,pal,    \
+                                            cms,cmt,masks,maskt,shifts,shiftt,\
+                                            G_DXT(siz,width),tmem,            \
+                                            G_TX_RENDERTILE,                  \
+                                            ((width)*G_SIZ_LDBITS(siz)+63)/64)
+#define                             \
+_gsDPLoadTextureBlockS(timg,tmem,   \
+                       fmt,siz,     \
+                       width,height,\
+                       pal,cms,cmt, \
+                       masks,maskt, \
+                       shifts,shiftt) gLTB_(timg,fmt,siz,width,height,pal,    \
+                                            cms,cmt,masks,maskt,shifts,shiftt,\
+                                            0,tmem,G_TX_RENDERTILE,           \
+                                            ((width)*G_SIZ_LDBITS(siz)+63)/64)
+#define                             \
+_gsDPLoadTextureBlock_4b(timg,tmem, \
+                         fmt,width, \
+                         height,pal,\
+                         cms,cmt,   \
+                         masks,     \
+                         maskt,     \
+                         shifts,    \
+                         shiftt)      gLTB_(timg,fmt,G_IM_SIZ_4b,             \
+                                            width,height,pal,                 \
+                                            cms,cmt,masks,maskt,shifts,shiftt,\
+                                            G_DXT(G_IM_SIZ_4b,width),tmem,    \
+                                            G_TX_RENDERTILE,((width)*4+63)/64)
+#define                             \
+_gsDPLoadTextureBlock_4bS(timg,tmem,\
+                          fmt,width,\
+                          height,   \
+                          pal,cms,  \
+                          cmt,masks,\
+                          maskt,    \
+                          shifts,   \
+                          shiftt)     gLTB_(timg,fmt,G_IM_SIZ_4b,             \
+                                            width,height,pal,                 \
+                                            cms,cmt,masks,maskt,shifts,shiftt,\
+                                            0,tmem,G_TX_RENDERTILE,           \
+                                            ((width)*4+63)/64)
+#define                             \
+_gsDPLoadTextureBlockYuv(timg,tmem, \
+                         fmt,siz,   \
+                         width,     \
+                         height,pal,\
+                         cms,cmt,   \
+                         masks,     \
+                         maskt,     \
+                         shifts,    \
+                         shiftt)      gLTB_(timg,fmt,siz,width,height,pal,    \
+                                            cms,cmt,masks,maskt,shifts,shiftt,\
+                                            G_DXT(siz,width),tmem,            \
+                                            G_TX_RENDERTILE,((width)+7)/8)
+#define                             \
+_gsDPLoadTextureBlockYuvS(timg,tmem,\
+                          fmt,siz,  \
+                          width,    \
+                          height,   \
+                          pal,      \
+                          cms,cmt,  \
+                          masks,    \
+                          maskt,    \
+                          shifts,   \
+                          shiftt)     gLTB_(timg,fmt,siz,width,height,pal,    \
+                                            cms,cmt,masks,maskt,shifts,shiftt,\
+                                            0,tmem,G_TX_RENDERTILE,           \
+                                            ((width)+7)/8)
+#define                             \
+gsDPLoadMultiBlock(timg,tmem,rt,    \
+                   fmt,siz,         \
+                   width,height,    \
+                   pal,cms,cmt,     \
+                   masks,maskt,     \
+                   shifts,shiftt)     gLTB_(timg,fmt,siz,width,height,pal,    \
+                                            cms,cmt,masks,maskt,shifts,shiftt,\
+                                            G_DXT(siz,width),tmem,rt,         \
+                                            ((width)*G_SIZ_LDBITS(siz)+63)/64)
+#define                             \
+gsDPLoadMultiBlockS(timg,tmem,rt,   \
+                    fmt,siz,        \
+                    width,height,   \
+                    pal,cms,cmt,    \
+                    masks,maskt,    \
+                    shifts,shiftt)    gLTB_(timg,fmt,siz,width,height,pal,    \
+                                            cms,cmt,masks,maskt,shifts,shiftt,\
+                                            0,tmem,rt,                        \
+                                            ((width)*G_SIZ_LDBITS(siz)+63)/64)
+#define                             \
+gsDPLoadMultiBlock_4b(timg,tmem,rt, \
+                      fmt,          \
+                      width,height, \
+                      pal,cms,cmt,  \
+                      masks,maskt,  \
+                      shifts,shiftt)  gLTB_(timg,fmt,G_IM_SIZ_4b,             \
+                                            width,height,pal,                 \
+                                            cms,cmt,masks,maskt,shifts,shiftt,\
+                                            G_DXT(G_IM_SIZ_4b,width),tmem,rt, \
+                                            ((width)*4+63)/64)
+#define                             \
+gsDPLoadMultiBlock_4bS(timg,tmem,rt,\
+                       fmt,         \
+                       width,height,\
+                       pal,cms,cmt, \
+                       masks,maskt, \
+                       shifts,shiftt) gLTB_(timg,fmt,G_IM_SIZ_4b,             \
+                                            width,height,pal,                 \
+                                            cms,cmt,masks,maskt,shifts,shiftt,\
+                                            0,tmem,rt,((width)*4+63)/64)
+#define                             \
+gsDPLoadMultiBlockYuv(timg,tmem,rt, \
+                      fmt,siz,      \
+                      width,height, \
+                      pal,cms,cmt,  \
+                      masks,maskt,  \
+                      shifts,shiftt)  gLTB_(timg,fmt,siz,width,height,pal,    \
+                                            cms,cmt,masks,maskt,shifts,shiftt,\
+                                            G_DXT(siz,width),tmem,rt,         \
+                                            ((width)+7)/8)
+#define                             \
+gsDPLoadMultiBlockYuvS(timg,tmem,rt,\
+                       fmt,siz,     \
+                       width,height,\
+                       pal,cms,cmt, \
+                       masks,maskt, \
+                       shifts,shiftt) gLTB_(timg,fmt,siz,width,height,pal,    \
+                                            cms,cmt,masks,maskt,shifts,shiftt,\
+                                            0,tmem,rt,((width)+7)/8)
+#define                             \
+gLTT_(timg,fmt,siz,width,height,    \
+      uls,ult,lrs,lrt,pal,cms,cmt,  \
+      masks,maskt,shifts,shiftt,   \
+      tmem,rt,line)                   gsDPSetTextureImage(fmt,siz,width,timg),\
+                                      gsDPSetTile(fmt,siz,line,tmem,          \
+                                                  G_TX_LOADTILE,0,            \
+                                                  cmt,maskt,shiftt,           \
+                                                  cms,masks,shifts),          \
+                                      gsDPLoadSync(),                         \
+                                      gsDPLoadTile(G_TX_LOADTILE,             \
+                                                   qu102(uls),qu102(ult),     \
+                                                   qu102(lrs),qu102(lrt)),    \
+                                      gsDPPipeSync(),                         \
+                                      gsDPSetTile(fmt,siz,line,               \
+                                                  tmem,rt,pal,                \
+                                                  cmt,maskt,shiftt,           \
+                                                  cms,masks,shifts),          \
+                                      gsDPSetTileSize(rt,                     \
+                                                      qu102(uls),qu102(ult),  \
+                                                      qu102(lrs),qu102(lrt))
+#define                             \
+gLTT4_(timg,fmt,width,height,       \
+       uls,ult,lrs,lrt,pal,cms,cmt, \
+       masks,maskt,shifts,shiftt,   \
+       tmem,rt)                       gsDPSetTextureImage(fmt,G_IM_SIZ_8b,    \
+                                                          (width)/2,timg),    \
+                                      gsDPSetTile(fmt,G_IM_SIZ_8b,            \
+                                                  (((lrs)-(uls)+1)/2+7)/8,    \
+                                                  tmem,G_TX_LOADTILE,0,       \
+                                                  cmt,maskt,shiftt,           \
+                                                  cms,masks,shifts),          \
+                                      gsDPLoadSync(),                         \
+                                      gsDPLoadTile(G_TX_LOADTILE,             \
+                                                   qu102(uls)/2,qu102(ult),   \
+                                                   qu102(lrs)/2,qu102(lrt)),  \
+                                      gsDPPipeSync(),                         \
+                                      gsDPSetTile(fmt,G_IM_SIZ_4b,            \
+                                                  (((lrs)-(uls)+1)/2+7)/8,    \
+                                                  tmem,rt,pal,                \
+                                                  cmt,maskt,shiftt,           \
+                                                  cms,masks,shifts),          \
+                                      gsDPSetTileSize(rt,                     \
+                                                      qu102(uls),qu102(ult),  \
+                                                      qu102(lrs),qu102(lrt))
 #define                             \
 gsDPLoadTextureTile(timg,fmt,siz,   \
                     width,height,   \
@@ -1143,31 +1373,12 @@ gsDPLoadTextureTile(timg,fmt,siz,   \
                     lrt,pal,cms,    \
                     cmt,masks,      \
                     maskt,shifts,   \
-                    shiftt)           gsDPSetTextureImage(fmt,siz,width,timg),\
-                                      gsDPSetTile(fmt,siz,                    \
-                                                  (((lrs)-(uls)+1)*           \
-                                                   G_SIZ_LDBITS(siz)+63)/64,  \
-                                                  0x0,G_TX_LOADTILE,0,        \
-                                                  cmt,maskt,shiftt,           \
-                                                  cms,masks,shifts),          \
-                                      gsDPLoadSync(),                         \
-                                      gsDPLoadTile(G_TX_LOADTILE,             \
-                                                   qu102(uls),                \
-                                                   qu102(ult),                \
-                                                   qu102(lrs),                \
-                                                   qu102(lrt)),               \
-                                      gsDPPipeSync(),                         \
-                                      gsDPSetTile(fmt,siz,                    \
-                                                  (((lrs)-(uls)+1)*           \
-                                                   G_SIZ_LDBITS(siz)+63)/64,  \
-                                                  0x0,G_TX_RENDERTILE,pal,    \
-                                                  cmt,maskt,shiftt,           \
-                                                  cms,masks,shifts),          \
-                                      gsDPSetTileSize(G_TX_RENDERTILE,        \
-                                                      qu102(uls),             \
-                                                      qu102(ult),             \
-                                                      qu102(lrs),             \
-                                                      qu102(lrt))
+                    shiftt)           gLTT_(timg,fmt,siz,width,height,        \
+                                            uls,ult,lrs,lrt,pal,cms,cmt,      \
+                                            masks,maskt,shifts,shiftt,        \
+                                            0x0,G_TX_RENDERTILE,              \
+                                            (((lrs)-(uls)+1)*                 \
+                                             G_SIZ_LDBITS(siz)+63)/64)
 #define                             \
 gsDPLoadTextureTile_4b(timg,fmt,    \
                        width,       \
@@ -1175,30 +1386,95 @@ gsDPLoadTextureTile_4b(timg,fmt,    \
                        ult,lrs,lrt, \
                        pal,cms,cmt, \
                        masks,maskt, \
-                       shifts,shiftt) gsDPSetTextureImage(fmt,G_IM_SIZ_8b,    \
-                                                          (width)/2,timg),    \
-                                      gsDPSetTile(fmt,G_IM_SIZ_8b,            \
-                                                  (((lrs)-(uls)+1)/2+7)/8,    \
-                                                  0x0,G_TX_LOADTILE,0,        \
-                                                  cmt,maskt,shiftt,           \
-                                                  cms,masks,shifts),          \
-                                      gsDPLoadSync(),                         \
-                                      gsDPLoadTile(G_TX_LOADTILE,             \
-                                                   qu102(uls)/2,              \
-                                                   qu102(ult),                \
-                                                   qu102(lrs)/2,              \
-                                                   qu102(lrt)),               \
-                                      gsDPPipeSync(),                         \
-                                      gsDPSetTile(fmt,G_IM_SIZ_4b,            \
-                                                  (((lrs)-(uls)+1)/2+7)/8,    \
-                                                  0x0,G_TX_RENDERTILE,pal,    \
-                                                  cmt,maskt,shiftt,           \
-                                                  cms,masks,shifts),          \
-                                      gsDPSetTileSize(G_TX_RENDERTILE,        \
-                                                      qu102(uls),             \
-                                                      qu102(ult),             \
-                                                      qu102(lrs),             \
-                                                      qu102(lrt))
+                       shifts,shiftt) gLTT4_(timg,fmt,width,height,           \
+                                             uls,ult,lrs,lrt,pal,cms,cmt,     \
+                                             masks,maskt,shifts,shiftt,       \
+                                             0x0,G_TX_RENDERTILE)
+#define                             \
+gsDPLoadTextureTileYuv(timg,fmt,siz,\
+                       width,height,\
+                       uls,ult,lrs, \
+                       lrt,pal,cms, \
+                       cmt,masks,   \
+                       maskt,shifts,\
+                       shiftt)        gLTT_(timg,fmt,siz,width,height,        \
+                                            uls,ult,lrs,lrt,pal,cms,cmt,      \
+                                            masks,maskt,shifts,shiftt,        \
+                                            0x0,G_TX_RENDERTILE,              \
+                                            (((lrs)-(uls)+1)+7)/8)
+#define                             \
+_gsDPLoadTextureTile(timg,tmem,     \
+                     fmt,siz,       \
+                     width,height,  \
+                     uls,ult,lrs,   \
+                     lrt,pal,cms,   \
+                     cmt,masks,     \
+                     maskt,shifts,  \
+                     shiftt)          gLTT_(timg,fmt,siz,width,height,        \
+                                            uls,ult,lrs,lrt,pal,cms,cmt,      \
+                                            masks,maskt,shifts,shiftt,        \
+                                            tmem,G_TX_RENDERTILE,             \
+                                            (((lrs)-(uls)+1)*                 \
+                                             G_SIZ_LDBITS(siz)+63)/64)
+#define                             \
+_gsDPLoadTextureTile_4b(timg,tmem,  \
+                        fmt,width,  \
+                        height,uls, \
+                        ult,lrs,lrt,\
+                        pal,cms,cmt,\
+                        masks,maskt,\
+                        shifts,     \
+                        shiftt)       gLTT4_(timg,fmt,width,height,           \
+                                             uls,ult,lrs,lrt,pal,cms,cmt,     \
+                                             masks,maskt,shifts,shiftt,       \
+                                             tmem,G_TX_RENDERTILE)
+#define                             \
+_gsDPLoadTextureTileYuv(timg,tmem,  \
+                        fmt,siz,    \
+                        width,      \
+                        height,uls, \
+                        ult,lrs,lrt,\
+                        pal,cms,cmt,\
+                        masks,maskt,\
+                        shifts,     \
+                        shiftt)       gLTT_(timg,fmt,siz,width,height,        \
+                                            uls,ult,lrs,lrt,pal,cms,cmt,      \
+                                            masks,maskt,shifts,shiftt,        \
+                                            tmem,G_TX_RENDERTILE,             \
+                                            (((lrs)-(uls)+1)+7)/8)
+#define                             \
+gsDPLoadMultiTile(timg,tmem,rt,     \
+                  fmt,siz,          \
+                  width,height,     \
+                  uls,ult,lrs,lrt,  \
+                  pal,cms,cmt,      \
+                  masks,maskt,      \
+                  shifts,shiftt)      gLTT_(timg,fmt,siz,width,height,        \
+                                            uls,ult,lrs,lrt,pal,cms,cmt,      \
+                                            masks,maskt,shifts,shiftt,tmem,rt,\
+                                            (((lrs)-(uls)+1)*                 \
+                                             G_SIZ_LDBITS(siz)+63)/64)
+#define                             \
+gsDPLoadMultiTile_4b(timg,tmem,rt,  \
+                     fmt,width,     \
+                     height,uls,ult,\
+                     lrs,lrt,pal,   \
+                     cms,cmt,       \
+                     masks,maskt,   \
+                     shifts,shiftt)   gLTT4_(timg,fmt,width,height,           \
+                                             uls,ult,lrs,lrt,pal,cms,cmt,     \
+                                             masks,maskt,shifts,shiftt,tmem,rt)
+#define                             \
+gsDPLoadMultiTileYuv(timg,tmem,rt,  \
+                     fmt,siz,width, \
+                     height,uls,ult,\
+                     lrs,lrt,pal,   \
+                     cms,cmt,       \
+                     masks,maskt,   \
+                     shifts,shiftt)   gLTT_(timg,fmt,siz,width,height,        \
+                                            uls,ult,lrs,lrt,pal,cms,cmt,      \
+                                            masks,maskt,shifts,shiftt,        \
+                                            tmem,rt,(((lrs)-(uls)+1)+7)/8)
 #define gsDPLoadBlock(tile,uls,ult, \
                       lrs,dxt)        gO_(G_LOADBLOCK,                        \
                                           gF_(uls,12,12)|gF_(ult,12,0),       \
@@ -1329,10 +1605,17 @@ gsDPSetCombineLERP(a0,b0,c0,d0,Aa0, \
                                                          G_MDSIZ_RENDERMODE,  \
                                                          gI_(mode1)|gI_(mode2))
 #define gsDPSetScissor(mode,ulx,    \
-                       uly,lrx,lry)   gO_(G_SETSCISSOR,                       \
-                                          gF_(ulx,10,14)|gF_(uly,10,2),       \
-                                          gF_(mode,2,24)|gF_(lrx,10,14)|      \
-                                          gF_(lry,10,2))
+                       uly,lrx,lry)   gsDPSetScissorFrac(mode,                \
+                                                         qu102(gI_(ulx)),     \
+                                                         qu102(gI_(uly)),     \
+                                                         qu102(gI_(lrx)),     \
+                                                         qu102(gI_(lry)))
+#define                             \
+gsDPSetScissorFrac(mode,            \
+                   ulx,uly,lrx,lry)   gO_(G_SETSCISSOR,                       \
+                                          gF_(ulx,12,12)|gF_(uly,12,0),       \
+                                          gF_(mode,2,24)|gF_(lrx,12,12)|      \
+                                          gF_(lry,12,0))
 #define gsDPSetTextureDetail(type)    gsSPSetOtherModeHi(G_MDSFT_TEXTDETAIL,  \
                                                          G_MDSIZ_TEXTDETAIL,  \
                                                          type)
@@ -1464,10 +1747,12 @@ gsSPBranchLessZrg(branchdl,vtx,     \
                                           gF_(wd,8,0),0)
 #define gsSPLoadUcode(uc_start,     \
                       uc_dstart)      gsSPLoadUcodeEx(uc_start,uc_dstart,0x800)
-#define gsSPLookAt(l)                 gsMoveMem(sizeof(Light),G_MV_LIGHT,     \
-                                                G_MVO_LOOKATX,l),             \
-                                      gsMoveMem(sizeof(Light),G_MV_LIGHT,     \
-                                                G_MVO_LOOKATY,gI_(l)+16)
+#define gsSPLookAtX(l)                gsMoveMem(sizeof(Light),G_MV_LIGHT,     \
+                                                G_MVO_LOOKATX,l)
+#define gsSPLookAtY(l)                gsMoveMem(sizeof(Light),G_MV_LIGHT,     \
+                                                G_MVO_LOOKATY,l)
+#define gsSPLookAt(l)                 gsSPLookAtX(l),                         \
+                                      gsSPLookAtY(gI_(l)+0x10)
 #define gsSPMatrix(matrix,param)      gO_(G_MTX,gF_((sizeof(Mtx)-1)/8,5,19)|  \
                                           gF_(gI_(param)^G_MTX_PUSH,8,0),     \
                                           matrix)
@@ -1527,9 +1812,9 @@ gsSPBranchLessZrg(branchdl,vtx,     \
                                       gsSPLight(&(lites).a,8)
 #define gsSPSetStatus(sid,val)        gsMoveWd(G_MW_GENSTAT,sid,val)
 #define gsSPNumLights(n)              gsMoveWd(G_MW_NUMLIGHT,G_MWO_NUMLIGHT,  \
-                                               (n)*24)
+                                               (n)*0x18)
 #define gsSPLight(l,n)                gsMoveMem(sizeof(Light),G_MV_LIGHT,     \
-                                                (n)*24+24,l)
+                                                ((n)+1)*0x18,l)
 #define gsSPLightColor(Lightnum,    \
                        packedcolor)   gsMoveWd(G_MW_LIGHTCOL,                 \
                                                G_MWO_a##Lightnum,packedcolor),\
@@ -1569,6 +1854,26 @@ gsSPTextureRectangleFlip(ulx,uly,   \
                          dsdx,dtdy)   gsTexRectFlip(ulx,uly,lrx,lry,tile),    \
                                       gsDPHalf1(gF_(s,16,16)|gF_(t,16,0)),    \
                                       gsDPHalf2(gF_(dsdx,16,16)|gF_(dtdy,16,0))
+#define                             \
+gsSPScisTextureRectangleFlip(ulx,   \
+                             uly,   \
+                             lrx,   \
+                             lry,   \
+                             tile,  \
+                             s,t,   \
+                             dsdx,  \
+                             dtdy)    gsTexRectFlip((ulx)<0?0:(ulx),          \
+                                                    (uly)<0?0:(uly),          \
+                                                    (lrx)<0?0:(lrx),          \
+                                                    (lry)<0?0:(lry),          \
+                                                    tile),                    \
+                                      gsDPHalf1(gF_((s)+(ulx)*(dsdx)*         \
+                                                    ((ulx)<0)*((dsdx)<0?1:-1)/\
+                                                    0x80,16,16)|              \
+                                                gF_((t)+(uly)*(dtdy)*         \
+                                                    ((uly)<0)*((dtdy)<0?1:-1)/\
+                                                    0x80,16,0)),              \
+                                      gsDPHalf2(gF_(dsdx,16,16)|gF_(dtdy,16,0))
 #define gsSPVertex(v,n,v0)            gO_(G_VTX,gF_(n,8,12)|gF_((v0)+(n),7,1),v)
 #define gsSPViewport(v)               gsMoveMem(sizeof(Vp),G_MV_VIEWPORT,0,v)
 #define gsSPBgRectCopy(bg)            gO_(G_BG_COPY,0,bg)
@@ -1602,28 +1907,30 @@ gsSPTextureRectangleFlip(ulx,uly,   \
 /* unlisted instructions */
 #define gsDPLoadTLUTCmd(tile,count)   gO_(G_LOADTLUT,0,gF_(tile,3,24)|        \
                                           gF_(count,10,14))
-#define gsDPLoadTLUT_palN(pal,dram,n) gsDPSetTextureImage(G_IM_FMT_RGBA,      \
+#define gsDPLoadTLUT(count,tmem,dram) gsDPSetTextureImage(G_IM_FMT_RGBA,      \
                                                           G_IM_SIZ_16b,1,     \
                                                           dram),              \
                                       gsDPTileSync(),                         \
-                                      gsDPSetTile(0,0,0,                      \
-                                                  256+(gI_(pal)&0xF)*16,      \
-                                                  G_TX_LOADTILE,0,            \
-                                                  0,0,0,                      \
-                                                  0,0,0),                     \
+                                      gsDPSetTile(0,0,0,tmem,G_TX_LOADTILE,0, \
+                                                  0,0,0,0,0,0),               \
                                       gsDPLoadSync(),                         \
-                                      gsDPLoadTLUTCmd(G_TX_LOADTILE,n),       \
+                                      gsDPLoadTLUTCmd(G_TX_LOADTILE,          \
+                                                      (count)-1),             \
                                       gsDPPipeSync()
 #define gsBranchZ(vtx,zval,         \
                   near,far,         \
                   flag,zmin,zmax)     gO_(G_BRANCH_Z,gF_((vtx)*5,12,12)|      \
                                           gF_((vtx)*2,12,0),                  \
                                           qs1616((flag)==G_BZ_PERSP?          \
-                                                   (1.f-near/zval)/           \
-                                                   (1.f-near/far):            \
-                                                   (zval-near)/               \
-                                                   (far-near))*               \
-                                          ((int32_t)(zmax-zmin)&~1)+          \
+                                                 (1.f-(float)(near)/          \
+                                                  (float)(zval))/             \
+                                                 (1.f-(float)(near)/          \
+                                                  (float)(far)):              \
+                                                 ((float)(zval)-              \
+                                                  (float)(near))/             \
+                                                 ((float)(far)-               \
+                                                  (float)(near)))*            \
+                                          ((int32_t)((zmax)-(zmin))&~1)+      \
                                           qs1616(zmin))
 #define gsDisplayList(dl,branch)      gO_(G_DL,gF_(branch,8,16),dl)
 #define gsDPHalf1(wordhi)             gO_(G_RDPHALF_1,0,wordhi)
@@ -1715,13 +2022,67 @@ gsTexRectFlip(ulx,uly,lrx,lry,tile)   gO_(G_TEXRECTFLIP,                      \
 #define gDPLoadTLUT_pal16(gdl,...)    gD_(gdl,gsDPLoadTLUT_pal16,__VA_ARGS__)
 #define gDPLoadTLUT_pal256(gdl,...)   gD_(gdl,gsDPLoadTLUT_pal256,__VA_ARGS__)
 #define gDPLoadTextureBlock(gdl,...)  gD_(gdl,gsDPLoadTextureBlock,__VA_ARGS__)
-#define gDPLoadTextureBlock_4b(gdl, \
-                               ...)   gD_(gdl,gsDPLoadTextureBlock_4b,        \
+#define gDPLoadTextureBlockS(gdl,...) gD_(gdl,gsDPLoadTextureBlockS,          \
+                                          __VA_ARGS__)
+#define                             \
+gDPLoadTextureBlock_4b(gdl,...)       gD_(gdl,gsDPLoadTextureBlock_4b,        \
+                                          __VA_ARGS__)
+#define                             \
+gDPLoadTextureBlock_4bS(gdl,...)      gD_(gdl,gsDPLoadTextureBlock_4bS,       \
+                                          __VA_ARGS__)
+#define                             \
+gDPLoadTextureBlockYuv(gdl,...)       gD_(gdl,gsDPLoadTextureBlockYuv,        \
+                                          __VA_ARGS__)
+#define                             \
+gDPLoadTextureBlockYuvS(gdl,...)      gD_(gdl,gsDPLoadTextureBlockYuvS,       \
+                                          __VA_ARGS__)
+#define _gDPLoadTextureBlock(gdl,...) gD_(gdl,_gsDPLoadTextureBlock,          \
+                                          __VA_ARGS__)
+#define                             \
+_gDPLoadTextureBlockS(gdl,...)        gD_(gdl,_gsDPLoadTextureBlockS,         \
+                                          __VA_ARGS__)
+#define                             \
+_gDPLoadTextureBlock_4b(gdl,...)      gD_(gdl,_gsDPLoadTextureBlock_4b,       \
+                                          __VA_ARGS__)
+#define                             \
+_gDPLoadTextureBlock_4bS(gdl,...)     gD_(gdl,_gsDPLoadTextureBlock_4bS,      \
+                                          __VA_ARGS__)
+#define                             \
+_gDPLoadTextureBlockYuv(gdl,...)      gD_(gdl,_gsDPLoadTextureBlockYuv,       \
+                                          __VA_ARGS__)
+#define                             \
+_gDPLoadTextureBlockYuvS(gdl,...)     gD_(gdl,_gsDPLoadTextureBlockYuvS,      \
+                                          __VA_ARGS__)
+#define gDPLoadMultiBlock(gdl,...)    gD_(gdl,gsDPLoadMultiBlock,__VA_ARGS__)
+#define gDPLoadMultiBlockS(gdl,...)   gD_(gdl,gsDPLoadMultiBlockS,__VA_ARGS__)
+#define gDPLoadMultiBlock_4b(gdl,...) gD_(gdl,gsDPLoadMultiBlock_4b,          \
+                                          __VA_ARGS__)
+#define                             \
+gDPLoadMultiBlock_4bS(gdl,...)        gD_(gdl,gsDPLoadMultiBlock_4bS,         \
+                                          __VA_ARGS__)
+#define gDPLoadMultiBlockYuv(gdl,...) gD_(gdl,gsDPLoadMultiBlockYuv,          \
+                                          __VA_ARGS__)
+#define                             \
+gDPLoadMultiBlockYuvS(gdl,...)        gD_(gdl,gsDPLoadMultiBlockYuvS,         \
                                           __VA_ARGS__)
 #define gDPLoadTextureTile(gdl,...)   gD_(gdl,gsDPLoadTextureTile,__VA_ARGS__)
-#define gDPLoadTextureTile_4b(gdl,  \
-                              ...)    gD_(gdl,gsDPLoadTextureTile_4b,         \
+#define                             \
+gDPLoadTextureTile_4b(gdl,...)        gD_(gdl,gsDPLoadTextureTile_4b,         \
                                           __VA_ARGS__)
+#define                             \
+gDPLoadTextureTileYuv(gdl,...)        gD_(gdl,gsDPLoadTextureTileYuv,         \
+                                          __VA_ARGS__)
+#define _gDPLoadTextureTile(gdl,...)  gD_(gdl,_gsDPLoadTextureTile,           \
+                                          __VA_ARGS__)
+#define                             \
+_gDPLoadTextureTile_4b(gdl,...)       gD_(gdl,_gsDPLoadTextureTile_4b,        \
+                                          __VA_ARGS__)
+#define                             \
+_gDPLoadTextureTileYuv(gdl,...)       gD_(gdl,_gsDPLoadTextureTileYuv,        \
+                                          __VA_ARGS__)
+#define gDPLoadMultiTile(gdl,...)     gD_(gdl,gsDPLoadMultiTile,__VA_ARGS__)
+#define gDPLoadMultiTile_4b(gdl,...)  gD_(gdl,gsDPLoadMultiTile_4b,__VA_ARGS__)
+#define gDPLoadMultiTileYuv(gdl,...)  gD_(gdl,gsDPLoadMultiTileYuv,__VA_ARGS__)
 #define gDPLoadBlock(gdl,...)         gD_(gdl,gsDPLoadBlock,__VA_ARGS__)
 #define gDPNoOp(gdl)                  gDisplayListPut(gdl,gsDPNoOp())
 #define gDPNoOpTag(gdl,...)           gD_(gdl,gsDPNoOpTag,__VA_ARGS__)
@@ -1751,6 +2112,7 @@ gsTexRectFlip(ulx,uly,lrx,lry,tile)   gO_(G_TEXRECTFLIP,                      \
 #define gDPSetPrimDepth(gdl,...)      gD_(gdl,gsDPSetPrimDepth,__VA_ARGS__)
 #define gDPSetRenderMode(gdl,...)     gD_(gdl,gsDPSetRenderMode,__VA_ARGS__)
 #define gDPSetScissor(gdl,...)        gD_(gdl,gsDPSetScissor,__VA_ARGS__)
+#define gDPSetScissorFrac(gdl,...)    gD_(gdl,gsDPSetScissorFrac,__VA_ARGS__)
 #define gDPSetTextureDetail(gdl,...)  gD_(gdl,gsDPSetTextureDetail,__VA_ARGS__)
 #define gDPSetTextureFilter(gdl,...)  gD_(gdl,gsDPSetTextureFilter,__VA_ARGS__)
 #define gDPSetTextureLOD(gdl,...)     gD_(gdl,gsDPSetTextureLOD,__VA_ARGS__)
@@ -1776,6 +2138,8 @@ gsTexRectFlip(ulx,uly,lrx,lry,tile)   gO_(G_TEXRECTFLIP,                      \
 #define gSPLine3D(gdl,...)            gD_(gdl,gsSPLine3D,__VA_ARGS__)
 #define gSPLineW3D(gdl,...)           gD_(gdl,gsSPLineW3D,__VA_ARGS__)
 #define gSPLoadUcode(gdl,...)         gD_(gdl,gsSPLoadUcode,__VA_ARGS__)
+#define gSPLookAtX(gdl,...)           gD_(gdl,gsSPLookAtX,__VA_ARGS__)
+#define gSPLookAtY(gdl,...)           gD_(gdl,gsSPLookAtY,__VA_ARGS__)
 #define gSPLookAt(gdl,...)            gD_(gdl,gsSPLookAt,__VA_ARGS__)
 #define gSPMatrix(gdl,...)            gD_(gdl,gsSPMatrix,__VA_ARGS__)
 #define gSPModifyVertex(gdl,...)      gD_(gdl,gsSPModifyVertex,__VA_ARGS__)
@@ -1797,11 +2161,14 @@ gsTexRectFlip(ulx,uly,lrx,lry,tile)   gO_(G_TEXRECTFLIP,                      \
 #define gSPLightColor(gdl,...)        gD_(gdl,gsSPLightColor,__VA_ARGS__)
 #define gSPTexture(gdl,...)           gD_(gdl,gsSPTexture,__VA_ARGS__)
 #define gSPTextureRectangle(gdl,...)  gD_(gdl,gsSPTextureRectangle,__VA_ARGS__)
-#define gSPScisTextureRectangle(gdl,\
-                                ...)  gD_(gdl,gsSPScisTextureRectangle,       \
+#define                             \
+gSPScisTextureRectangle(gdl,...)      gD_(gdl,gsSPScisTextureRectangle,       \
                                           __VA_ARGS__)
-#define gSPTextureRectangleFlip(gdl,\
-                                ...)  gD_(gdl,gsSPTextureRectangleFlip,       \
+#define                             \
+gSPTextureRectangleFlip(gdl,...)      gD_(gdl,gsSPTextureRectangleFlip,       \
+                                          __VA_ARGS__)
+#define                             \
+gSPScisTextureRectangleFlip(gdl,...)  gD_(gdl,gsSPScisTextureRectangleFlip,   \
                                           __VA_ARGS__)
 #define gSPVertex(gdl,...)            gD_(gdl,gsSPVertex,__VA_ARGS__)
 #define gSPViewport(gdl,...)          gD_(gdl,gsSPViewport,__VA_ARGS__)
@@ -1820,7 +2187,7 @@ gsTexRectFlip(ulx,uly,lrx,lry,tile)   gO_(G_TEXRECTFLIP,                      \
 #define gSPSelectDL(gdl,...)          gD_(gdl,gsSPSelectDL,__VA_ARGS__)
 #define gSPSelectBranchDL(gdl,...)    gD_(gdl,gsSPSelectBranchDL,__VA_ARGS__)
 #define gDPLoadTLUTCmd(gdl,...)       gD_(gdl,gsDPLoadTLUTCmd,__VA_ARGS__)
-#define gDPLoadTLUT_palN(gdl,...)     gD_(gdl,gsDPLoadTLUT_palN,__VA_ARGS__)
+#define gDPLoadTLUT(gdl,...)          gD_(gdl,gsDPLoadTLUT,__VA_ARGS__)
 #define gBranchZ(gdl,...)             gD_(gdl,gsBranchZ,__VA_ARGS__)
 #define gDisplayList(gdl,...)         gD_(gdl,gsDisplayList,__VA_ARGS__)
 #define gDPHalf1(gdl,...)             gD_(gdl,gsDPHalf1,__VA_ARGS__)
@@ -1848,6 +2215,8 @@ gsTexRectFlip(ulx,uly,lrx,lry,tile)   gO_(G_TEXRECTFLIP,                      \
 
 
 /* data types and structures */
+typedef uint8_t   qu08_t;
+typedef uint16_t  qu016_t;
 typedef int16_t   qs48_t;
 typedef int16_t   qs510_t;
 typedef uint16_t  qu510_t;
@@ -2158,6 +2527,10 @@ typedef struct
 #define G_SIZ_LDSIZ(siz)              ((siz)<G_IM_SIZ_16b?G_IM_SIZ_16b:(siz))
 #define G_SIZ_BITS(siz)               (4<<gI_(siz))
 #define G_SIZ_LDBITS(siz)             ((siz)<G_IM_SIZ_16b?G_SIZ_BITS(siz):16)
+#define G_DXT(siz,width)              ((width)*G_SIZ_BITS(siz)<=64?           \
+                                       (1<<11):                               \
+                                       ((1<<11)+(width)*G_SIZ_BITS(siz)/64-1)/\
+                                       ((width)*G_SIZ_BITS(siz)/64))
 
 /* sprite texture parameter macros */
 #define GS_PIX2TMEM(pix,siz)          ((pix)*G_SIZ_BITS(siz)/64)
@@ -2169,6 +2542,8 @@ typedef struct
 #define GS_PAL_NUM(num)               ((num)-1)
 
 /* fixed-point conversion macros */
+#define qu08(n)                       ((qu08_t)((n)*0x100))
+#define qu016(n)                      ((qu016_t)((n)*0x10000))
 #define qs48(n)                       ((qs48_t)((n)*0x0100))
 #define qs510(n)                      ((qs510_t)((n)*0x0400))
 #define qu510(n)                      ((qu510_t)((n)*0x0400))

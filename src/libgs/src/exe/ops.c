@@ -1,4 +1,4 @@
-#include <sys/time.h>
+#include <time.h>
 #include <mips.h>
 #include "../lib/libgs.h"
 #include "../lib/mos_io.h"

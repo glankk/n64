@@ -2,7 +2,6 @@
 #include <string.h>
 #include <stdint.h>
 #include <inttypes.h>
-#include <fcntl.h>
 
 int main(int argc, char *argv[])
 {
@@ -47,7 +46,7 @@ int main(int argc, char *argv[])
       if (strcmp(argv[i], "-") == 0) {
         fi = stdin;
         close_fi = 0;
-        _setmode(_fileno(fi), _O_TEXT);
+        fi = freopen(NULL, "r", fi);
       }
       else {
         fi = fopen(argv[i], "r");
@@ -94,7 +93,7 @@ int main(int argc, char *argv[])
       if (strcmp(argv[i], "-") == 0) {
         fi = stdin;
         close_fi = 0;
-        _setmode(_fileno(fi), _O_BINARY);
+        fi = freopen(NULL, "rb", fi);
       }
       else {
         fi = fopen(argv[i], "rb");

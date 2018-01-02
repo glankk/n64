@@ -125,58 +125,19 @@ SECTIONS
 
   end = ALIGN(8) ;
 
-  .debug_info 0 :
-  {
-    *(.debug_info .gnu.linkonce.wi.*)
-  }
-  .debug_abbrev 0 :
-  {
-    *(.debug_abbrev)
-  }
-  .debug_frame 0 :
-  {
-    *(.debug_frame)
-  }
-  .debug_str 0 :
-  {
-    *(.debug_str)
-  }
-  .debug_loc 0 :
-  {
-    *(.debug_loc)
-  }
-  .debug_line 0 :
-  {
-    *(.debug_line .debug_line.* .debug_line_end)
-  }
-  .debug_aranges 0 :
-  {
-    *(.debug_aranges)
-  }
-  .debug_ranges 0 :
-  {
-    *(.debug_ranges)
-  }
-  .debug_pubtypes 0 :
-  {
-    *(.debug_pubtypes)
-  }
-  .debug_pubnames 0 :
-  {
-    *(.debug_pubnames)
-  }
-  .debug_macinfo 0 :
-  {
-    *(.debug_macinfo)
-  }
-  .debug_macro 0 :
-  {
-    *(.debug_macro)
-  }
-  .debug_addr 0 :
-  {
-    *(.debug_addr)
-  }
+  .debug_info     0 : { *(.debug_info .gnu.linkonce.wi.*) }
+  .debug_abbrev   0 : { *(.debug_abbrev) }
+  .debug_frame    0 : { *(.debug_frame) }
+  .debug_str      0 : { *(.debug_str) }
+  .debug_loc      0 : { *(.debug_loc) }
+  .debug_line     0 : { *(.debug_line .debug_line.* .debug_line_end) }
+  .debug_aranges  0 : { *(.debug_aranges) }
+  .debug_ranges   0 : { *(.debug_ranges) }
+  .debug_pubtypes 0 : { *(.debug_pubtypes) }
+  .debug_pubnames 0 : { *(.debug_pubnames) }
+  .debug_macinfo  0 : { *(.debug_macinfo) }
+  .debug_macro    0 : { *(.debug_macro) }
+  .debug_addr     0 : { *(.debug_addr) }
 
   /DISCARD/ :
   {

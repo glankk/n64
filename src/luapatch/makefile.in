@@ -1,0 +1,27 @@
+CPPFLAGS    = -I@srcdir@/../../include
+CFLAGS      = -std=c11 -Wall -O2
+LDFLAGS     = -s -Wl,-rpath=\$$ORIGIN/../lib,--as-needed @LDFLAGS@
+LDLIBS      = @LIBS@
+SRC         = @srcdir@/*.c
+PROGNAME    = luapatch
+INSTALLDIR  = /opt/n64/bin
+
+.PHONY      : all install clean
+
+all         : $(PROGNAME)
+install     : $(INSTALLDIR)/
+	@INSTALL@ $(PROGNAME) $(INSTALLDIR)
+	@if [ -n "$(EMUDIR)" ]; then \
+		echo installing \`patch.lua\` to "$(EMUDIR)/Lua"...; \
+		@INSTALL@ @srcdir@/patch.lua "$(EMUDIR)/Lua"; \
+	else \
+		echo warning: no EMUDIR specified, skipping \`patch.lua\` installation; \
+	fi
+clean       :
+	rm -f $(PROGNAME)
+distclean   :
+	rm -f makefile
+$(PROGNAME) : $(SRC)
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $^ $(LDLIBS) -o $@
+%/          :
+	@MKDIR_P@ $@

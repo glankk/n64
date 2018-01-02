@@ -1,0 +1,21 @@
+PROGS             = gfxdis grc libgru libgs luapatch
+INSTALLPROGS      = $(foreach prog,$(PROGS),install$(prog))
+CLEANPROGS        = $(foreach prog,$(PROGS),clean$(prog))
+DISTCLEANPROGS    = $(foreach prog,$(PROGS),distclean$(prog))
+
+.PHONY            : all install clean distclean $(PROGS) $(INSTALLPROGS) $(CLEANPROGS) $(DISTCLEANPROGS)
+
+all               : $(PROGS)
+install           : $(INSTALLPROGS)
+clean             : $(CLEANPROGS)
+distclean         : $(DISTCLEANPROGS)
+	rm -f config.log config.status makefile
+$(PROGS)          :
+	cd src/$@ && $(MAKE)
+$(INSTALLPROGS)   :
+	cd src/$(patsubst install%,%,$@) && $(MAKE) install
+	cd ..
+$(CLEANPROGS)     :
+	cd src/$(patsubst clean%,%,$@) && $(MAKE) clean
+$(DISTCLEANPROGS) :
+	cd src/$(patsubst distclean%,%,$@) && $(MAKE) distclean

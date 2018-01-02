@@ -1,8 +1,15 @@
 #include <stdio.h>
 #include <string.h>
+#include <config.h>
+#ifdef HAVE_LUA5_3_LUA_H
+#include <lua5.3/lua.h>
+#include <lua5.3/lauxlib.h>
+#include <lua5.3/lualib.h>
+#else
 #include <lua.h>
 #include <lauxlib.h>
 #include <lualib.h>
+#endif
 #include "lgru.h"
 
 struct lgru_builtin
@@ -16,54 +23,44 @@ static builtins[] =
   {
     "gru_crc32",
     "gru gru_crc32 <file>",
-    R"(
-       local arg = {...}
-       local file = gru.blob_load(arg[1])
-       print(string.format("0x%08X", file:crc32()))
-       )",
+    "local arg = {...}                                \n"
+    "local file = gru.blob_load(arg[1])               \n"
+    "print(string.format(\"0x%08X\", file:crc32()))   \n",
   },
   {
     "gru_swap",
     "gru gru_swap <file> <word-size>",
-    R"(
-       local arg = {...}
-       local file = gru.blob_load(arg[1])
-       file:swap(arg[2])
-       file:save(arg[1])
-       )",
+    "local arg = {...}                                \n"
+    "local file = gru.blob_load(arg[1])               \n"
+    "file:swap(arg[2])                                \n"
+    "file:save(arg[1])                                \n",
   },
   {
     "gru_ups_create",
     "gru gru_ups_create <original-file> <modified-file> <output-file>",
-    R"(
-       local arg = {...}
-       local src_file = gru.blob_load(arg[1])
-       local dst_file = gru.blob_load(arg[2])
-       local ups = gru.ups_create(src_file, dst_file)
-       ups:save(arg[3])
-       )",
+    "local arg = {...}                                \n"
+    "local src_file = gru.blob_load(arg[1])           \n"
+    "local dst_file = gru.blob_load(arg[2])           \n"
+    "local ups = gru.ups_create(src_file, dst_file)   \n"
+    "ups:save(arg[3])                                 \n",
   },
   {
     "gru_ups_apply",
     "gru gru_ups_apply <patch-file> <input-file> <output-file>",
-    R"(
-       local arg = {...}
-       local ups = gru.ups_load(arg[1])
-       local file = gru.blob_load(arg[2])
-       ups:apply(file)
-       file:save(arg[3])
-       )",
+    "local arg = {...}                                \n"
+    "local ups = gru.ups_load(arg[1])                 \n"
+    "local file = gru.blob_load(arg[2])               \n"
+    "ups:apply(file)                                  \n"
+    "file:save(arg[3])                                \n",
   },
   {
     "gru_ups_undo",
     "gru gru_ups_undo <patch-file> <input-file> <output-file>",
-    R"(
-       local arg = {...}
-       local ups = gru.ups_load(arg[1])
-       local file = gru.blob_load(arg[2])
-       ups:undo(file)
-       file:save(arg[3])
-       )",
+    "local arg = {...}                                \n"
+    "local ups = gru.ups_load(arg[1])                 \n"
+    "local file = gru.blob_load(arg[2])               \n"
+    "ups:undo(file)                                   \n"
+    "file:save(arg[3])                                \n",
   },
 };
 

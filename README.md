@@ -1,30 +1,24 @@
 ## About
 This is a collection of files and tools used to compile and test code for the n64.
 
-## Building the GNU toolchain for MIPS
+## Prerequisites
+-  You'll need to have these packages installed: `wget tar make diffutils texinfo gcc g++ lua5.3 jansson libusb-1.0`.
+   See Installation, step 4.
+-  If you want to use the included `luapatch` program with BizHawk,
+   you should set the `EMUDIR` environment variable to the directory of your BizHawk installation.
+
+## Installation
 1.  Download and unpack the [n64 repository](https://github.com/glankk/n64/archive/master.zip).
-2.  Download and install MSYS2 from [here](https://msys2.github.io/).
-3.  Open a MSYS2 shell and navigate to `n64-master/scripts/toolchain`.
-    Run the script located in this directory by typing `./build_n64_toolchain`.
-
-## Using Code::Blocks as IDE with the GNU toolchain and BizHawk
-1.  Get the latest BizHawk release from [here](http://tasvideos.org/BizHawk.html).
-2.  Get the latest Code::Blocks release from [here](http://www.codeblocks.org/).
-3.  Open Code::Blocks Share Config from the Start Menu or from the installation directory.
-    Select `n64-master/cb/n64.conf` as source, and `%AppData%\CodeBlocks\default.conf` as destination.
-    If the destination file does not exist, open and close Code::Blocks to have it generate a default
-    configuration file.
-    Check all nodes except `<compiler>` from the source file and click Transfer, then click Save.
-4.  Open Code::Blocks and go to Settings->Compiler. Under Selected compiler, select n64.
-    Under the Toolchain executables tab, change Compiler's installation directory to `msys\opt\n64-toolchain`
-    and add `msys\usr\bin` to Additional Paths, where msys is the
-    root directory of your MSYS2 installation. Change the Program Files to the following:
-    - C compiler: `mips64-gcc.exe`
-    - C++ compiler: `mips64-g++.exe`
-    - Linker for dynamic libs: `mips64-g++.exe`
-    - Linker for static libs: `mips64-ar.exe`
-    - Make program: `make.exe`
-
-    Under the Custom variables tab, change `N64ROOT` to the path of the n64 repository,
-    and `EMUDIR` to the path of your BizHawk installation.
-5.  Copy `n64-master/lua/patch.lua` to the Lua directory of your BizHawk installation.
+2.  If you're on Windows, download and install MSYS2 from [here](https://msys2.github.io/).
+3.  Open a GNU/Linux or MSYS2 MinGW 32-bit shell and navigate to `n64-master`.
+4.  Optionally, have the included script try to install the prerequisite packages automatically by running `scripts/install_deps`.
+    You'll need root privileges for this.
+5.  Install the GNU Toolchain for MIPS by running `scripts/install_toolchain`.
+6.  Compile and install the n64 tools by running
+    ```
+    ./configure
+    make && make install
+    ```
+7.  The n64 tools and MIPS toolchain will have been installed to `/opt/n64`.
+    Add `/opt/n64/bin` to your `PATH` variable.
+    If you're using MSYS2, also add the path to the `make` program (typically `C:\msys64\usr\bin`).
