@@ -1,14 +1,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include <sys/param.h>
 #include <vector/vector.h>
+#include <config.h>
 #include "gru.h"
 #include "util.h"
-
-#if !defined BYTE_ORDER || !defined LITTLE_ENDIAN || !defined BIG_ENDIAN
-#error byte order unsupported
-#endif
 
 uint16_t gru_util_bswap16(uint16_t value)
 {
@@ -26,16 +22,16 @@ uint32_t gru_util_bswap32(uint32_t value)
 
 uint16_t gru_util_htobe16(uint16_t value)
 {
-#if BYTE_ORDER == LITTLE_ENDIAN
-  return gru_util_bswap16(value);
-#else
+#ifdef WORDS_BIGENDIAN
   return value;
+#else
+  return gru_util_bswap16(value);
 #endif
 }
 
 uint16_t gru_util_htole16(uint16_t value)
 {
-#if BYTE_ORDER == BIG_ENDIAN
+#ifdef WORDS_BIGENDIAN
   return gru_util_bswap16(value);
 #else
   return value;
@@ -44,16 +40,16 @@ uint16_t gru_util_htole16(uint16_t value)
 
 uint32_t gru_util_htobe32(uint32_t value)
 {
-#if BYTE_ORDER == LITTLE_ENDIAN
-  return gru_util_bswap32(value);
-#else
+#ifdef WORDS_BIGENDIAN
   return value;
+#else
+  return gru_util_bswap32(value);
 #endif
 }
 
 uint32_t gru_util_htole32(uint32_t value)
 {
-#if BYTE_ORDER == BIG_ENDIAN
+#ifdef WORDS_BIGENDIAN
   return gru_util_bswap32(value);
 #else
   return value;
