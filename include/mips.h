@@ -1,5 +1,5 @@
 /**
- * mips.h version 0.1rc6
+ * mips.h version 0.1rc7
  * nec vr4300, mips iii
  * note: providing arguments with side-effects to these macros should
  * be considered unsafe in general, as they may be evaluated more than once
@@ -11,13 +11,43 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#ifdef __linux__
-#include <endian.h>
-#define BYTE_ORDER    __BYTE_ORDER
-#define BIG_ENDIAN    __BIG_ENDIAN
-#define LITTLE_ENDIAN __LITTLE_ENDIAN
+
+#if defined(__linux__) || defined(__CYGWIN__)
+# include <endian.h>
+#elif defined(__OpenBSD__) || defined(__NetBSD__) || defined(__FreeBSD__) || defined(__DragonFly__)
+# include <sys/endian.h>
+#elif defined(__APPLE__)
+# include <libkern/OSByteOrder.h>
 #else
-#include <sys/param.h>
+# include <sys/param.h>
+#endif
+#ifndef BYTE_ORDER
+# if defined(_BYTE_ORDER)
+#  define BYTE_ORDER      _BYTE_ORDER
+# elif defined(__BYTE_ORDER)
+#  define BYTE_ORDER      __BYTE_ORDER
+# endif
+#endif
+#ifndef BIG_ENDIAN
+# if defined(_BIG_ENDIAN)
+#  define BIG_ENDIAN      _BIG_ENDIAN
+# elif defined(__BIG_ENDIAN)
+#  define BIG_ENDIAN      __BIG_ENDIAN
+# endif
+#endif
+#ifndef LITTLE_ENDIAN
+# if defined(_LITTLE_ENDIAN)
+#  define LITTLE_ENDIAN   _LITTLE_ENDIAN
+# elif defined(__LITTLE_ENDIAN)
+#  define LITTLE_ENDIAN   __LITTLE_ENDIAN
+# endif
+#endif
+#ifndef PDP_ENDIAN
+# if defined(_PDP_ENDIAN)
+#  define PDP_ENDIAN      _PDP_ENDIAN
+# elif defined(__PDP_ENDIAN)
+#  define PDP_ENDIAN      __PDP_ENDIAN
+# endif
 #endif
 
 /**
@@ -25,27 +55,27 @@
 **/
 
 #if defined BYTE_ORDER && defined LITTLE_ENDIAN && defined BIG_ENDIAN
-#if BYTE_ORDER != LITTLE_ENDIAN && BYTE_ORDER != BIG_ENDIAN
-#define MIPS_BYTE_ORDER_UNSUPPORTED
-#endif
+# if BYTE_ORDER != LITTLE_ENDIAN && BYTE_ORDER != BIG_ENDIAN
+#  define MIPS_BYTE_ORDER_UNSUPPORTED
+# endif
 #else
-#define MIPS_BYTE_ORDER_UNSUPPORTED
+# define MIPS_BYTE_ORDER_UNSUPPORTED
 #endif
 #if defined MIPS_ASM_LITTLE_ENDIAN && defined MIPS_ASM_BIG_ENDIAN
-#error conflicting endianness
+# error conflicting endianness
 #endif
 #if (defined MIPS_ASM_LITTLE_ENDIAN || defined MIPS_ASM_BIG_ENDIAN) && \
     defined MIPS_BYTE_ORDER_UNSUPPORTED
-#error byte order unsupported
+# error byte order unsupported
 #endif
 #if (defined MIPS_ASM_BIG_ENDIAN && BYTE_ORDER == LITTLE_ENDIAN) || \
     (defined MIPS_ASM_LITTLE_ENDIAN && BYTE_ORDER == BIG_ENDIAN)
-#define MIPS_BO_(x)               ((((x)&0x000000FF)<<24)| \
+# define MIPS_BO_(x)              ((((x)&0x000000FF)<<24)| \
                                    (((x)&0x0000FF00)<<8) | \
                                    (((x)&0x00FF0000)>>8) | \
                                    (((x)&0xFF000000)>>24))
 #else
-#define MIPS_BO_(x)               (x)
+# define MIPS_BO_(x)              (x)
 #endif
 #define MIPS_I_(x)                ((uint32_t)(x))
 #define MIPS_OP_(x)               ((MIPS_I_(x)&0x3F)<<26)
