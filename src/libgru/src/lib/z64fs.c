@@ -747,12 +747,14 @@ size_t gru_z64fs_prom_first(struct gru_z64fs *z64fs)
 
 size_t gru_z64fs_prom_last(struct gru_z64fs *z64fs)
 {
-  for (size_t i = z64fs->files.size - 1; i >= 0; --i) {
+  for (size_t i = z64fs->files.size - 1; ; --i) {
     size_t prom_index;
     gru_z64fs_pindex(z64fs, i, &prom_index);
     struct z64_file *prom_file = vector_at(&z64fs->files, prom_index);
     if (!file_is_null(prom_file))
       return prom_index;
+    if (i == 0)
+      break;
   }
   return z64fs->files.size - 1;
 }
@@ -925,13 +927,8 @@ enum gru_error gru_z64fs_vprev(struct gru_z64fs *z64fs,
   size_t vrom_order = file->vrom_order;
   if (vrom_order == 0)
     return GRU_ERROR_RANGE;
-  for (size_t i = vrom_order - 1; i >= 0; --i) {
-    size_t i_index;
-    gru_z64fs_vindex(z64fs, i, &i_index);
-    *index_out = i_index;
-    return GRU_SUCCESS;
-  }
-  return GRU_ERROR_RANGE;
+  gru_z64fs_vindex(z64fs, vrom_order - 1, index_out);
+  return GRU_SUCCESS;
 }
 
 enum gru_error gru_z64fs_vnext(struct gru_z64fs *z64fs,
@@ -959,7 +956,7 @@ enum gru_error gru_z64fs_pprev(struct gru_z64fs *z64fs,
   size_t prom_order = file->prom_order;
   if (prom_order == 0)
     return GRU_ERROR_RANGE;
-  for (size_t i = prom_order - 1; i >= 0; --i) {
+  for (size_t i = prom_order - 1; ; --i) {
     size_t i_index;
     gru_z64fs_pindex(z64fs, i, &i_index);
     struct z64_file *i_file = vector_at(&z64fs->files, i_index);
@@ -967,6 +964,8 @@ enum gru_error gru_z64fs_pprev(struct gru_z64fs *z64fs,
       *index_out = i_index;
       return GRU_SUCCESS;
     }
+    if (i == 0)
+      break;
   }
   return GRU_ERROR_RANGE;
 }
