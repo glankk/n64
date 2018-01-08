@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+set -e
+
+PREFIX="/opt/n64"
+N64ROOT="$(readlink -f "$(dirname "$0")/..")"
+
+cd "$N64ROOT"
+
+cp -r -u -p include/* "$PREFIX/mips64/sys-include"
+cp -r -u -p lib/* "$PREFIX/mips64/lib"
