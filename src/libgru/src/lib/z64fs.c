@@ -444,7 +444,7 @@ static gru_bool_t ftab_locate(struct gru_blob *blob, size_t *ftab_start_out,
 
 static enum gru_error z64fs_update(struct gru_z64fs *z64fs)
 {
-   struct z64_file *ftab = vector_at(&z64fs->files, z64fs->ftab_index);
+  struct z64_file *ftab = vector_at(&z64fs->files, z64fs->ftab_index);
   struct z64_ftab_entry *ftab_data;
   size_t ftab_size = sizeof(*ftab_data) * (z64fs->files.size + 16);
   if (ftab->prom_size != ftab_size) {
@@ -601,6 +601,7 @@ enum gru_error gru_z64fs_load(struct gru_z64fs *z64fs, struct gru_blob *blob,
     memcpy(file.prom_data, blob_at(blob, file.prom_start), file.prom_size);
     file.prom_padding_size = 0;
     file.prom_padding = NULL;
+    file.prom_order = ~(size_t)0;
     if (!vector_push_back(&z64fs->files, 1, &file)) {
       if (file.prom_data)
         free(file.prom_data);
@@ -622,7 +623,9 @@ enum gru_error gru_z64fs_load(struct gru_z64fs *z64fs, struct gru_blob *blob,
         vrom_index = j;
         vrom_dist = file->vrom_start - vc;
       }
-      if (file->prom_start >= pc && file->prom_start - pc < prom_dist) {
+      if (file->prom_order == ~(size_t)0 &&
+          file->prom_start >= pc && file->prom_start - pc < prom_dist)
+      {
         prom_index = j;
         prom_dist = file->prom_start - pc;
       }
