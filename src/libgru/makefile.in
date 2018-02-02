@@ -1,21 +1,23 @@
-CPPFLAGS    = -I. -I@srcdir@/../../include
+prefix      = @prefix@
+exec_prefix = @exec_prefix@
+bindir      = @bindir@
+srcdir      = @srcdir@
+CPPFLAGS    = -I. -I$(srcdir)/../../include
 CFLAGS      = -std=c11 -Wall -O2
 LDFLAGS     = -s -Wl,-rpath=\$$ORIGIN/../lib,--as-needed @LDFLAGS@
 LDLIBS      = @LIBS@
-SRC         = @srcdir@/src/lib/*.c @srcdir@/src/exe/*.c @srcdir@/../../include/vector/vector.c
+SRC         = $(srcdir)/src/lib/*.c $(srcdir)/src/exe/*.c $(srcdir)/../../include/vector/vector.c
 PROGNAME    = gru
-INSTALLDIR  = /opt/n64/bin
+INSTALL     = @INSTALL@
 
 .PHONY      : all install clean distclean
 
 all         : $(PROGNAME)
-install     : $(INSTALLDIR)/
-	@INSTALL@ $(PROGNAME) $(INSTALLDIR)
+install     :
+	$(INSTALL) -p -D --target-directory=$(bindir) $(PROGNAME)
 clean       :
 	rm -f $(PROGNAME)
 distclean   :
 	rm -f config.h makefile
 $(PROGNAME) : $(SRC)
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $^ $(LDLIBS) -o $@
-%/          :
-	@MKDIR_P@ $@

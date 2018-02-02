@@ -15,6 +15,7 @@ SECTIONS
     PROVIDE(_start = .) ;
     KEEP(*(SORT_NONE(.text.startup)))
     KEEP(*(SORT(.text.startup.*)))
+    KEEP(*(.text.hook .text.hook.*))
     KEEP(*crt0.o(.text SORT(.text.*)))
     *(.text .text.*)
     *(.gnu.linkonce.t.*)

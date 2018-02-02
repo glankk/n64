@@ -7,8 +7,10 @@
 
 #if defined(__LANGUAGE_C__)
 #define ENTRY __attribute__((section(".text.startup")))
+#define HOOK  __attribute__((section(".text.hook"), used))
 #elif defined(__cplusplus)
 #define ENTRY extern "C" __attribute__((section(".text.startup")))
+#define HOOK  extern "C" __attribute__((section(".text.hook"), used))
 extern "C"
 {
 #endif
