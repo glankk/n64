@@ -19,7 +19,7 @@ This is a collection of files and tools used to compile and test code for the n6
     To enable Wii VC compatibility, append ` --enable-vc` to the configure command.
     To produce portable windows executables (that don't need additional dynamic libraries) under MSYS2,
     append ` --enable-static-executables` to the configure command.
-5.  Install the GNU Toolchain for MIPS by running `make install_toolchain`.
+5.  Install the GNU Toolchain for MIPS by running `make install-toolchain`.
 6.  Compile and install the n64 tools by running `make && make install`
 7.  The n64 tools and MIPS toolchain will have been installed to `/opt/n64` (or the prefix you chose).
     Add `/opt/n64/bin` to your `PATH` variable (or `your-prefix/bin`).
