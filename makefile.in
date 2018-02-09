@@ -14,6 +14,9 @@ NEWLIB_VERSION                = @NEWLIB_VERSION@
 BINUTILS_URL                  = https://ftp.gnu.org/gnu/binutils/$(BINUTILS_VERSION).tar.gz
 GCC_URL                       = https://ftp.gnu.org/gnu/gcc/$(GCC_VERSION)/$(GCC_VERSION).tar.gz
 NEWLIB_URL                    = https://sourceware.org/pub/newlib/$(NEWLIB_VERSION).tar.gz
+CONFIG_BINUTILS               = @CONFIG_BINUTILS@
+CONFIG_GCC                    = @CONFIG_GCC@
+CONFIG_NEWLIB                 = @CONFIG_NEWLIB@
 LDFLAGS                       = @LDFLAGS@
 CFLAGS_FOR_TARGET             = @CFLAGS_FOR_TARGET@
 CXXFLAGS_FOR_TARGET           = @CXXFLAGS_FOR_TARGET@
@@ -21,11 +24,11 @@ INSTALL                       = @INSTALL@
 
 .PHONY                        : all install clean distclean $(PROGS) $(INSTALLPROGS) $(CLEANPROGS) $(DISTCLEANPROGS)
 .PHONY                        : configure-binutils configure-gcc configure-newlib clean-binutils clean-gcc clean-newlib
-.PHONY                        : install-sys remove-sys install-toolchain
+.PHONY                        : install-sys clean-sys remove-sys install-toolchain
 
 all                           : $(PROGS)
 install                       : $(INSTALLPROGS)
-clean                         : $(CLEANPROGS) clean-binutils clean-gcc clean-newlib
+clean                         : $(CLEANPROGS) clean-binutils clean-gcc clean-newlib clean-sys
 distclean                     : $(DISTCLEANPROGS)
 	rm -f config.log config.status makefile
 $(PROGS)                      :
@@ -50,7 +53,8 @@ build-binutils/config.status  : binutils
                                              --disable-nls                                \
                                              LDFLAGS="$(LDFLAGS)"                         \
                                              CFLAGS_FOR_TARGET="$(CFLAGS_FOR_TARGET)"     \
-                                             CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)"
+                                             CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)" \
+                                             $(CONFIG_BINUTILS)
 configure-binutils            : build-binutils/config.status
 make-binutils                 : configure-binutils
 	cd build-binutils && $(MAKE) all
@@ -83,7 +87,8 @@ build-gcc/config.status       : gcc
                                    --disable-nls                                    \
                                    LDFLAGS="$(LDFLAGS)"                             \
                                    CFLAGS_FOR_TARGET="$(CFLAGS_FOR_TARGET)"         \
-                                   CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)"
+                                   CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)"     \
+                                   $(CONFIG_GCC)
 configure-gcc                 : build-gcc/config.status
 make-gcc-executables          : configure-gcc
 	cd build-gcc && $(MAKE) all-gcc
@@ -119,7 +124,8 @@ build-newlib/config.status    : newlib install-binutils install-gcc-executables
                                          --enable-lite-exit                           \
                                          LDFLAGS="$(LDFLAGS)"                         \
                                          CFLAGS_FOR_TARGET="$(CFLAGS_FOR_TARGET)"     \
-                                         CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)"
+                                         CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)" \
+                                         $(CONFIG_NEWLIB)
 configure-newlib              : build-newlib/config.status
 make-newlib                   : configure-newlib install-binutils install-gcc-executables
 	cd build-newlib && $(MAKE) all
@@ -134,7 +140,9 @@ install-sys                   :
 	$(INSTALL) -d "$(sysroot)/usr"
 	cp -p -r -u "$(srcdir)/include" "$(srcdir)/lib" "$(sysroot)/usr"
 	touch $@
-remove-sys                    :
-	rm -rf "$(sysroot)/usr/include" "$(sysroot)/usr/lib" install-sys
+clean-sys                     :
+	rm -f install-sys
+remove-sys                    : clean-sys
+	rm -rf "$(sysroot)/usr/include" "$(sysroot)/usr/lib"
 
 install-toolchain             : install-binutils install-gcc install-newlib install-sys

@@ -637,6 +637,9 @@ CPPFLAGS
 LDFLAGS
 CFLAGS
 CC
+CONFIG_NEWLIB
+CONFIG_GCC
+CONFIG_BINUTILS
 CXXFLAGS_FOR_TARGET
 CFLAGS_FOR_TARGET
 target_alias
@@ -682,6 +685,10 @@ ac_user_opts='
 enable_option_checking
 enable_static_executables
 enable_vc
+with_configure_binutils
+with_configure_gcc
+with_configure_newlib
+with_toolchain
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1305,6 +1312,19 @@ Optional Features:
   --enable-static-executables
                           enable static linking of executables
   --enable-vc             compile libraries with wii vc compatibility
+
+Optional Packages:
+  --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
+  --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
+  --with-configure-binutils=<params>
+                          additional parameters to pass to configure for
+                          binutils
+  --with-configure-gcc=<params>
+                          additional parameters to pass to configure for gcc
+  --with-configure-newlib=<params>
+                          additional parameters to pass to configure for
+                          newlib
+  --without-toolchain     do not check any toolchain package versions
 
 Some influential environment variables:
   CC          C compiler command
@@ -2048,14 +2068,43 @@ CXXFLAGS_FOR_TARGET="-g -ffunction-sections -fdata-sections $CXXFLAGS_FOR_TARGET
 # Check whether --enable-vc was given.
 if test "${enable_vc+set}" = set; then :
   enableval=$enable_vc;
-  CFLAGS_FOR_TARGET="-O1 -fno-reorder-blocks $CFLAGS_FOR_TARGET"
-  CXXFLAGS_FOR_TARGET="-O1 -fno-reorder-blocks $CXXFLAGS_FOR_TARGET"
+                CFLAGS_FOR_TARGET="-O1 -fno-reorder-blocks $CFLAGS_FOR_TARGET"
+                CXXFLAGS_FOR_TARGET="-O1 -fno-reorder-blocks $CXXFLAGS_FOR_TARGET"
 
 else
 
-  CFLAGS_FOR_TARGET="-Os $CFLAGS_FOR_TARGET"
-  CXXFLAGS_FOR_TARGET="-Os $CXXFLAGS_FOR_TARGET"
+                CFLAGS_FOR_TARGET="-Os $CFLAGS_FOR_TARGET"
+                CXXFLAGS_FOR_TARGET="-Os $CXXFLAGS_FOR_TARGET"
 
+fi
+
+
+
+
+
+# Check whether --with-configure-binutils was given.
+if test "${with_configure_binutils+set}" = set; then :
+  withval=$with_configure_binutils; CONFIG_BINUTILS="$withval"
+fi
+
+
+# Check whether --with-configure-gcc was given.
+if test "${with_configure_gcc+set}" = set; then :
+  withval=$with_configure_gcc; CONFIG_GCC="$withval"
+fi
+
+
+# Check whether --with-configure-newlib was given.
+if test "${with_configure_newlib+set}" = set; then :
+  withval=$with_configure_newlib; CONFIG_NEWLIB="$withval"
+fi
+
+
+# Check whether --with-toolchain was given.
+if test "${with_toolchain+set}" = set; then :
+  withval=$with_toolchain;
+else
+  with_toolchain=yes
 fi
 
 
@@ -3503,27 +3552,34 @@ done
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking binutils version" >&5
+if test "x$with_toolchain" != xno; then :
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking binutils version" >&5
 $as_echo_n "checking binutils version... " >&6; }
-if [ -z "$BINUTILS_VERSION" ]; then
-  BINUTILS_VERSION=`wget -O - -q "https://ftp.gnu.org/gnu/binutils/" | grep -E -o ">binutils-[0-9\\\\.]+tar\\\\.gz<" | tail -n 1 | sed -e s/\\>// -e s/\\\\.tar\\\\.gz\\<//`
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $BINUTILS_VERSION" >&5
+        if [ -z "$BINUTILS_VERSION" ]; then
+          BINUTILS_VERSION=`wget -O - -q "https://ftp.gnu.org/gnu/binutils/" |
+          grep -E -o ">binutils-[0-9\\\\.]+tar\\\\.gz<" | tail -n 1 | sed -e s/\\>// -e s/\\\\.tar\\\\.gz\\<//`
+        fi
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $BINUTILS_VERSION" >&5
 $as_echo "$BINUTILS_VERSION" >&6; }
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking gcc version" >&5
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking gcc version" >&5
 $as_echo_n "checking gcc version... " >&6; }
-if [ -z "$GCC_VERSION" ]; then
-  GCC_VERSION=`wget -O - -q "https://ftp.gnu.org/gnu/gcc/" | grep -E -o ">gcc-[0-9\\\\.]+/<" | tail -n 1 | sed -e s/\\>// -e s/\\\\/\\<//`
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $GCC_VERSION" >&5
+        if [ -z "$GCC_VERSION" ]; then
+          GCC_VERSION=`wget -O - -q "https://ftp.gnu.org/gnu/gcc/" | grep -E -o ">gcc-[0-9\\\\.]+/<" |
+          tail -n 1 | sed -e s/\\>// -e s/\\\\/\\<//`
+        fi
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GCC_VERSION" >&5
 $as_echo "$GCC_VERSION" >&6; }
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking newlib version" >&5
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking newlib version" >&5
 $as_echo_n "checking newlib version... " >&6; }
-if [ -z "$NEWLIB_VERSION" ]; then
-  NEWLIB_VERSION=`wget -O - -q "https://sourceware.org/pub/newlib/" | grep -E -o ">newlib-[0-9\\\\.]+tar\\\\.gz<" | head -n 1 | sed -e s/\\>// -e s/\\\\.tar\\\\.gz\\<//`
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $NEWLIB_VERSION" >&5
+        if [ -z "$NEWLIB_VERSION" ]; then
+          NEWLIB_VERSION=`wget -O - -q "https://sourceware.org/pub/newlib/" |
+          grep -E -o ">newlib-[0-9\\\\.]+tar\\\\.gz<" | head -n 1 | sed -e s/\\>// -e s/\\\\.tar\\\\.gz\\<//`
+        fi
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $NEWLIB_VERSION" >&5
 $as_echo "$NEWLIB_VERSION" >&6; }
+
+fi
 
 ac_config_headers="$ac_config_headers src/libgru/config.h"
 
