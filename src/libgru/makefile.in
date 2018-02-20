@@ -4,7 +4,7 @@ bindir      = @bindir@
 srcdir      = @srcdir@
 CC          = @CC@
 CPPFLAGS    = -I. -I$(srcdir)/../../include @CPPFLAGS@
-CFLAGS      = -std=c11 -Wall @CFLAGS@
+CFLAGS      = -std=gnu11 -Wall @CFLAGS@
 LDFLAGS     = -s -Wl,-rpath=\$$ORIGIN/../lib,--as-needed @LDFLAGS@
 LDLIBS      = @LIBS@
 SRC         = $(srcdir)/src/lib/*.c $(srcdir)/src/exe/*.c $(srcdir)/../../include/vector/vector.c
