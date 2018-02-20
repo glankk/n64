@@ -12,6 +12,7 @@
 #include "ln64rom.h"
 #include "lz64fs.h"
 #include "lgsc.h"
+#include "los.h"
 #include "lups.h"
 #include "../lib/libgru.h"
 
@@ -294,6 +295,8 @@ void lgru_gru_register(lua_State *L)
     lua_setfield(L, -2, "ups_create");
     lua_pushcfunction(L, lgru_gru_ups_load);
     lua_setfield(L, -2, "ups_load");
+    lua_pushcfunction(L, lgru_os_rm);
+    lua_setfield(L, -2, "os_rm");
     /* meta */
     lua_pushvalue(L, -1);
     lua_setfield(L, -2, "__index");
