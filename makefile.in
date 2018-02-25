@@ -48,13 +48,13 @@ binutils                      : binutils.tar.gz
 build-binutils/config.status  : binutils
 	if [ ! -d build-binutils ]; then mkdir build-binutils; fi
 	cd build-binutils && ../binutils/configure --prefix="$(prefix)"                         \
-                                             --target=mips64                              \
-                                             --with-sysroot="$(sysroot)"                  \
-                                             --disable-nls                                \
-                                             LDFLAGS="$(LDFLAGS)"                         \
-                                             CFLAGS_FOR_TARGET="$(CFLAGS_FOR_TARGET)"     \
-                                             CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)" \
-                                             $(CONFIG_BINUTILS)
+	                                           --target=mips64                              \
+	                                           --with-sysroot="$(sysroot)"                  \
+	                                           --disable-nls                                \
+	                                           LDFLAGS="$(LDFLAGS)"                         \
+	                                           CFLAGS_FOR_TARGET="$(CFLAGS_FOR_TARGET)"     \
+	                                           CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)" \
+	                                           $(CONFIG_BINUTILS)
 configure-binutils            : build-binutils/config.status
 make-binutils                 : configure-binutils
 	cd build-binutils && $(MAKE) all
@@ -74,21 +74,21 @@ gcc                           : gcc.tar.gz
 build-gcc/config.status       : gcc
 	if [ ! -d build-gcc ]; then mkdir build-gcc; fi
 	cd build-gcc && ../gcc/configure --prefix="$(prefix)"                             \
-                                   --target=mips64                                  \
-                                   --with-arch=vr4300                               \
-                                   --with-abi=32                                    \
-                                   --with-newlib                                    \
-                                   --with-sysroot="$(sysroot)"                      \
-                                   --with-native-system-header-dir="//usr/include"  \
-                                   --enable-languages=c,c++,lto                     \
-                                   --enable-sjlj-exceptions                         \
-                                   --disable-multilib                               \
-                                   --disable-threads                                \
-                                   --disable-nls                                    \
-                                   LDFLAGS="$(LDFLAGS)"                             \
-                                   CFLAGS_FOR_TARGET="$(CFLAGS_FOR_TARGET)"         \
-                                   CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)"     \
-                                   $(CONFIG_GCC)
+	                                 --target=mips64                                  \
+	                                 --with-arch=vr4300                               \
+	                                 --with-abi=32                                    \
+	                                 --with-newlib                                    \
+	                                 --with-sysroot="$(sysroot)"                      \
+	                                 --with-native-system-header-dir="//usr/include"  \
+	                                 --enable-languages=c,c++,lto                     \
+	                                 --enable-sjlj-exceptions                         \
+	                                 --disable-multilib                               \
+	                                 --disable-threads                                \
+	                                 --disable-nls                                    \
+	                                 LDFLAGS="$(LDFLAGS)"                             \
+	                                 CFLAGS_FOR_TARGET="$(CFLAGS_FOR_TARGET)"         \
+	                                 CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)"     \
+	                                 $(CONFIG_GCC)
 configure-gcc                 : build-gcc/config.status
 make-gcc-executables          : configure-gcc
 	cd build-gcc && $(MAKE) all-gcc
@@ -113,19 +113,19 @@ newlib                        : newlib.tar.gz
 build-newlib/config.status    : newlib install-binutils install-gcc-executables
 	if [ ! -d build-newlib ]; then mkdir build-newlib; fi
 	cd build-newlib && ../newlib/configure --prefix="$(prefix)"                         \
-                                         --target=mips64                              \
-                                         --with-newlib                                \
-                                         --enable-newlib-global-atexit                \
-                                         --disable-newlib-fvwrite-in-streamio         \
-                                         --disable-newlib-wide-orient                 \
-                                         --enable-newlib-nano-malloc                  \
-                                         --disable-newlib-unbuf-stream-opt            \
-                                         --disable-newlib-supplied-syscalls           \
-                                         --enable-lite-exit                           \
-                                         LDFLAGS="$(LDFLAGS)"                         \
-                                         CFLAGS_FOR_TARGET="$(CFLAGS_FOR_TARGET)"     \
-                                         CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)" \
-                                         $(CONFIG_NEWLIB)
+	                                       --target=mips64                              \
+	                                       --with-newlib                                \
+	                                       --enable-newlib-global-atexit                \
+	                                       --disable-newlib-fvwrite-in-streamio         \
+	                                       --disable-newlib-wide-orient                 \
+	                                       --enable-newlib-nano-malloc                  \
+	                                       --disable-newlib-unbuf-stream-opt            \
+	                                       --disable-newlib-supplied-syscalls           \
+	                                       --enable-lite-exit                           \
+	                                       LDFLAGS="$(LDFLAGS)"                         \
+	                                       CFLAGS_FOR_TARGET="$(CFLAGS_FOR_TARGET)"     \
+	                                       CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)" \
+	                                       $(CONFIG_NEWLIB)
 configure-newlib              : build-newlib/config.status
 make-newlib                   : configure-newlib install-binutils install-gcc-executables
 	cd build-newlib && $(MAKE) all
