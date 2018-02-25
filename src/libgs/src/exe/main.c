@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
+#include <fcntl.h>
 #define MIPS_ASM_BIG_ENDIAN
 #define MIPS_ASM_CONCISE
 #include <mips.h>
@@ -209,7 +210,9 @@ static enum option_error option_handler_write(int argc, const char *argv[],
       return OPTION_ERROR_FOPEN;
     close_file = 1;
   }
-  file = freopen(NULL, format == FORMAT_TEXT ? "r" : "rb", file);
+#ifdef _WIN32
+    setmode(fileno(file), format == FORMAT_TEXT ? O_TEXT : O_BINARY);
+#endif
 
   if (format == FORMAT_TEXT) {
     while (!feof(file)) {
@@ -269,7 +272,9 @@ exit:
   vector_destroy(&code_vector);
   vector_destroy(&data_vector);
   if (file) {
-    file = freopen(NULL, "r", file);
+#ifdef _WIN32
+    setmode(fileno(file), O_TEXT);
+#endif
     if (close_file)
       fclose(file);
   }
