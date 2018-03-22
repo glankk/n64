@@ -995,7 +995,11 @@ static int strarg_mw(char *buf, uint32_t arg)
     case G_MW_SEGMENT   : return sprintf(buf, "G_MW_SEGMENT");
     case G_MW_FOG       : return sprintf(buf, "G_MW_FOG");
     case G_MW_LIGHTCOL  : return sprintf(buf, "G_MW_LIGHTCOL");
+    #ifdef F3D_GBI
+    case G_MW_POINTS    : return sprintf(buf, "G_MW_POINTS");
+    #else
     case G_MW_FORCEMTX  : return sprintf(buf, "G_MW_FORCEMTX");
+    #endif
     case G_MW_PERSPNORM : return sprintf(buf, "G_MW_PERSPNORM");
     default             : return sprintf(buf, "%" PRIi32, (int32_t)arg);
   }
@@ -1085,8 +1089,15 @@ static int strarg_mv(char *buf, uint32_t arg)
 {
   switch (arg) {
     case G_MV_VIEWPORT  : return sprintf(buf, "G_MV_VIEWPORT");
+#ifndef F3D_GBI
     case G_MV_LIGHT     : return sprintf(buf, "G_MV_LIGHT");
     case G_MV_MATRIX    : return sprintf(buf, "G_MV_MATRIX");
+#else
+    case G_MV_MATRIX_1   : return sprintf(buf, "G_MV_MATRIX_1");
+    case G_MV_MATRIX_2   : return sprintf(buf, "G_MV_MATRIX_2");
+    case G_MV_MATRIX_3   : return sprintf(buf, "G_MV_MATRIX_3");
+    case G_MV_MATRIX_4   : return sprintf(buf, "G_MV_MATRIX_4");
+#endif
     default             : return sprintf(buf, "%" PRIi32, (int32_t)arg);
   }
 }
@@ -2370,6 +2381,7 @@ int gfx_col_spForceMatrix(struct gfx_insn *insn, int n_insn)
   if (n_insn < 2)
     return 0;
   if (insn[0].def != GFX_ID_MOVEMEM ||
+    /// TODO: Not sure how to fix this for f3d
       insn[0].arg[0] != sizeof(Mtx) || insn[0].arg[1] != G_MV_MATRIX ||
       insn[0].arg[2] != 0)
   {
@@ -2377,6 +2389,7 @@ int gfx_col_spForceMatrix(struct gfx_insn *insn, int n_insn)
   }
   uint32_t mptr = insn[0].arg[3];
   if (insn[1].def != GFX_ID_MOVEWD ||
+      /// TODO: Not sure how to fix this for f3d.
       insn[1].arg[0] != G_MW_FORCEMTX || insn[1].arg[1] != 0 ||
       insn[1].arg[2] != 0x10000)
   {

@@ -11,6 +11,36 @@
 #include <string.h>
 #include <stdint.h>
 
+#ifdef F3D_GBI
+
+#define G_SPNOOP                      0x00
+#define G_MTX                         0x01
+#define G_RESERVED0                   0x02
+#define G_MOVEMEM                     0x03
+#define G_VTX                         0x04
+#define G_RESERVED1                   0x05
+#define G_DL                          0x06
+#define G_RESERVED2                   0x07
+#define G_RESERVED3                   0x08
+#define G_SPRITE2D_BASE               0x09
+#define G_TRI1                        0xBF
+#define G_CULLDL                      0xBE
+#define G_POPMTX                      0xBD
+#define G_MOVEWORD                    0xBC
+#define G_TEXTURE                     0xBB
+#define G_SETOTHERMODE_H              0xBA
+#define G_SETOTHERMODE_L              0xB9
+#define G_ENDDL                       0xB8
+#define G_SETGEOMETRYMODE             0xB7
+#define G_CLEARGEOMETRYMODE           0xB6
+#define G_LINE3D                      0xB5
+#define G_RDPHALF_1                   0xB4
+#define G_RDPHALF_2                   0xB3
+#define G_RDPHALF_CONT                0xB2
+#define G_NOOP                        0xC0
+
+#else
+
 /* f3dex2 commands */
 #define G_NOOP                        0x00
 #define G_VTX                         0x01
@@ -38,6 +68,9 @@
 #define G_RDPHALF_1                   0xE1
 #define G_SETOTHERMODE_L              0xE2
 #define G_SETOTHERMODE_H              0xE3
+
+#endif
+
 #define G_TEXRECT                     0xE4
 #define G_TEXRECTFLIP                 0xE5
 #define G_RDPLOADSYNC                 0xE6
@@ -51,7 +84,9 @@
 #define G_SETPRIMDEPTH                0xEE
 #define G_RDPSETOTHERMODE             0xEF
 #define G_LOADTLUT                    0xF0
+#ifndef F3D_GBI
 #define G_RDPHALF_2                   0xF1
+#endif
 #define G_SETTILESIZE                 0xF2
 #define G_LOADBLOCK                   0xF3
 #define G_LOADTILE                    0xF4
@@ -66,6 +101,8 @@
 #define G_SETTIMG                     0xFD
 #define G_SETZIMG                     0xFE
 #define G_SETCIMG                     0xFF
+
+#endif
 
 /* s2dex2 commands */
 #define G_OBJ_RECTANGLE               0x01
@@ -108,6 +145,21 @@
 #define G_TX_RENDERTILE               0
 
 /* geometry mode */
+#ifdef F3D_GBI
+#define G_ZBUFFER                     (gI_(0b1)<<0)
+#define G_SHADE                       (gI_(0b1)<<2)
+#define G_SHADING_SMOOTH              (gI_(0b1)<<9)
+#define G_CULL_FRONT                  (gI_(0b1)<<12)
+#define G_CULL_BACK                   (gI_(0b1)<<13)
+#define G_CULL_BOTH                   (G_CULL_FRONT|G_CULL_BACK)
+#define G_FOG                         (gI_(0b1)<<16)
+#define G_LIGHTING                    (gI_(0b1)<<17)
+#define G_TEXTURE_GEN                 (gI_(0b1)<<18)
+#define G_TEXTURE_GEN_LINEAR          (gI_(0b1)<<19)
+#define G_CLIPPING                    (gI_(0b0)<<0)
+
+#else
+
 #define G_ZBUFFER                     (gI_(0b1)<<0)
 #define G_SHADE                       (gI_(0b1)<<2)
 #define G_CULL_FRONT                  (gI_(0b1)<<9)
@@ -119,6 +171,8 @@
 #define G_TEXTURE_GEN_LINEAR          (gI_(0b1)<<19)
 #define G_SHADING_SMOOTH              (gI_(0b1)<<21)
 #define G_CLIPPING                    (gI_(0b1)<<23)
+
+#endif // F3D_GBI
 
 /* othermode lo */
 #define G_MDSFT_ALPHACOMPARE          0
@@ -772,13 +826,30 @@
 #define G_BZ_PERSP                    0
 #define G_BZ_ORTHO                    1
 
+#ifdef F3D_GBI
+#define G_DL_PUSH                     gI_(0x00)
+#define G_DL_NOPUSH                   gI_(0x01)
+#endif
+
 /* matrix params */
+#ifdef F3D_GBI
+#define G_MTX_NOPUSH                  (gI_(0b0)<<0)
+#define G_MTX_PUSH                    (gI_(0b1)<<2)
+#define G_MTX_MUL                     (gI_(0b0)<<0)
+#define G_MTX_LOAD                    (gI_(0b1)<<1)
+#define G_MTX_MODELVIEW               (gI_(0b0)<<0)
+#define G_MTX_PROJECTION              (gI_(0b1)<<0)
+
+#else
+
 #define G_MTX_NOPUSH                  (gI_(0b0)<<0)
 #define G_MTX_PUSH                    (gI_(0b1)<<0)
 #define G_MTX_MUL                     (gI_(0b0)<<1)
 #define G_MTX_LOAD                    (gI_(0b1)<<1)
 #define G_MTX_MODELVIEW               (gI_(0b0)<<2)
 #define G_MTX_PROJECTION              (gI_(0b1)<<2)
+
+#endif
 
 /* dmem params */
 #define G_MW_MATRIX                   0
@@ -788,7 +859,12 @@
 #define G_MW_FOG                      8
 #define G_MW_GENSTAT                  8
 #define G_MW_LIGHTCOL                 10
+
+#ifdef F3D_GBI
+#define G_MW_POINTS                   12
+#else
 #define G_MW_FORCEMTX                 12
+#endif
 #define G_MW_PERSPNORM                14
 
 #define G_MWO_NUMLIGHT                gI_(0x00)
@@ -797,6 +873,26 @@
 #define G_MWO_CLIP_RPX                gI_(0x14)
 #define G_MWO_CLIP_RPY                gI_(0x1C)
 #define G_MWO_SEGMENT_0               gI_(0x00)
+
+#ifdef F3D_GBI
+#define G_MWO_SEGMENT_1               gI_(0x01)
+#define G_MWO_SEGMENT_2               gI_(0x02)
+#define G_MWO_SEGMENT_3               gI_(0x03)
+#define G_MWO_SEGMENT_4               gI_(0x04)
+#define G_MWO_SEGMENT_5               gI_(0x05)
+#define G_MWO_SEGMENT_6               gI_(0x06)
+#define G_MWO_SEGMENT_7               gI_(0x07)
+#define G_MWO_SEGMENT_8               gI_(0x08)
+#define G_MWO_SEGMENT_9               gI_(0x09)
+#define G_MWO_SEGMENT_A               gI_(0x0A)
+#define G_MWO_SEGMENT_B               gI_(0x0B)
+#define G_MWO_SEGMENT_C               gI_(0x0C)
+#define G_MWO_SEGMENT_D               gI_(0x0D)
+#define G_MWO_SEGMENT_E               gI_(0x0E)
+#define G_MWO_SEGMENT_F               gI_(0x0F)
+
+#else
+
 #define G_MWO_SEGMENT_1               gI_(0x04)
 #define G_MWO_SEGMENT_2               gI_(0x08)
 #define G_MWO_SEGMENT_3               gI_(0x0C)
@@ -812,9 +908,32 @@
 #define G_MWO_SEGMENT_D               gI_(0x34)
 #define G_MWO_SEGMENT_E               gI_(0x38)
 #define G_MWO_SEGMENT_F               gI_(0x3C)
+
+#endif
+
 #define G_MWO_FOG                     gI_(0x00)
 #define G_MWO_aLIGHT_1                gI_(0x00)
 #define G_MWO_bLIGHT_1                gI_(0x04)
+
+#ifdef F3D_GBI
+#define G_MWO_bLIGHT_1                gI_(0x04)
+#define G_MWO_aLIGHT_2                gI_(0x20)
+#define G_MWO_bLIGHT_2                gI_(0x24)
+#define G_MWO_aLIGHT_3                gI_(0x40)
+#define G_MWO_bLIGHT_3                gI_(0x44)
+#define G_MWO_aLIGHT_4                gI_(0x60)
+#define G_MWO_bLIGHT_4                gI_(0x64)
+#define G_MWO_aLIGHT_5                gI_(0x80)
+#define G_MWO_bLIGHT_5                gI_(0x84)
+#define G_MWO_aLIGHT_6                gI_(0xA0)
+#define G_MWO_bLIGHT_6                gI_(0xA4)
+#define G_MWO_aLIGHT_7                gI_(0xC0)
+#define G_MWO_bLIGHT_7                gI_(0xC4)
+#define G_MWO_aLIGHT_8                gI_(0xE0)
+#define G_MWO_bLIGHT_8                gI_(0xE4)
+
+#else
+
 #define G_MWO_aLIGHT_2                gI_(0x18)
 #define G_MWO_bLIGHT_2                gI_(0x1C)
 #define G_MWO_aLIGHT_3                gI_(0x30)
@@ -829,6 +948,9 @@
 #define G_MWO_bLIGHT_7                gI_(0x94)
 #define G_MWO_aLIGHT_8                gI_(0xA8)
 #define G_MWO_bLIGHT_8                gI_(0xAC)
+
+#endif
+
 #define G_MWO_MATRIX_XX_XY_I          gI_(0x00)
 #define G_MWO_MATRIX_XZ_XW_I          gI_(0x04)
 #define G_MWO_MATRIX_YX_YY_I          gI_(0x08)
@@ -850,6 +972,28 @@
 #define G_MWO_POINT_XYSCREEN          gI_(0x18)
 #define G_MWO_POINT_ZSCREEN           gI_(0x1C)
 
+#ifdef F3D_GBI
+
+#define G_MV_VIEWPORT                 0x80
+#define G_MV_MATRIX_1                 0x9E
+#define G_MV_MATRIX_2                 0x98
+#define G_MV_MATRIX_3                 0x9A
+#define G_MV_MATRIX_4                 0x9C
+
+#define G_MV_LOOKATY                  0x82
+#define G_MV_LOOKATX                  0x84
+#define G_MV_L0                       0x86
+#define G_MV_L1                       0x88
+#define G_MV_L2                       0x8A
+#define G_MV_L3                       0x8C
+#define G_MV_L4                       0x8E
+#define G_MV_L5                       0x90
+#define G_MV_L6                       0x92
+#define G_MV_L7                       0x94
+#define G_MV_TXTATT                   0x96
+
+#else
+
 #define G_MV_VIEWPORT                 8
 #define G_MV_LIGHT                    10
 #define G_MV_MATRIX                   14
@@ -864,6 +1008,8 @@
 #define G_MVO_L5                      gI_(7*0x18)
 #define G_MVO_L6                      gI_(8*0x18)
 #define G_MVO_L7                      gI_(9*0x18)
+
+#endif // F3D_GBI
 
 /* frustum ratios */
 #define FRUSTRATIO_1                  gI_(1)
@@ -1657,6 +1803,8 @@ gsDPSetTile(fmt,siz,line,tmem,      \
                                           gF_(((flag)==0?gI_(v2):             \
                                                (flag)==1?gI_(v0):             \
                                                gI_(v1))*2,8,0),0)
+
+#ifndef F3D_GBI
 #define                             \
 gsSP2Triangles(v00,v01,v02,flag0,   \
                v10,v11,v12,flag1)     gO_(G_TRI2,                             \
@@ -1715,6 +1863,7 @@ gsSPBranchLessZrg(branchdl,vtx,     \
                                       gsBranchZ(vtx,zval,near,far,flag,       \
                                                 zmin,zmax)
 #define gsSPBranchList(dl)            gsDisplayList(dl,1)
+#endif
 #define gsSPClipRatio(r)              gsMoveWd(G_MW_CLIP,G_MWO_CLIP_RNX,      \
                                                (uint16_t)(r)),                \
                                       gsMoveWd(G_MW_CLIP,G_MWO_CLIP_RNY,      \
@@ -1723,8 +1872,20 @@ gsSPBranchLessZrg(branchdl,vtx,     \
                                                (uint16_t)-(r)),               \
                                       gsMoveWd(G_MW_CLIP,G_MWO_CLIP_RPY,      \
                                                (uint16_t)-(r))
+#ifdef F3D_GBI
+
+#define gsSPInsertMatrix(where,num)   gsMoveWd(G_MW_MATRIX, where, num)
+#define gsSPCullDisplayList(v0,vn)    gO_(G_CULLDL,                           \
+                                      (0x0F & (v0))*40,                       \
+                                      (0x0F & ((vn)+1))*40)
+
+#else
+
 #define gsSPCullDisplayList(v0,vn)    gO_(G_CULLDL,gF_((v0)*2,16,0),          \
                                           gF_((vn)*2,16,0))
+
+#endif
+
 #define gsSPDisplayList(dl)           gsDisplayList(dl,0)
 #define gsSPEndDisplayList()          gO_(G_ENDDL,0,0)
 #define gsSPFogPosition(min,max)      gsMoveWd(G_MW_FOG,G_MWO_FOG,            \
@@ -1732,12 +1893,38 @@ gsSPBranchLessZrg(branchdl,vtx,     \
                                                    16,16)|                    \
                                                gF_((500-(min))*256/           \
                                                    ((max)-(min)),16,0))
+
+#ifdef F3D_GBI
+#define gsSPForceMatrix(mptr)         gO_(G_MOVEMEM,gF_(G_MV_MATRIX_1,8,16)|  \
+                                          gF_(16,16,0),                       \
+                                          mptr),                              \
+                                      gO_(G_MOVEMEM,gF_(G_MV_MATRIX_2,8,16)|  \
+                                          gF_(16,16,0),                       \
+                                          (char *)(mtr)+16),                  \
+                                      gO_(G_MOVEMEM,gF_(G_MV_MATRIX_3,8,16)|  \
+                                          gF_(16.16,0),                       \
+                                          (char *)(mtr)+32),                  \
+                                      gO_(G_MOVEMEM,gF_(G_MV_MATRIX_4,8,16)|  \
+                                          gF_(16,16,0),                       \
+                                          (char *)(mtr)+48)
+
+#define gsSPSetGeometryMode(mode)     gO_(G_SETGEOMETRYMODE,  0x1, gI_(mode))
+#define gsSPClearGeometryMode(mode)   gO_(G_CLEARGEOMETRYMODE,0x1, gI_(mode))
+#else
+
 #define gsSPForceMatrix(mptr)         gsMoveMem(sizeof(Mtx),G_MV_MATRIX,0,    \
                                                 mptr),                        \
                                       gsMoveWd(G_MW_FORCEMTX,0,0x10000)
 #define gsSPSetGeometryMode(mode)     gsSPGeometryMode(0,mode)
 #define gsSPClearGeometryMode(mode)   gsSPGeometryMode(mode,0)
+
+#endif
+
+// The Fast3D ucode does not support gSPLoadGeometryMode.
+#ifndef F3D_GBI
 #define gsSPLoadGeometryMode(mode)    gsSPGeometryMode(~gI_(0),mode)
+#endif
+
 #define gsSPLine3D(v0,v1,flag)        gsSPLineW3D(v0,v1,0,flag)
 #define gsSPLineW3D(v0,v1,wd,flag)    gO_(G_LINE3D,                           \
                                           gF_(((flag)==0?gI_(v0):             \
@@ -1745,25 +1932,64 @@ gsSPBranchLessZrg(branchdl,vtx,     \
                                           gF_(((flag)==0?gI_(v1):             \
                                                gI_(v0))*2,8,8)|               \
                                           gF_(wd,8,0),0)
+#ifndef F3D_GBI
 #define gsSPLoadUcode(uc_start,     \
                       uc_dstart)      gsSPLoadUcodeEx(uc_start,uc_dstart,0x800)
+#endif
+
+#ifdef F3D_GBI
+
+#define gsSPLookAtX(l)               gO_(G_MOVEMEM,                           \
+                                         gF_(G_MV_LOOKATX,8,16)|              \
+                                         gF_(sizeof(Light),16,0),             \
+                                         l)
+#define gsSPLookAtY(l)               gO_(G_MOVEMEM,                           \
+                                         gF_(G_MV_LOOKATY,8,16)|              \
+                                         gF_(sizeof(Light),16,0),             \
+                                         l)
+
+#else
 #define gsSPLookAtX(l)                gsMoveMem(sizeof(Light),G_MV_LIGHT,     \
                                                 G_MVO_LOOKATX,l)
 #define gsSPLookAtY(l)                gsMoveMem(sizeof(Light),G_MV_LIGHT,     \
                                                 G_MVO_LOOKATY,l)
+#endif
+
 #define gsSPLookAt(l)                 gsSPLookAtX(l),                         \
                                       gsSPLookAtY(gI_(l)+0x10)
+#ifdef F3D_GBI
+
+#define gsSPMatrix(matrix,param)      gO_(G_MTX,gF_(param,8,16)|              \
+                                          gF_(sizeof(Mtx),16,0),              \
+                                          matrix)
+#define gsSPModifyVertex(vtx,where,  \
+                         val)         gsMoveWd(G_MW_POINTS,(vtx)*40+(where),val)
+
+#else
+
 #define gsSPMatrix(matrix,param)      gO_(G_MTX,gF_((sizeof(Mtx)-1)/8,5,19)|  \
                                           gF_(gI_(param)^G_MTX_PUSH,8,0),     \
                                           matrix)
 #define gsSPModifyVertex(vtx,where, \
                          val)         gO_(G_MODIFYVTX,gF_(where,8,16)|        \
                                           gF_((vtx)*2,16,0),val)
+#endif
+
 #define gsSPPerspNormalize(scale)     gsMoveWd(G_MW_PERSPNORM,0,scale)
+
+#ifdef F3D_GBI
+
+#define gsSPPopMatrix(param)          gO_(G_POPMTX,0x1,param)
+
+#else
+
 #define gsSPPopMatrix(param)          gsSPPopMatrixN(param,1)
 #define gsSPPopMatrixN(param,n)       gO_(G_POPMTX,                           \
                                           gF_((sizeof(Mtx)-1)/8,5,19)|        \
                                           gF_(2,8,0),sizeof(Mtx)*(n))
+
+#endif
+
 #define gsSPSegment(seg,base)         gsMoveWd(G_MW_SEGMENT,(seg)*4,base)
 #define gsSPSetLights0(lites)         gsSPNumLights(NUMLIGHTS_0),             \
                                       gsSPLight(&(lites).l[0],1),             \
@@ -1811,10 +2037,25 @@ gsSPBranchLessZrg(branchdl,vtx,     \
                                       gsSPLight(&(lites).l[6],7),             \
                                       gsSPLight(&(lites).a,8)
 #define gsSPSetStatus(sid,val)        gsMoveWd(G_MW_GENSTAT,sid,val)
-#define gsSPNumLights(n)              gsMoveWd(G_MW_NUMLIGHT,G_MWO_NUMLIGHT,  \
-                                               (n)*0x18)
+
+#ifdef F3D_GBI
+
+#define NUML(n)                       (((n)+1)*32 + 0x80000000)
+#define gsSPLight(l,n)                gO_(G_MOVEMEM,                          \
+                                          gF_(((n)-1)*2+G_MV_L0, 8, 16)|      \
+                                          gF_(sizeof(Light), 16, 0),          \
+                                          l)
+
+#else
+
+#define NUML(n)                       ((n)*0x18)
 #define gsSPLight(l,n)                gsMoveMem(sizeof(Light),G_MV_LIGHT,     \
                                                 ((n)+1)*0x18,l)
+
+#endif
+
+#define gsSPNumLights(n)              gsMoveWd(G_MW_NUMLIGHT,G_MWO_NUMLIGHT,  \
+                                               NUML(n))
 #define gsSPLightColor(Lightnum,    \
                        packedcolor)   gsMoveWd(G_MW_LIGHTCOL,                 \
                                                G_MWO_a##Lightnum,packedcolor),\
@@ -1874,8 +2115,22 @@ gsSPScisTextureRectangleFlip(ulx,   \
                                                     ((uly)<0)*((dtdy)<0?1:-1)/\
                                                     0x80,16,0)),              \
                                       gsDPHalf2(gF_(dsdx,16,16)|gF_(dtdy,16,0))
+
+#ifdef F3D_GBI
+
+#define gsSPVertex(v,n,v0)            gO_(G_VTX,gF_( ((n)-1)<<4 | (v0),8,16)| \
+                                          gF_(sizeof(Vtx)*(n), 16, 0),        \
+                                          v)
+#define gsSPViewport(v)               gO_(G_MOVEMEM,gF_(G_MV_VIEWPORT, 8, 16)|\
+                                          gF_(sizeof(Vp),16,0),               \
+                                          v)
+#else
+
 #define gsSPVertex(v,n,v0)            gO_(G_VTX,gF_(n,8,12)|gF_((v0)+(n),7,1),v)
 #define gsSPViewport(v)               gsMoveMem(sizeof(Vp),G_MV_VIEWPORT,0,v)
+
+#endif
+
 #define gsSPBgRectCopy(bg)            gO_(G_BG_COPY,0,bg)
 #define gsSPBgRect1Cyc(bg)            gO_(G_BG_1CYC,0,bg)
 #define gsSPObjRectangle(sp)          gO_(G_OBJ_RECTANGLE,0,sp)
@@ -1933,8 +2188,17 @@ gsSPScisTextureRectangleFlip(ulx,   \
                                           ((int32_t)((zmax)-(zmin))&~1)+      \
                                           qs1616(zmin))
 #define gsDisplayList(dl,branch)      gO_(G_DL,gF_(branch,8,16),dl)
+
+#ifdef F3D_GBI
+#define gsDPHalf1(wordhi)             gO_(G_RDPHALF_2,0,wordhi)
+#define gsDPHalf2(wordlo)             gO_(G_RDPHALF_CONT,0,wordlo)
+
+#else
+
 #define gsDPHalf1(wordhi)             gO_(G_RDPHALF_1,0,wordhi)
 #define gsDPHalf2(wordlo)             gO_(G_RDPHALF_2,0,wordlo)
+#endif 
+
 #define gsDPLoadTile(tile,uls,ult,  \
                      lrs,lrt)         gO_(G_LOADTILE,                         \
                                           gF_(uls,12,12)|gF_(ult,12,0),       \
@@ -1943,14 +2207,28 @@ gsSPScisTextureRectangleFlip(ulx,   \
 #define gsDPSetCombine(c)             gO_(G_SETCOMBINE,                       \
                                           (gL_(c)>>32)&0xFFFFFFFF,            \
                                           (gL_(c)>>0)&0xFFFFFFFF)
+
+/// The Fast3D µcode does not support gSPGeometryMode.
+#ifndef F3D_GBI
 #define gsSPGeometryMode(clearbits, \
                          setbits)     gO_(G_GEOMETRYMODE,                     \
                                           gF_(~gI_(clearbits),24,0),setbits)
+#endif
+
+#ifdef F3D_GBI
+#define                             \
+gsSPSetOtherMode(opc,shift,length,  \
+                 data)                gO_(opc,                                \
+                                          gF_(shift, 8,8)|                    \
+                                          gF_(length,8,0),data)
+#else
 #define                             \
 gsSPSetOtherMode(opc,shift,length,  \
                  data)                gO_(opc,                                \
                                           gF_(32-(shift)-(length),8,8)|       \
                                           gF_((length)-1,8,0),data)
+#endif
+
 #define gsSPSetOtherModeLo(shift,   \
                            length,  \
                            data)      gsSPSetOtherMode(G_SETOTHERMODE_L,      \
@@ -1962,8 +2240,17 @@ gsSPSetOtherMode(opc,shift,length,  \
 #define                             \
 gsDPSetOtherMode(mode0,mode1)         gO_(G_RDPSETOTHERMODE,gF_(mode0,24,0),  \
                                           mode1)
+
+#ifdef F3D_GBI
+
+#define gsMoveWd(index,offset,data)   gO_(G_MOVEWORD,gF_(index,16,8)|         \
+                                          gF_(offset,8,0), data)
+#else
+
 #define gsMoveWd(index,offset,data)   gO_(G_MOVEWORD,gF_(index,8,16)|         \
                                           gF_(offset,16,0),data)
+#endif
+
 #define gsMoveMem(size,index,       \
                   offset,address)     gO_(G_MOVEMEM,gF_((size-1)/8,5,19)|     \
                                           gF_((offset)/8,8,8)|                \
@@ -1974,6 +2261,8 @@ gsSPDma_io(flag,dmem,dram,size)       gO_(G_DMA_IO,gF_(flag,1,23)|            \
                                           gF_((size)-1,12,0),dram)
 #define gsSPDmaRead(dmem,dram,size)   gsSPDma_io(0,dmem,dram,size)
 #define gsSPDmaWrite(dmem,dram,size)  gsSPDma_io(1,dmem,dram,size)
+
+#ifndef F3D_GBI
 #define                             \
 gsLoadUcode(uc_start,uc_dsize)        gO_(G_LOAD_UCODE,                       \
                                           gF_((uc_dsize)-1,16,0),uc_start)
@@ -1981,6 +2270,7 @@ gsLoadUcode(uc_start,uc_dsize)        gO_(G_LOAD_UCODE,                       \
 gsSPLoadUcodeEx(uc_start,uc_dstart, \
                 uc_dsize)             gsDPHalf1(uc_dstart),                   \
                                       gsLoadUcode(uc_start,uc_dsize)
+#endif
 #define                             \
 gsTexRect(ulx,uly,lrx,lry,tile)       gO_(G_TEXRECT,                          \
                                           gF_(lrx,12,12)|gF_(lry,12,0),       \
@@ -2127,6 +2417,9 @@ _gDPLoadTextureTileYuv(gdl,...)       gD_(gdl,_gsDPLoadTextureTileYuv,        \
 #define gSPBranchLessZrg(gdl,...)     gD_(gdl,gsSPBranchLessZrg,__VA_ARGS__)
 #define gSPBranchList(gdl,...)        gD_(gdl,gsSPBranchList,__VA_ARGS__)
 #define gSPClipRatio(gdl,...)         gD_(gdl,gsSPClipRatio,__VA_ARGS__)
+#ifdef F3D_GBI
+#define gSPInsertMatrix(gdl,...)      gD_(gdl,gsSPInsertMatrix,__VA_ARGS__)
+#endif
 #define gSPCullDisplayList(gdl,...)   gD_(gdl,gsSPCullDisplayList,__VA_ARGS__)
 #define gSPDisplayList(gdl,...)       gD_(gdl,gsSPDisplayList,__VA_ARGS__)
 #define gSPEndDisplayList(gdl)        gDisplayListPut(gdl,gsSPEndDisplayList())
@@ -2145,7 +2438,9 @@ _gDPLoadTextureTileYuv(gdl,...)       gD_(gdl,_gsDPLoadTextureTileYuv,        \
 #define gSPModifyVertex(gdl,...)      gD_(gdl,gsSPModifyVertex,__VA_ARGS__)
 #define gSPPerspNormalize(gdl,...)    gD_(gdl,gsSPPerspNormalize,__VA_ARGS__)
 #define gSPPopMatrix(gdl,...)         gD_(gdl,gsSPPopMatrix,__VA_ARGS__)
+#ifndef F3D_GBI
 #define gSPPopMatrixN(gdl,...)        gD_(gdl,gsSPPopMatrixN,__VA_ARGS__)
+#endif
 #define gSPSegment(gdl,...)           gD_(gdl,gsSPSegment,__VA_ARGS__)
 #define gSPSetLights0(gdl,...)        gD_(gdl,gsSPSetLights0,__VA_ARGS__)
 #define gSPSetLights1(gdl,...)        gD_(gdl,gsSPSetLights1,__VA_ARGS__)
@@ -2194,7 +2489,12 @@ gSPScisTextureRectangleFlip(gdl,...)  gD_(gdl,gsSPScisTextureRectangleFlip,   \
 #define gDPHalf2(gdl,...)             gD_(gdl,gsDPHalf2,__VA_ARGS__)
 #define gDPLoadTile(gdl,...)          gD_(gdl,gsDPLoadTile,__VA_ARGS__)
 #define gDPSetCombine(gdl,...)        gD_(gdl,gsDPSetCombine,__VA_ARGS__)
+
+
+#ifndef F3D_GBI
 #define gSPGeometryMode(gdl,...)      gD_(gdl,gsSPGeometryMode,__VA_ARGS__)
+#endif
+
 #define gSPSetOtherMode(gdl,...)      gD_(gdl,gsSPSetOtherMode,__VA_ARGS__)
 #define gSPSetOtherModeLo(gdl,...)    gD_(gdl,gsSPSetOtherModeLo,__VA_ARGS__)
 #define gSPSetOtherModeHi(gdl,...)    gD_(gdl,gsSPSetOtherModeHi,__VA_ARGS__)
