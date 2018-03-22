@@ -15,8 +15,8 @@ MKDIR_P                       = @MKDIR_P@
 .PHONY                        : all install install-strip clean distclean
 
 all                           : $(PROGNAME)
-install                       : | $(bindir)
-	$(INSTALL) -p $(PROGNAME) $(bindir)
+install                       : | $(DESTDIR)/$(bindir)
+	$(INSTALL) -p $(PROGNAME) $(DESTDIR)$(bindir)
 	@if test -n "$(EMUDIR)"; then \
 		echo installing \`patch.lua\` to "$(EMUDIR)/Lua"...; \
 		$(INSTALL) -p -m 0644 $(srcdir)/patch.lua "$(EMUDIR)/Lua"; \
@@ -24,12 +24,12 @@ install                       : | $(bindir)
 		echo warning: no EMUDIR specified, skipping \`patch.lua\` installation; \
 	fi
 install-strip                 :
-	$(MAKE) INSTALL="$(INSTALL) -s" install
+	$(MAKE) INSTALL="$(INSTALL) -s" DESTDIR=$(DESTDIR) install
 clean                         :
-	rm -f $(PROGNAME)
+	rm -f $(DESTDIR)$(PROGNAME)
 distclean                     :
 	rm -f makefile
 $(PROGNAME)                   : $(SRC)
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $^ $(LDLIBS) -o $@
-$(bindir)                     :
-	$(MKDIR_P) $(bindir)
+$(DESTDIR)/$(bindir)                     :
+	$(MKDIR_P) $(DESTDIR)/$(bindir)
