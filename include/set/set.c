@@ -68,6 +68,15 @@ void *set_insert(struct set *set, void *value)
   return vector_insert(&set->container, position, 1, value);
 }
 
+void *set_put(struct set *set, void *value)
+{
+  _Bool match;
+  size_t position = set_locate(set, value, &match);
+  if (match)
+    return NULL;
+  return vector_insert(&set->container, position, 1, value);
+}
+
 void set_erase(struct set *set, void *value)
 {
   _Bool match;

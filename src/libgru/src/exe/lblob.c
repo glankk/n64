@@ -253,6 +253,20 @@ static int lgru_blob_swap(lua_State *L)
   return 0;
 }
 
+static int lgru_blob_find(lua_State *L)
+{
+  struct gru_blob *blob = lgru_checkclass(L, 1, "gru_blob");
+  struct gru_blob *search = lgru_checkclass(L, 2, "gru_blob");
+  size_t start = luaL_optinteger(L, 3, 0);
+  size_t length = luaL_optinteger(L, 4, 0);
+  size_t pos = gru_blob_find(blob, search, start, length);
+  if (pos == -1)
+    lua_pushnil(L);
+  else
+    lua_pushinteger(L, pos);
+  return 1;
+}
+
 static int lgru_blob_gc(lua_State *L)
 {
   struct gru_blob *blob = lgru_checkclass(L, 1, "gru_blob");
@@ -314,6 +328,8 @@ void lgru_blob_register(lua_State *L)
     lua_setfield(L, -2, "readstring");
     lua_pushcfunction(L, lgru_blob_swap);
     lua_setfield(L, -2, "swap");
+    lua_pushcfunction(L, lgru_blob_find);
+    lua_setfield(L, -2, "find");
     /* meta */
     lua_pushvalue(L, -1);
     lua_setfield(L, -2, "__index");

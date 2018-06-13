@@ -310,3 +310,27 @@ void gru_blob_swap(struct gru_blob *blob, size_t word_size)
       *b = v;
     }
 }
+
+size_t gru_blob_find(struct gru_blob *blob,
+                     struct gru_blob *search,
+                     size_t start, size_t length)
+{
+  if (blob->size < start || search->size == 0)
+    return -1;
+  if (length == 0 || start + length > blob->size)
+    length = blob->size - start;
+  if (length < search->size)
+    return -1;
+  char *s = blob->data;
+  char *e = s + length - search->size + 1;
+  char *ss = search->data;
+  char *se = ss + search->size;
+  for (char *p = s; p != e; ++p) {
+    char *a = p;
+    char *b = ss;
+    while (*a++ == *b++)
+      if (b == se)
+        return p - s;
+  }
+  return -1;
+}

@@ -64,5 +64,8 @@ enum gru_error gru_blob_readstring(struct gru_blob *blob,
                                    size_t address, size_t size,
                                    char **value);
 void gru_blob_swap(struct gru_blob *blob, size_t word_size);
+size_t gru_blob_find(struct gru_blob *blob,
+                     struct gru_blob *search,
+                     size_t start, size_t length);
 
 #endif

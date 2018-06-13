@@ -22,6 +22,7 @@ void set_init(struct set *set, size_t value_size,
               _Bool (*comparator)(void *a, void *b));
 void set_destroy(struct set *set);
 void *set_insert(struct set *set, void *value);
+void *set_put(struct set *set, void *value);
 void set_erase(struct set *set, void *value);
 void *set_get(const struct set *set, void *value);
 void *set_at(const struct set *set, size_t position);
