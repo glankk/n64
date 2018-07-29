@@ -2,6 +2,7 @@
 #define N64_MESSAGE_H
 
 #include <stdint.h>
+#include "thread.h"
 
 #define OS_NUM_EVENTS             15
 
@@ -28,22 +29,24 @@
 #define MQ_IS_EMPTY(mq)           (MQ_GET_COUNT(mq)==0)
 #define MQ_IS_FULL(mq)            (MQ_GET_COUNT(mq)>=(mq)->msgCount)
 
-typedef uint32_t   OSEvent;
-typedef void      *OSMesg;
+typedef uint32_t    OSEvent;
+typedef void       *OSMesg;
+
 typedef struct
 {
-  OSThread   *mtqueue;
-  OSThread   *fullqueue;
-  int32_t     validCount;
-  int32_t     first;
-  int32_t     msgCount;
-  OSMesg     *msg;
+  OSThread         *mtqueue;                  /* 0x0000 */
+  OSThread         *fullqueue;                /* 0x0004 */
+  int32_t           validCount;               /* 0x0008 */
+  int32_t           first;                    /* 0x000C */
+  int32_t           msgCount;                 /* 0x0010 */
+  OSMesg           *msg;                      /* 0x0014 */
+                                              /* 0x0018 */
 } OSMesgQueue;
 
-typedef void    (*osCreateMesgQueue_t)(OSMesgQueue*, OSMesg*, int32_t);
-typedef int32_t (*osSendMesg_t)       (OSMesgQueue*, OSMesg, int32_t);
-typedef int32_t (*osJamMesg_t)        (OSMesgQueue*, OSMesg, int32_t);
-typedef int32_t (*osRecvMesg_t)       (OSMesgQueue*, OSMesg*, int32_t);
-typedef void    (*osSetEventMesg_t)   (OSEvent, OSMesgQueue*, OSMesg);
+typedef void      (*osCreateMesgQueue_t)(OSMesgQueue*, OSMesg*, int32_t);
+typedef int32_t   (*osSendMesg_t)       (OSMesgQueue*, OSMesg, int32_t);
+typedef int32_t   (*osJamMesg_t)        (OSMesgQueue*, OSMesg, int32_t);
+typedef int32_t   (*osRecvMesg_t)       (OSMesgQueue*, OSMesg*, int32_t);
+typedef void      (*osSetEventMesg_t)   (OSEvent, OSMesgQueue*, OSMesg);
 
 #endif
