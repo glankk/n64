@@ -31,6 +31,7 @@ install                       : $(INSTALLPROGS)
 clean                         : $(CLEANPROGS) clean-binutils clean-gcc clean-newlib clean-sys
 distclean                     : $(DISTCLEANPROGS)
 	rm -f config.log config.status makefile
+quickclean                    : $(CLEANPROGS) quickclean-binutils quickclean-gcc quickclean-newlib clean-sys
 $(PROGS)                      :
 	cd src/$@ && $(MAKE)
 $(INSTALLPROGS)               :
@@ -64,6 +65,8 @@ install-binutils              : make-binutils
 	touch $@
 clean-binutils                :
 	rm -rf binutils.tar.gz binutils build-binutils make-binutils install-binutils
+quickclean-binutils           :
+	rm -rf build-binutils make-binutils install-binutils
 
 gcc.tar.gz                    :
 	wget -O gcc.tar.gz "$(GCC_URL)"
@@ -104,6 +107,8 @@ install-gcc                   : make-gcc
 	touch $@
 clean-gcc                     :
 	rm -rf gcc.tar.gz gcc build-gcc make-gcc-executables install-gcc-executables make-gcc install-gcc
+quickclean-gcc                :
+	rm -rf build-gcc make-gcc-executables install-gcc-executables make-gcc install-gcc
 
 newlib.tar.gz                 :
 	wget -O newlib.tar.gz "$(NEWLIB_URL)"
@@ -135,6 +140,8 @@ install-newlib                : make-newlib
 	touch $@
 clean-newlib                  :
 	rm -rf newlib.tar.gz newlib build-newlib make-newlib install-newlib
+quickclean-newlib             :
+	rm -rf build-newlib make-newlib install-newlib
 
 install-sys                   :
 	$(INSTALL) -d "$(sysroot)/usr"
