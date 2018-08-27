@@ -30,6 +30,19 @@ void *vector_at(const struct vector *vector, size_t position)
   return (char*)vector->begin + vector->element_size * position;
 }
 
+int vector_reserve(struct vector *vector, size_t num)
+{
+  size_t new_cap = vector->capacity + num;
+  char *new_data = (char*)realloc(vector->begin, vector->element_size * new_cap);
+  if (!new_data)
+    return 0;
+  vector->capacity = new_cap;
+  vector->begin = new_data;
+  vector->end = new_data + vector->element_size * vector->size;
+  vector->rbegin = new_data - vector->element_size;
+  vector->rend = new_data - vector->element_size;
+}
+
 void *vector_insert(struct vector *vector, size_t position, size_t num,
                     const void *data)
 {

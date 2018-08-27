@@ -123,7 +123,6 @@ build-newlib/config.status    : newlib install-binutils install-gcc-executables
 	                                       --enable-newlib-global-atexit                \
 	                                       --disable-newlib-fvwrite-in-streamio         \
 	                                       --disable-newlib-wide-orient                 \
-	                                       --enable-newlib-nano-malloc                  \
 	                                       --disable-newlib-unbuf-stream-opt            \
 	                                       --disable-newlib-supplied-syscalls           \
 	                                       --enable-lite-exit                           \
