@@ -1,3 +1,4 @@
+#include <swap.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
@@ -13,8 +14,8 @@
 
 int gfx_insn_dis(struct gfx_insn *insn, Gfx *gfx)
 {
-  uint32_t hi = mips_mtoh32(gfx->hi);
-  uint32_t lo = mips_mtoh32(gfx->lo);
+  uint32_t hi = btoh32(gfx->hi);
+  uint32_t lo = btoh32(gfx->lo);
   memset(insn, 0, sizeof(*insn));
   int opcode = getfield(hi, 8, 24);
   enum gfx_insn_def def = GFX_ID_INVD;

@@ -1,10 +1,10 @@
+#include <swap.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
 #include <jansson.h>
-#include "../../include/mips.h"
-#include "../../include/n64.h"
-#include "../../include/grc.h"
+#include <n64.h>
+#include <grc.h>
 #include "texture.h"
 #include "resource.h"
 #define STB_IMAGE_IMPLEMENTATION
@@ -282,12 +282,12 @@ enum grc_error make_texture(const char *input_file, const char *output_file,
   }
   resource_data->im_fmt = fi->im_fmt;
   resource_data->im_siz = fi->im_siz;
-  resource_data->image_width = mips_htom16(image_width);
-  resource_data->image_height = mips_htom16(image_height);
-  resource_data->tile_width = mips_htom16(tile_width);
-  resource_data->tile_height = mips_htom16(tile_height);
-  resource_data->tiles_x = mips_htom16(tiles_x);
-  resource_data->tiles_y = mips_htom16(tiles_y);
+  resource_data->image_width = htob16(image_width);
+  resource_data->image_height = htob16(image_height);
+  resource_data->tile_width = htob16(tile_width);
+  resource_data->tile_height = htob16(tile_height);
+  resource_data->tiles_x = htob16(tiles_x);
+  resource_data->tiles_y = htob16(tiles_y);
   /* make texture */
   {
     char *texture_p = &resource_data->texture_data[0];

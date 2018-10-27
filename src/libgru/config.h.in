@@ -1,5 +1,0 @@
-/* Define to 1 if you have the <lua5.3/lua.h> header file. */
-#undef HAVE_LUA5_3_LUA_H
-
-/* Define to 1 if you have the <lua.h> header file. */
-#undef HAVE_LUA_H

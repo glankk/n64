@@ -4,34 +4,37 @@ bindir                        = @bindir@
 srcdir                        = @srcdir@
 sysroot                       = $(prefix)/mips64/n64-sysroot
 export PATH                  := $(bindir):$(PATH)
-PROGS                         = gfxdis grc libgru libgs luapatch
+PROGS                         = ed64rdb gfxdis grc libgru libgs luapatch
 INSTALLPROGS                  = $(foreach prog,$(PROGS),install-$(prog))
 CLEANPROGS                    = $(foreach prog,$(PROGS),clean-$(prog))
 DISTCLEANPROGS                = $(foreach prog,$(PROGS),distclean-$(prog))
 BINUTILS_VERSION              = @BINUTILS_VERSION@
 GCC_VERSION                   = @GCC_VERSION@
 NEWLIB_VERSION                = @NEWLIB_VERSION@
+GDB_VERSION                   = @GDB_VERSION@
 BINUTILS_URL                  = https://ftp.gnu.org/gnu/binutils/$(BINUTILS_VERSION).tar.gz
 GCC_URL                       = https://ftp.gnu.org/gnu/gcc/$(GCC_VERSION)/$(GCC_VERSION).tar.gz
 NEWLIB_URL                    = https://sourceware.org/pub/newlib/$(NEWLIB_VERSION).tar.gz
+GDB_URL                       = https://ftp.gnu.org/gnu/gdb/$(GDB_VERSION).tar.gz
 CONFIG_BINUTILS               = @CONFIG_BINUTILS@
 CONFIG_GCC                    = @CONFIG_GCC@
 CONFIG_NEWLIB                 = @CONFIG_NEWLIB@
+CONFIG_GDB                    = @CONFIG_GDB@
 LDFLAGS                       = @LDFLAGS@
 CFLAGS_FOR_TARGET             = @CFLAGS_FOR_TARGET@
 CXXFLAGS_FOR_TARGET           = @CXXFLAGS_FOR_TARGET@
 INSTALL                       = @INSTALL@
 
 .PHONY                        : all install clean distclean $(PROGS) $(INSTALLPROGS) $(CLEANPROGS) $(DISTCLEANPROGS)
-.PHONY                        : configure-binutils configure-gcc configure-newlib clean-binutils clean-gcc clean-newlib
+.PHONY                        : configure-binutils configure-gcc configure-newlib configure-gdb clean-binutils clean-gcc clean-newlib clean-gdb
 .PHONY                        : install-sys clean-sys remove-sys install-toolchain
 
 all                           : $(PROGS)
 install                       : $(INSTALLPROGS)
-clean                         : $(CLEANPROGS) clean-binutils clean-gcc clean-newlib clean-sys
+clean                         : $(CLEANPROGS) clean-binutils clean-gcc clean-newlib clean-gdb clean-sys
 distclean                     : $(DISTCLEANPROGS)
-	rm -f config.log config.status makefile
-quickclean                    : $(CLEANPROGS) quickclean-binutils quickclean-gcc quickclean-newlib clean-sys
+	rm -f config.log config.status src/config.h makefile
+quickclean                    : $(CLEANPROGS) quickclean-binutils quickclean-gcc quickclean-newlib quickclean-gdb clean-sys
 $(PROGS)                      :
 	cd src/$@ && $(MAKE)
 $(INSTALLPROGS)               :
@@ -48,14 +51,15 @@ binutils                      : binutils.tar.gz
 	tar xfv binutils.tar.gz --strip-components=1 -C binutils
 build-binutils/config.status  : binutils
 	if [ ! -d build-binutils ]; then mkdir build-binutils; fi
-	cd build-binutils && ../binutils/configure --prefix="$(prefix)"                         \
-	                                           --target=mips64                              \
-	                                           --with-sysroot="$(sysroot)"                  \
-	                                           --disable-nls                                \
-	                                           LDFLAGS="$(LDFLAGS)"                         \
-	                                           CFLAGS_FOR_TARGET="$(CFLAGS_FOR_TARGET)"     \
-	                                           CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)" \
-	                                           $(CONFIG_BINUTILS)
+	cd build-binutils && ../binutils/configure \
+		--prefix="$(prefix)" \
+		--target=mips64 \
+		--with-sysroot="$(sysroot)" \
+		--disable-nls \
+		LDFLAGS="$(LDFLAGS)" \
+		CFLAGS_FOR_TARGET="$(CFLAGS_FOR_TARGET)" \
+		CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)" \
+		$(CONFIG_BINUTILS)
 configure-binutils            : build-binutils/config.status
 make-binutils                 : configure-binutils
 	cd build-binutils && $(MAKE) all
@@ -76,22 +80,23 @@ gcc                           : gcc.tar.gz
 	cd gcc && ./contrib/download_prerequisites
 build-gcc/config.status       : gcc
 	if [ ! -d build-gcc ]; then mkdir build-gcc; fi
-	cd build-gcc && ../gcc/configure --prefix="$(prefix)"                             \
-	                                 --target=mips64                                  \
-	                                 --with-arch=vr4300                               \
-	                                 --with-abi=32                                    \
-	                                 --with-newlib                                    \
-	                                 --with-sysroot="$(sysroot)"                      \
-	                                 --with-native-system-header-dir="//usr/include"  \
-	                                 --enable-languages=c,c++,lto                     \
-	                                 --enable-sjlj-exceptions                         \
-	                                 --disable-multilib                               \
-	                                 --disable-threads                                \
-	                                 --disable-nls                                    \
-	                                 LDFLAGS="$(LDFLAGS)"                             \
-	                                 CFLAGS_FOR_TARGET="$(CFLAGS_FOR_TARGET)"         \
-	                                 CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)"     \
-	                                 $(CONFIG_GCC)
+	cd build-gcc && ../gcc/configure \
+		--prefix="$(prefix)" \
+		--target=mips64 \
+		--with-arch=vr4300 \
+		--with-abi=32 \
+		--with-newlib \
+		--with-sysroot="$(sysroot)" \
+		--with-native-system-header-dir="//usr/include" \
+		--enable-languages=c,c++,lto \
+		--enable-sjlj-exceptions \
+		--disable-multilib \
+		--disable-threads \
+		--disable-nls \
+		LDFLAGS="$(LDFLAGS)" \
+		CFLAGS_FOR_TARGET="$(CFLAGS_FOR_TARGET)" \
+		CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)" \
+		$(CONFIG_GCC)
 configure-gcc                 : build-gcc/config.status
 make-gcc-executables          : configure-gcc
 	cd build-gcc && $(MAKE) all-gcc
@@ -117,19 +122,20 @@ newlib                        : newlib.tar.gz
 	tar xfv newlib.tar.gz --strip-components=1 -C newlib
 build-newlib/config.status    : newlib install-binutils install-gcc-executables
 	if [ ! -d build-newlib ]; then mkdir build-newlib; fi
-	cd build-newlib && ../newlib/configure --prefix="$(prefix)"                         \
-	                                       --target=mips64                              \
-	                                       --with-newlib                                \
-	                                       --enable-newlib-global-atexit                \
-	                                       --disable-newlib-fvwrite-in-streamio         \
-	                                       --disable-newlib-wide-orient                 \
-	                                       --disable-newlib-unbuf-stream-opt            \
-	                                       --disable-newlib-supplied-syscalls           \
-	                                       --enable-lite-exit                           \
-	                                       LDFLAGS="$(LDFLAGS)"                         \
-	                                       CFLAGS_FOR_TARGET="$(CFLAGS_FOR_TARGET)"     \
-	                                       CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)" \
-	                                       $(CONFIG_NEWLIB)
+	cd build-newlib && ../newlib/configure \
+		--prefix="$(prefix)" \
+		--target=mips64 \
+		--with-newlib \
+		--enable-newlib-global-atexit \
+		--disable-newlib-fvwrite-in-streamio \
+		--disable-newlib-wide-orient \
+		--disable-newlib-unbuf-stream-opt \
+		--disable-newlib-supplied-syscalls \
+		--enable-lite-exit \
+		LDFLAGS="$(LDFLAGS)" \
+		CFLAGS_FOR_TARGET="$(CFLAGS_FOR_TARGET)" \
+		CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)" \
+		$(CONFIG_NEWLIB)
 configure-newlib              : build-newlib/config.status
 make-newlib                   : configure-newlib install-binutils install-gcc-executables
 	cd build-newlib && $(MAKE) all
@@ -142,13 +148,47 @@ clean-newlib                  :
 quickclean-newlib             :
 	rm -rf build-newlib make-newlib install-newlib
 
+gdb.tar.gz                    :
+	wget -O gdb.tar.gz "$(GDB_URL)"
+gdb                           : gdb.tar.gz
+	mkdir gdb
+	tar xfv gdb.tar.gz --strip-components=1 -C gdb
+build-gdb/config.status       : gdb
+	if [ ! -d build-gdb ]; then mkdir build-gdb; fi
+	cd build-gdb && ../gdb/configure \
+		--prefix="$(prefix)" \
+		--target=mips64 \
+		--with-sysroot="$(sysroot)" \
+		--disable-nls \
+		LDFLAGS="$(LDFLAGS)" \
+		CFLAGS_FOR_TARGET="$(CFLAGS_FOR_TARGET)" \
+		CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)" \
+		$(CONFIG_GDB)
+configure-gdb                 : build-gdb/config.status
+make-gdb                      : configure-gdb
+	cd build-gdb && $(MAKE) all
+	touch $@
+install-gdb                   : make-gdb
+	cd build-gdb && $(MAKE) install
+	touch $@
+clean-gdb                     :
+	rm -rf gdb.tar.gz gdb build-gdb make-gdb install-gdb
+quickclean-gdb                :
+	rm -rf build-gdb make-gdb install-gdb
+
 install-sys                   :
-	$(INSTALL) -d "$(sysroot)/usr"
+	$(INSTALL) -d "$(sysroot)/usr" "$(sysroot)/usr/bin"
+	for f in "$(bindir)/"*; do \
+		if [ -f "$$f" ]; then \
+			f="$${f##*/}"; \
+			ln -s -f "$(bindir)/$$f" "$(sysroot)/usr/bin/$${f##mips64-}"; \
+		fi \
+	done
 	cp -p -r -u "$(srcdir)/include" "$(srcdir)/lib" "$(sysroot)/usr"
 	touch $@
 clean-sys                     :
 	rm -f install-sys
 remove-sys                    : clean-sys
-	rm -rf "$(sysroot)/usr/include" "$(sysroot)/usr/lib"
+	rm -rf "$(sysroot)/usr/bin" "$(sysroot)/usr/include" "$(sysroot)/usr/lib"
 
-install-toolchain             : install-binutils install-gcc install-newlib install-sys
+install-toolchain             : install-binutils install-gcc install-newlib install-gdb install-sys

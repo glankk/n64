@@ -1,9 +1,8 @@
+#include <swap.h>
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
 #include <fcntl.h>
-#define MIPS_ASM_BIG_ENDIAN
-#define MIPS_ASM_CONCISE
 #include <mips.h>
 #include <vector/vector.h>
 #include "../lib/libgs.h"
@@ -16,6 +15,8 @@
 #define HELP_NOTE  "use `gs -h` or `gs --help` for usage instructions"
 
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof(*(A)))
+
+#define MIPS_SWAP(A) ({for(int i=0;i<ARRAY_SIZE(A);++i)(A)[i]=htob32((A)[i]);})
 
 enum option_error
 {
@@ -297,20 +298,23 @@ static enum option_error option_handler_unhook(int argc, const char *argv[],
   uint32_t code[] =
   {
     /* disable gs watch breakpoints */
-    MTC0(R0, MIPS_CP0_WATCHLO),
+    MIPS_MTC0(MIPS_R0, MIPS_CP0_WATCHLO),
     /* restore original exception handler */
-    LA(K0, 0xA0000120),
-      LW(K1, 0x00, K0),
-      SW(K1, 0x60, K0),
-      ADDIU(K0, K0, 4),
-      LA(K1, 0xA0000180),
-      SLTU(K1, K0, K1),
-      BNEZ(K1, -7 * 4),
-      NOP,
+    MIPS_LUI(MIPS_K0, 0xA000),
+    MIPS_ORI(MIPS_K0, MIPS_K0, 0x0120),
+      MIPS_LW(MIPS_K1, 0x00, MIPS_K0),
+      MIPS_SW(MIPS_K1, 0x60, MIPS_K0),
+      MIPS_ADDIU(MIPS_K0, MIPS_K0, 4),
+      MIPS_LUI(MIPS_K1, 0xA000),
+      MIPS_ORI(MIPS_K1, MIPS_K1, 0x0180),
+      MIPS_SLTU(MIPS_K1, MIPS_K0, MIPS_K1),
+      MIPS_BNE(MIPS_K1, MIPS_R0, -7 * 4),
+      MIPS_NOP(),
     /* pass control to original exception handler */
-    JR(K0),
-    NOP,
+    MIPS_JR(MIPS_K0),
+    MIPS_NOP(),
   };
+  MIPS_SWAP(code);
   write_raw(address, &code, sizeof(code), 0,
             &gs_error_code, &gs_error_description);
   if (gs_error_failed(gs_error_code)) {
@@ -321,10 +325,12 @@ static enum option_error option_handler_unhook(int argc, const char *argv[],
   uint32_t hook[] =
   {
     /* jump to insurgent */
-    LA(K0, address),
-    JR(K0),
-    NOP,
+    MIPS_LUI(MIPS_K0, (address & 0xFFFF0000) >> 16),
+    MIPS_ORI(MIPS_K0, MIPS_K0, (address & 0x0000FFFF) >> 0),
+    MIPS_JR(MIPS_K0),
+    MIPS_NOP(),
   };
+  MIPS_SWAP(hook);
   write_raw(0xA07C5C00, &hook, sizeof(hook), 0,
             &gs_error_code, &gs_error_description);
   if (gs_error_failed(gs_error_code)) {

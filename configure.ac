@@ -26,6 +26,7 @@ AC_ARG_ENABLE([vc], [AS_HELP_STRING([--enable-vc], [compile libraries with wii v
 AC_SUBST([CONFIG_BINUTILS])
 AC_SUBST([CONFIG_GCC])
 AC_SUBST([CONFIG_NEWLIB])
+AC_SUBST([CONFIG_GDB])
 AC_ARG_WITH([configure-binutils],
             [AS_HELP_STRING([--with-configure-binutils=<params>],
                             [additional parameters to pass to configure for binutils])],
@@ -38,6 +39,10 @@ AC_ARG_WITH([configure-newlib],
             [AS_HELP_STRING([--with-configure-newlib=<params>],
                             [additional parameters to pass to configure for newlib])],
             [CONFIG_NEWLIB="$withval"])
+AC_ARG_WITH([configure-gdb],
+            [AS_HELP_STRING([--with-configure-gdb=<params>],
+                            [additional parameters to pass to configure for gdb])],
+            [CONFIG_GDB="$withval"])
 AC_ARG_WITH([toolchain],
             [AS_HELP_STRING([--without-toolchain], [do not check any toolchain package versions])],
             [], [with_toolchain=yes])
@@ -46,9 +51,14 @@ AC_ARG_WITH([toolchain],
 AC_PROG_CC
 AC_PROG_INSTALL
 
+# Checks for C compiler characteristics.
+AC_C_BIGENDIAN
+
 # Checks for libraries.
 AC_SEARCH_LIBS([pow], [m])
 AC_SEARCH_LIBS([luaopen_utf8], [lua5.3 lua])
+AC_SEARCH_LIBS([openpty], [util])
+AC_SEARCH_LIBS([gai_strerrorA], [Ws2_32])
 
 # Checks for header files.
 AC_CHECK_HEADERS([lua5.3/lua.h lua.h])
@@ -57,6 +67,7 @@ AC_CHECK_HEADERS([lua5.3/lua.h lua.h])
 AC_ARG_VAR([BINUTILS_VERSION], [manually set the version of binutils to use])
 AC_ARG_VAR([GCC_VERSION], [manually set the version of gcc to use])
 AC_ARG_VAR([NEWLIB_VERSION], [manually set the version of newlib to use])
+AC_ARG_VAR([GDB_VERSION], [manually set the version of gdb to use])
 AS_IF([test "x$with_toolchain" != xno],
       [
         AC_MSG_CHECKING([binutils version])
@@ -67,8 +78,8 @@ AS_IF([test "x$with_toolchain" != xno],
         AC_MSG_RESULT([$BINUTILS_VERSION])
         AC_MSG_CHECKING([gcc version])
         if [[ -z "$GCC_VERSION" ]]; then
-          GCC_VERSION=`wget -O - -q "https://ftp.gnu.org/gnu/gcc/" | grep -E -o ">gcc-[[0-9\\\\.]]+/<" |
-          tail -n 1 | sed -e s/\\>// -e s/\\\\/\\<//`
+          GCC_VERSION=`wget -O - -q "https://ftp.gnu.org/gnu/gcc/" |
+          grep -E -o ">gcc-[[0-9\\\\.]]+/<" | tail -n 1 | sed -e s/\\>// -e s/\\\\/\\<//`
         fi
         AC_MSG_RESULT([$GCC_VERSION])
         AC_MSG_CHECKING([newlib version])
@@ -77,8 +88,15 @@ AS_IF([test "x$with_toolchain" != xno],
           grep -E -o ">newlib-[[0-9\\\\.]]+tar\\\\.gz<" | head -n 1 | sed -e s/\\>// -e s/\\\\.tar\\\\.gz\\<//`
         fi
         AC_MSG_RESULT([$NEWLIB_VERSION])
+
+        AC_MSG_CHECKING([gdb version])
+        if [[ -z "$GDB_VERSION" ]]; then
+          GDB_VERSION=`wget -O - -q "https://ftp.gnu.org/gnu/gdb/" |
+          grep -E -o ">gdb-[[0-9\\\\.]]+tar\\\\.gz<" | tail -n 1 | sed -e s/\\>// -e s/\\\\.tar\\\\.gz\\<//`
+        fi
+        AC_MSG_RESULT([$GDB_VERSION])
       ])
 
-AC_CONFIG_HEADERS([src/libgru/config.h])
-AC_CONFIG_FILES([makefile src/gfxdis/makefile src/grc/makefile src/libgru/makefile src/libgs/makefile src/luapatch/makefile])
+AC_CONFIG_HEADERS([src/config.h])
+AC_CONFIG_FILES([makefile src/ed64rdb/makefile src/gfxdis/makefile src/grc/makefile src/libgru/makefile src/libgs/makefile src/luapatch/makefile])
 AC_OUTPUT

@@ -1,5 +1,5 @@
-#include <stdlib.h>
 #include <config.h>
+#include <stdlib.h>
 #ifdef HAVE_LUA5_3_LUA_H
 #include <lua5.3/lua.h>
 #include <lua5.3/lauxlib.h>

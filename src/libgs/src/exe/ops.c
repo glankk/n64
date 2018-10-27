@@ -1,5 +1,5 @@
+#include <swap.h>
 #include <time.h>
-#include <mips.h>
 #include "../lib/libgs.h"
 #include "../lib/mos_io.h"
 #include "progress.h"
@@ -28,7 +28,7 @@ void write_codes(struct gs_code *codes, size_t num_codes,
       progress_bar_proceed(&pb, 1);
     }
     else if ((codes[i].address & 0xFF000000) == 0x81000000) {
-      uint16_t value = mips_htom16(codes[i].value);
+      uint16_t value = htob16(codes[i].value);
       gs_ram_write(gs, codes[i].address - 0x01000000, &value, 2, NULL);
       progress_bar_proceed(&pb, 2);
     }
