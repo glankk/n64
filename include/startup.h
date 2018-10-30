@@ -5,14 +5,14 @@
 #ifndef STARTUP_H
 #define STARTUP_H
 
-#if defined(__LANGUAGE_C__)
-#define ENTRY __attribute__((section(".text.startup")))
-#define HOOK  __attribute__((section(".text.hook"), used))
-#elif defined(__cplusplus)
+#ifdef __cplusplus
 #define ENTRY extern "C" __attribute__((section(".text.startup")))
 #define HOOK  extern "C" __attribute__((section(".text.hook"), used))
 extern "C"
 {
+#else
+#define ENTRY __attribute__((section(".text.startup")))
+#define HOOK  __attribute__((section(".text.hook"), used))
 #endif
 
 void clear_bss(void);
@@ -25,7 +25,7 @@ void do_global_dtors(void);
 
 static inline void init_gp(void)
 {
-  __asm__ volatile("la $gp, _gp");
+  __asm__ volatile("la    $gp, _gp;");
 }
 
 #define CTOR __attribute__((constructor))
