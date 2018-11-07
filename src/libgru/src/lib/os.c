@@ -1,3 +1,4 @@
+#include <config.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -9,6 +10,7 @@
 #include "gru.h"
 #include "os.h"
 
+#if !(HAVE_DECL_ASPRINTF)
 static int asprintf(char **strp, const char *fmt, ...)
 {
   va_list arg;
@@ -27,6 +29,7 @@ static int asprintf(char **strp, const char *fmt, ...)
   }
   return size;
 }
+#endif
 
 static enum gru_error xlat_errno_in(void)
 {

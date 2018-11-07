@@ -53,7 +53,7 @@ char *gfx_insn_str(struct gfx_insn *insn, char *buf)
     if (insn->strarg[i])
       buf += insn->strarg[i](buf, insn->arg[i]);
     else
-      buf += sprintf(buf, "%i", insn->arg[i]);
+      buf += sprintf(buf, "%" PRIi32, (int32_t)insn->arg[i]);
   }
   buf += sprintf(buf, ")");
   return buf;
@@ -88,12 +88,12 @@ static int32_t sx(uint32_t n, int bits)
 
 static int strarg_x8(char *buf, uint32_t arg)
 {
-  return sprintf(buf, "0x%02" PRIX8, arg);
+  return sprintf(buf, "0x%02" PRIX8, (uint8_t)arg);
 }
 
 static int strarg_x16(char *buf, uint32_t arg)
 {
-  return sprintf(buf, "0x%04" PRIX16, arg);
+  return sprintf(buf, "0x%04" PRIX16, (uint16_t)arg);
 }
 
 static int strarg_x32(char *buf, uint32_t arg)
@@ -173,7 +173,7 @@ static int strarg_fmt(char *buf, uint32_t arg)
     case G_IM_FMT_CI    : return sprintf(buf, "G_IM_FMT_CI");
     case G_IM_FMT_IA    : return sprintf(buf, "G_IM_FMT_IA");
     case G_IM_FMT_I     : return sprintf(buf, "G_IM_FMT_I");
-    default             : return sprintf(buf, "%i", arg);
+    default             : return sprintf(buf, "%" PRIi32, (int32_t)arg);
   }
 }
 
@@ -184,7 +184,7 @@ static int strarg_siz(char *buf, uint32_t arg)
     case G_IM_SIZ_8b  : return sprintf(buf, "G_IM_SIZ_8b");
     case G_IM_SIZ_16b : return sprintf(buf, "G_IM_SIZ_16b");
     case G_IM_SIZ_32b : return sprintf(buf, "G_IM_SIZ_32b");
-    default           : return sprintf(buf, "%i", arg);
+    default           : return sprintf(buf, "%" PRIi32, (int32_t)arg);
   }
 }
 
@@ -207,7 +207,7 @@ static int strarg_tm(char *buf, uint32_t arg)
   if (arg == 0)
     return sprintf(buf, "G_TX_NOMASK");
   else
-    return sprintf(buf, "%i", arg);
+    return sprintf(buf, "%" PRIi32, (int32_t)arg);
 }
 
 static int strarg_ts(char *buf, uint32_t arg)
@@ -215,7 +215,7 @@ static int strarg_ts(char *buf, uint32_t arg)
   if (arg == 0)
     return sprintf(buf, "G_TX_NOLOD");
   else
-    return sprintf(buf, "%i", arg);
+    return sprintf(buf, "%" PRIi32, (int32_t)arg);
 }
 
 static int strarg_switch(char *buf, uint32_t arg)
@@ -223,7 +223,7 @@ static int strarg_switch(char *buf, uint32_t arg)
   switch (arg) {
     case G_ON   : return sprintf(buf, "G_ON");
     case G_OFF  : return sprintf(buf, "G_OFF");
-    default     : return sprintf(buf, "%i", arg);
+    default     : return sprintf(buf, "%" PRIi32, (int32_t)arg);
   }
 }
 
@@ -311,7 +311,7 @@ static int strarg_sftlo(char *buf, uint32_t arg)
     case G_MDSFT_ALPHACOMPARE : return sprintf(buf, "G_MDSFT_ALPHACOMPARE");
     case G_MDSFT_ZSRCSEL      : return sprintf(buf, "G_MDSFT_ZSRCSEL");
     case G_MDSFT_RENDERMODE   : return sprintf(buf, "G_MDSFT_RENDERMODE");
-    default                   : return sprintf(buf, "%i", arg);
+    default                   : return sprintf(buf, "%" PRIi32, (int32_t)arg);
   }
 }
 
@@ -606,7 +606,7 @@ static int strarg_sfthi(char *buf, uint32_t arg)
     case G_MDSFT_TEXTPERSP    : return sprintf(buf, "G_MDSFT_TEXTPERSP");
     case G_MDSFT_CYCLETYPE    : return sprintf(buf, "G_MDSFT_CYCLETYPE");
     case G_MDSFT_PIPELINE     : return sprintf(buf, "G_MDSFT_PIPELINE");
-    default                   : return sprintf(buf, "%i", arg);
+    default                   : return sprintf(buf, "%" PRIi32, (int32_t)arg);
   }
 }
 
@@ -758,7 +758,7 @@ static int strarg_cv(char *buf, uint32_t arg)
     case G_CV_K3  : return sprintf(buf, "G_CV_K3");
     case G_CV_K4  : return sprintf(buf, "G_CV_K4");
     case G_CV_K5  : return sprintf(buf, "G_CV_K5");
-    default       : return sprintf(buf, "%i", (int32_t)arg);
+    default       : return sprintf(buf, "%" PRIi32, (int32_t)arg);
   }
 }
 
@@ -944,7 +944,7 @@ static int strarg_sc(char *buf, uint32_t arg)
     case G_SC_NON_INTERLACE   : return sprintf(buf, "G_SC_NON_INTERLACE");
     case G_SC_EVEN_INTERLACE  : return sprintf(buf, "G_SC_EVEN_INTERLACE");
     case G_SC_ODD_INTERLACE   : return sprintf(buf, "G_SC_ODD_INTERLACE");
-    default                   : return sprintf(buf, "%i", arg);
+    default                   : return sprintf(buf, "%" PRIi32, (int32_t)arg);
   }
 }
 
@@ -973,7 +973,7 @@ static int strarg_mp(char *buf, uint32_t arg)
     strappf(" | G_MTX_MODELVIEW");
   for (int i = 3; i < 8; ++i)
     if (arg & (1 << i))
-      strappf(" | 0x%02" PRIx8, 1 << i);
+      strappf(" | 0x%02x", 1 << i);
   return p;
 }
 
@@ -982,7 +982,7 @@ static int strarg_ms(char *buf, uint32_t arg)
   switch (arg) {
     case G_MTX_MODELVIEW  : return sprintf(buf, "G_MTX_MODELVIEW");
     case G_MTX_PROJECTION : return sprintf(buf, "G_MTX_PROJECTION");
-    default               : return sprintf(buf, "%i", arg);
+    default               : return sprintf(buf, "%" PRIi32, (int32_t)arg);
   }
 }
 
@@ -997,7 +997,7 @@ static int strarg_mw(char *buf, uint32_t arg)
     case G_MW_LIGHTCOL  : return sprintf(buf, "G_MW_LIGHTCOL");
     case G_MW_FORCEMTX  : return sprintf(buf, "G_MW_FORCEMTX");
     case G_MW_PERSPNORM : return sprintf(buf, "G_MW_PERSPNORM");
-    default             : return sprintf(buf, "%i", arg);
+    default             : return sprintf(buf, "%" PRIi32, (int32_t)arg);
   }
 }
 
@@ -1008,7 +1008,7 @@ static int strarg_mwo_clip(char *buf, uint32_t arg)
     case G_MWO_CLIP_RNY : return sprintf(buf, "G_MWO_CLIP_RNY");
     case G_MWO_CLIP_RPX : return sprintf(buf, "G_MWO_CLIP_RPX");
     case G_MWO_CLIP_RPY : return sprintf(buf, "G_MWO_CLIP_RPY");
-    default             : return sprintf(buf, "0x%04" PRIX16, arg);
+    default             : return sprintf(buf, "0x%04" PRIX16, (uint16_t)arg);
   }
 }
 
@@ -1031,13 +1031,13 @@ static int strarg_mwo_lightcol(char *buf, uint32_t arg)
     case G_MWO_bLIGHT_7 : return sprintf(buf, "G_MWO_bLIGHT_7");
     case G_MWO_aLIGHT_8 : return sprintf(buf, "G_MWO_aLIGHT_8");
     case G_MWO_bLIGHT_8 : return sprintf(buf, "G_MWO_bLIGHT_8");
-    default             : return sprintf(buf, "0x%04" PRIX16, arg);
+    default             : return sprintf(buf, "0x%04" PRIX16, (uint16_t)arg);
   }
 }
 
 static int strarg_light(char *buf, uint32_t arg)
 {
-  return sprintf(buf, "LIGHT_%i", arg);
+  return sprintf(buf, "LIGHT_%" PRIi32, (int32_t)arg);
 }
 
 static int strarg_lightsn(char *buf, uint32_t arg)
@@ -1064,7 +1064,8 @@ static int strarg_mwo_matrix(char *buf, uint32_t arg)
     case G_MWO_MATRIX_ZZ_ZW_F : return sprintf(buf, "G_MWO_MATRIX_ZZ_ZW_F");
     case G_MWO_MATRIX_WX_WY_F : return sprintf(buf, "G_MWO_MATRIX_WX_WY_F");
     case G_MWO_MATRIX_WZ_WW_F : return sprintf(buf, "G_MWO_MATRIX_WZ_WW_F");
-    default                   : return sprintf(buf, "0x%04" PRIX16, arg);
+    default                   : return sprintf(buf, "0x%04" PRIX16,
+                                               (uint16_t)arg);
   }
 }
 
@@ -1075,7 +1076,8 @@ static int strarg_mwo_point(char *buf, uint32_t arg)
     case G_MWO_POINT_ST       : return sprintf(buf, "G_MWO_POINT_ST");
     case G_MWO_POINT_XYSCREEN : return sprintf(buf, "G_MWO_POINT_XYSCREEN");
     case G_MWO_POINT_ZSCREEN  : return sprintf(buf, "G_MWO_POINT_ZSCREEN");
-    default                   : return sprintf(buf, "0x%04" PRIX16, arg);
+    default                   : return sprintf(buf, "0x%04" PRIX16,
+                                               (uint16_t)arg);
   }
 }
 
@@ -1085,7 +1087,7 @@ static int strarg_mv(char *buf, uint32_t arg)
     case G_MV_VIEWPORT  : return sprintf(buf, "G_MV_VIEWPORT");
     case G_MV_LIGHT     : return sprintf(buf, "G_MV_LIGHT");
     case G_MV_MATRIX    : return sprintf(buf, "G_MV_MATRIX");
-    default             : return sprintf(buf, "%i", arg);
+    default             : return sprintf(buf, "%" PRIi32, (int32_t)arg);
   }
 }
 
@@ -1098,7 +1100,7 @@ static int strarg_cr(char *buf, uint32_t arg)
     case FRUSTRATIO_4 : return sprintf(buf, "FRUSTRATIO_4");
     case FRUSTRATIO_5 : return sprintf(buf, "FRUSTRATIO_5");
     case FRUSTRATIO_6 : return sprintf(buf, "FRUSTRATIO_6");
-    default           : return sprintf(buf, "%i", arg);
+    default           : return sprintf(buf, "%" PRIi32, (int32_t)arg);
   }
 }
 

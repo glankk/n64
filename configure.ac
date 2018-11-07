@@ -78,6 +78,9 @@ AC_SEARCH_LIBS([gai_strerrorA], [Ws2_32],
 # Checks for header files.
 AC_CHECK_HEADERS([lua5.3/lua.h lua.h pty.h util.h])
 
+# Checks for declarations.
+AC_CHECK_DECLS([asprintf])
+
 # Checks for package versions.
 AC_ARG_VAR([BINUTILS_VERSION], [manually set the version of binutils to use])
 AC_ARG_VAR([GCC_VERSION], [manually set the version of gcc to use])
