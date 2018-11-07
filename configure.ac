@@ -66,10 +66,14 @@ AC_SUBST([LIBM])
 AC_SUBST([LIBLUA])
 AC_SUBST([LIBUTIL])
 AC_SUBST([LIBWS2_32])
-AC_SEARCH_LIBS([pow], [m], [LIBM=-l$ac_lib])
-AC_SEARCH_LIBS([luaopen_utf8], [lua5.3 lua], [LIBLUA=-l$ac_lib])
-AC_SEARCH_LIBS([openpty], [util], [LIBUTIL=-l$ac_lib])
-AC_SEARCH_LIBS([gai_strerrorA], [Ws2_32], [LIBWS2_32=-l$ac_lib])
+AC_SEARCH_LIBS([pow], [m],
+               [AS_IF([test -n "$ac_lib"], [LIBM=-l$ac_lib])])
+AC_SEARCH_LIBS([luaopen_utf8], [lua5.3 lua],
+               [AS_IF([test -n "$ac_lib"], [LIBLUA=-l$ac_lib])])
+AC_SEARCH_LIBS([openpty], [util],
+               [AS_IF([test -n "$ac_lib"], [LIBUTIL=-l$ac_lib])])
+AC_SEARCH_LIBS([gai_strerrorA], [Ws2_32],
+               [AS_IF([test -n "$ac_lib"], [LIBWS2_32=-l$ac_lib])])
 
 # Checks for header files.
 AC_CHECK_HEADERS([lua5.3/lua.h lua.h pty.h util.h])

@@ -3812,7 +3812,9 @@ $as_echo "$ac_cv_search_pow" >&6; }
 ac_res=$ac_cv_search_pow
 if test "$ac_res" != no; then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+  if test -n "$ac_lib"; then :
   LIBM=-l$ac_lib
+fi
 fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing luaopen_utf8" >&5
@@ -3868,7 +3870,9 @@ $as_echo "$ac_cv_search_luaopen_utf8" >&6; }
 ac_res=$ac_cv_search_luaopen_utf8
 if test "$ac_res" != no; then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+  if test -n "$ac_lib"; then :
   LIBLUA=-l$ac_lib
+fi
 fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing openpty" >&5
@@ -3924,7 +3928,9 @@ $as_echo "$ac_cv_search_openpty" >&6; }
 ac_res=$ac_cv_search_openpty
 if test "$ac_res" != no; then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+  if test -n "$ac_lib"; then :
   LIBUTIL=-l$ac_lib
+fi
 fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing gai_strerrorA" >&5
@@ -3980,7 +3986,9 @@ $as_echo "$ac_cv_search_gai_strerrorA" >&6; }
 ac_res=$ac_cv_search_gai_strerrorA
 if test "$ac_res" != no; then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+  if test -n "$ac_lib"; then :
   LIBWS2_32=-l$ac_lib
+fi
 fi
 
 
