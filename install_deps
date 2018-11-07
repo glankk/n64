@@ -36,6 +36,10 @@ elif type pacman >/dev/null 2>&1; then
     DEPS="$DEPS gcc lua jansson libusb"
     PKM="pacman"
   fi
+elif type brew >/dev/null 2>&1; then
+  echo Found brew, assuming macOS.
+  DEPS="lua jansson libusb gnu-sed"
+  PKM="brew"
 fi
 
 if test -z "$PKM"; then
@@ -49,5 +53,6 @@ else
     zypper) zypper install -y $DEPS;;
     emerge) emerge -n --autounmask-write $DEPS || ( dispatch-conf && emerge -n $DEPS );;
     pacman) pacman -S --needed --noconfirm $DEPS;;
+    brew)   brew install $DEPS;;
   esac
 fi
