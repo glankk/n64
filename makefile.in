@@ -6,6 +6,7 @@ sysroot                       = $(prefix)/mips64/n64-sysroot
 export PATH                  := $(bindir):$(PATH)
 PROGS                         = ed64rdb gfxdis grc libgru libgs luapatch
 INSTALLPROGS                  = $(foreach prog,$(PROGS),install-$(prog))
+INSTALLSTRIPPROGS             = $(foreach prog,$(PROGS),install-strip-$(prog))
 CLEANPROGS                    = $(foreach prog,$(PROGS),clean-$(prog))
 DISTCLEANPROGS                = $(foreach prog,$(PROGS),distclean-$(prog))
 BINUTILS_VERSION              = @BINUTILS_VERSION@
@@ -24,13 +25,16 @@ LDFLAGS                       = @LDFLAGS@
 CFLAGS_FOR_TARGET             = @CFLAGS_FOR_TARGET@
 CXXFLAGS_FOR_TARGET           = @CXXFLAGS_FOR_TARGET@
 INSTALL                       = @INSTALL@
+MKDIR_P                       = @MKDIR_P@
+WGET                          = @WGET@
 
-.PHONY                        : all install clean distclean $(PROGS) $(INSTALLPROGS) $(CLEANPROGS) $(DISTCLEANPROGS)
+.PHONY                        : all install install-strip clean distclean $(PROGS) $(INSTALLPROGS) $(INSTALLSTRIPPROGS) $(CLEANPROGS) $(DISTCLEANPROGS)
 .PHONY                        : configure-binutils configure-gcc configure-newlib configure-gdb clean-binutils clean-gcc clean-newlib clean-gdb
 .PHONY                        : install-sys clean-sys remove-sys install-toolchain
 
 all                           : $(PROGS)
 install                       : $(INSTALLPROGS)
+install-strip                 : $(INSTALLSTRIPPROGS)
 clean                         : $(CLEANPROGS) clean-binutils clean-gcc clean-newlib clean-gdb clean-sys
 distclean                     : $(DISTCLEANPROGS)
 	rm -f config.log config.status src/config.h makefile
@@ -39,18 +43,20 @@ $(PROGS)                      :
 	cd src/$@ && $(MAKE)
 $(INSTALLPROGS)               :
 	cd src/$(patsubst install-%,%,$@) && $(MAKE) install
+$(INSTALLSTRIPPROGS)          :
+	cd src/$(patsubst install-strip-%,%,$@) && $(MAKE) install-strip
 $(CLEANPROGS)                 :
 	cd src/$(patsubst clean-%,%,$@) && $(MAKE) clean
 $(DISTCLEANPROGS)             :
 	cd src/$(patsubst distclean-%,%,$@) && $(MAKE) distclean
 
 binutils.tar.gz               :
-	wget -O binutils.tar.gz "$(BINUTILS_URL)"
+	$(WGET) binutils.tar.gz "$(BINUTILS_URL)"
 binutils                      : binutils.tar.gz
 	mkdir binutils
 	tar xfv binutils.tar.gz --strip-components=1 -C binutils
 build-binutils/config.status  : binutils
-	if [ ! -d build-binutils ]; then mkdir build-binutils; fi
+	if test ! -d build-binutils; then mkdir build-binutils; fi
 	cd build-binutils && ../binutils/configure \
 		--prefix="$(prefix)" \
 		--target=mips64 \
@@ -73,13 +79,13 @@ quickclean-binutils           :
 	rm -rf build-binutils make-binutils install-binutils
 
 gcc.tar.gz                    :
-	wget -O gcc.tar.gz "$(GCC_URL)"
+	$(WGET) gcc.tar.gz "$(GCC_URL)"
 gcc                           : gcc.tar.gz
 	mkdir gcc
 	tar xfv gcc.tar.gz --strip-components=1 -C gcc
 	cd gcc && ./contrib/download_prerequisites
 build-gcc/config.status       : gcc
-	if [ ! -d build-gcc ]; then mkdir build-gcc; fi
+	if test ! -d build-gcc; then mkdir build-gcc; fi
 	cd build-gcc && ../gcc/configure \
 		--prefix="$(prefix)" \
 		--target=mips64 \
@@ -116,12 +122,12 @@ quickclean-gcc                :
 	rm -rf build-gcc make-gcc-executables install-gcc-executables make-gcc install-gcc
 
 newlib.tar.gz                 :
-	wget -O newlib.tar.gz "$(NEWLIB_URL)"
+	$(WGET) newlib.tar.gz "$(NEWLIB_URL)"
 newlib                        : newlib.tar.gz
 	mkdir newlib
 	tar xfv newlib.tar.gz --strip-components=1 -C newlib
 build-newlib/config.status    : newlib install-binutils install-gcc-executables
-	if [ ! -d build-newlib ]; then mkdir build-newlib; fi
+	if test ! -d build-newlib; then mkdir build-newlib; fi
 	cd build-newlib && ../newlib/configure \
 		--prefix="$(prefix)" \
 		--target=mips64 \
@@ -149,12 +155,12 @@ quickclean-newlib             :
 	rm -rf build-newlib make-newlib install-newlib
 
 gdb.tar.gz                    :
-	wget -O gdb.tar.gz "$(GDB_URL)"
+	$(WGET) gdb.tar.gz "$(GDB_URL)"
 gdb                           : gdb.tar.gz
 	mkdir gdb
 	tar xfv gdb.tar.gz --strip-components=1 -C gdb
 build-gdb/config.status       : gdb
-	if [ ! -d build-gdb ]; then mkdir build-gdb; fi
+	if test ! -d build-gdb; then mkdir build-gdb; fi
 	cd build-gdb && ../gdb/configure \
 		--prefix="$(prefix)" \
 		--target=mips64 \
@@ -177,14 +183,14 @@ quickclean-gdb                :
 	rm -rf build-gdb make-gdb install-gdb
 
 install-sys                   :
-	$(INSTALL) -d "$(sysroot)/usr" "$(sysroot)/usr/bin"
+	$(MKDIR_P) "$(sysroot)/usr/bin"
 	for f in "$(bindir)/"*; do \
-		if [ -f "$$f" ]; then \
+		if test -f "$$f"; then \
 			f="$${f##*/}"; \
 			ln -s -f "$(bindir)/$$f" "$(sysroot)/usr/bin/$${f##mips64-}"; \
 		fi \
 	done
-	cp -p -r -u "$(srcdir)/include" "$(srcdir)/lib" "$(sysroot)/usr"
+	cp -R -p "$(srcdir)/include" "$(srcdir)/lib" "$(sysroot)/usr"
 	touch $@
 clean-sys                     :
 	rm -f install-sys

@@ -27,13 +27,10 @@ elif type emerge >/dev/null 2>&1; then
   DEPS="$DEPS gcc lua:5.3 jansson libusb"
   PKM="emerge"
 elif type pacman >/dev/null 2>&1; then
-  if [ "$(uname -o)" = "Msys" ]; then
+  if test "x`uname -o`" = xMsys; then
     echo Found pacman with \`uname -o\` = "Msys", assuming MSYS2.
     DEPS="$DEPS mingw-w64-i686-gcc mingw-w64-i686-lua mingw-w64-i686-jansson mingw-w64-i686-libusb"
     PKM="pacman"
-    BUILD="--build=i686-w64-mingw32"
-    LDFLAGS="LDFLAGS=\"--static\""
-    export PATH="/mingw32/bin:$PATH"
   else
     echo Found pacman, assuming Arch.
     DEPS="$DEPS gcc lua jansson libusb"
@@ -41,7 +38,7 @@ elif type pacman >/dev/null 2>&1; then
   fi
 fi
 
-if [ -z "$PKM" ]; then
+if test -z "$PKM"; then
   echo Unrecognized platform, skipping automatic package installation.
   echo Make sure these packages are installed: $RCDEPS
 else

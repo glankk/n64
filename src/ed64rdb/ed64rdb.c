@@ -1,3 +1,4 @@
+#include <config.h>
 #include <swap.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -19,10 +20,15 @@
 typedef int socklen_t;
 #else
 # include <netdb.h>
+# include <sys/ioctl.h>
 # include <sys/select.h>
 # include <sys/socket.h>
 # include <termios.h>
-# include <pty.h>
+# if defined(HAVE_PTY_H)
+#  include <pty.h>
+# elif defined(HAVE_UTIL_H)
+#  include <util.h>
+# endif
 # define SEAGAIN      EAGAIN
 # define SEWOULDBLOCK EWOULDBLOCK
 #endif
@@ -125,7 +131,7 @@ static int sockerr(void)
 #endif
 }
 
-void die(const char *note, int errtype)
+static void die(const char *note, int errtype)
 {
 #ifdef _WIN32
   char s[1024];

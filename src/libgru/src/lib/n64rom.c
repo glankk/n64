@@ -241,7 +241,10 @@ enum gru_error gru_n64rom_name_set(struct gru_n64rom *n64rom,
   if (!header)
     return GRU_ERROR_MEMORY;
   memset(header->name, 0, sizeof(header->name));
-  strncpy(header->name, name, sizeof(header->name));
+  int l = strlen(name);
+  if (l > sizeof(header->name))
+    l = sizeof(header->name);
+  memcpy(header->name, name, l);
   return GRU_SUCCESS;
 }
 

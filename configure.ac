@@ -14,7 +14,9 @@ AC_SUBST([CFLAGS_FOR_TARGET])
 AC_SUBST([CXXFLAGS_FOR_TARGET])
 CFLAGS_FOR_TARGET="-g -ffunction-sections -fdata-sections $CFLAGS_FOR_TARGET"
 CXXFLAGS_FOR_TARGET="-g -ffunction-sections -fdata-sections $CXXFLAGS_FOR_TARGET"
-AC_ARG_ENABLE([vc], [AS_HELP_STRING([--enable-vc], [compile libraries with wii vc compatibility])],
+AC_ARG_ENABLE([vc],
+              [AS_HELP_STRING([--enable-vc],
+                              [compile libraries with wii vc compatibility])],
               [
                 CFLAGS_FOR_TARGET="-O1 -fno-reorder-blocks $CFLAGS_FOR_TARGET"
                 CXXFLAGS_FOR_TARGET="-O1 -fno-reorder-blocks $CXXFLAGS_FOR_TARGET"
@@ -44,24 +46,33 @@ AC_ARG_WITH([configure-gdb],
                             [additional parameters to pass to configure for gdb])],
             [CONFIG_GDB="$withval"])
 AC_ARG_WITH([toolchain],
-            [AS_HELP_STRING([--without-toolchain], [do not check any toolchain package versions])],
+            [AS_HELP_STRING([--without-toolchain],
+                            [do not check any toolchain package versions])],
             [], [with_toolchain=yes])
 
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_INSTALL
+AC_PROG_MKDIR_P
+AC_CHECK_PROGS([WGET], [wget curl])
+AS_IF([test "x$WGET" = xwget], [WGET="wget -O"; WGET_Q="wget -q -O";],
+      [test "x$WGET" = xcurl], [WGET="curl -o"; WGET_Q="curl -s -o";])
 
 # Checks for C compiler characteristics.
 AC_C_BIGENDIAN
 
 # Checks for libraries.
-AC_SEARCH_LIBS([pow], [m])
-AC_SEARCH_LIBS([luaopen_utf8], [lua5.3 lua])
-AC_SEARCH_LIBS([openpty], [util])
-AC_SEARCH_LIBS([gai_strerrorA], [Ws2_32])
+AC_SUBST([LIBM])
+AC_SUBST([LIBLUA])
+AC_SUBST([LIBUTIL])
+AC_SUBST([LIBWS2_32])
+AC_SEARCH_LIBS([pow], [m], [LIBM=-l$ac_lib])
+AC_SEARCH_LIBS([luaopen_utf8], [lua5.3 lua], [LIBLUA=-l$ac_lib])
+AC_SEARCH_LIBS([openpty], [util], [LIBUTIL=-l$ac_lib])
+AC_SEARCH_LIBS([gai_strerrorA], [Ws2_32], [LIBWS2_32=-l$ac_lib])
 
 # Checks for header files.
-AC_CHECK_HEADERS([lua5.3/lua.h lua.h])
+AC_CHECK_HEADERS([lua5.3/lua.h lua.h pty.h util.h])
 
 # Checks for package versions.
 AC_ARG_VAR([BINUTILS_VERSION], [manually set the version of binutils to use])
@@ -70,30 +81,44 @@ AC_ARG_VAR([NEWLIB_VERSION], [manually set the version of newlib to use])
 AC_ARG_VAR([GDB_VERSION], [manually set the version of gdb to use])
 AS_IF([test "x$with_toolchain" != xno],
       [
+        AS_IF([test -z "$WGET"],
+              [AC_MSG_ERROR([don't know how to check package versions, configure --without-toolchain],
+                            [1])])
         AC_MSG_CHECKING([binutils version])
-        if [[ -z "$BINUTILS_VERSION" ]]; then
-          BINUTILS_VERSION=`wget -O - -q "https://ftp.gnu.org/gnu/binutils/" |
-          grep -E -o ">binutils-[[0-9\\\\.]]+tar\\\\.gz<" | tail -n 1 | sed -e s/\\>// -e s/\\\\.tar\\\\.gz\\<//`
-        fi
+        AS_IF([test -z "$BINUTILS_VERSION"],
+              [
+                BINUTILS_VERSION=`$WGET_Q - "https://ftp.gnu.org/gnu/binutils/" |
+                                  grep -E -o ">binutils-[[0-9\\\\.]]+tar\\\\.gz<" |
+                                  tail -n 1 |
+                                  sed -e s/\\>// -e s/\\\\.tar\\\\.gz\\<//`
+              ])
         AC_MSG_RESULT([$BINUTILS_VERSION])
         AC_MSG_CHECKING([gcc version])
-        if [[ -z "$GCC_VERSION" ]]; then
-          GCC_VERSION=`wget -O - -q "https://ftp.gnu.org/gnu/gcc/" |
-          grep -E -o ">gcc-[[0-9\\\\.]]+/<" | tail -n 1 | sed -e s/\\>// -e s/\\\\/\\<//`
-        fi
+        AS_IF([test -z "$GCC_VERSION"],
+              [
+                GCC_VERSION=`$WGET_Q - "https://ftp.gnu.org/gnu/gcc/" |
+                             grep -E -o ">gcc-[[0-9\\\\.]]+/<" |
+                             tail -n 1 |
+                             sed -e s/\\>// -e s/\\\\/\\<//`
+              ])
         AC_MSG_RESULT([$GCC_VERSION])
         AC_MSG_CHECKING([newlib version])
-        if [[ -z "$NEWLIB_VERSION" ]]; then
-          NEWLIB_VERSION=`wget -O - -q "https://sourceware.org/pub/newlib/" |
-          grep -E -o ">newlib-[[0-9\\\\.]]+tar\\\\.gz<" | head -n 1 | sed -e s/\\>// -e s/\\\\.tar\\\\.gz\\<//`
-        fi
+        AS_IF([test -z "$NEWLIB_VERSION"],
+              [
+                NEWLIB_VERSION=`$WGET_Q - "https://sourceware.org/pub/newlib/" |
+                                grep -E -o ">newlib-[[0-9\\\\.]]+tar\\\\.gz<" |
+                                head -n 1 |
+                                sed -e s/\\>// -e s/\\\\.tar\\\\.gz\\<//`
+              ])
         AC_MSG_RESULT([$NEWLIB_VERSION])
-
         AC_MSG_CHECKING([gdb version])
-        if [[ -z "$GDB_VERSION" ]]; then
-          GDB_VERSION=`wget -O - -q "https://ftp.gnu.org/gnu/gdb/" |
-          grep -E -o ">gdb-[[0-9\\\\.]]+tar\\\\.gz<" | tail -n 1 | sed -e s/\\>// -e s/\\\\.tar\\\\.gz\\<//`
-        fi
+        AS_IF([test -z "$GDB_VERSION"],
+              [
+                GDB_VERSION=`$WGET_Q - "https://ftp.gnu.org/gnu/gdb/" |
+                             grep -E -o ">gdb-[[0-9\\\\.]]+tar\\\\.gz<" |
+                             tail -n 1 |
+                             sed -e s/\\>// -e s/\\\\.tar\\\\.gz\\<//`
+              ])
         AC_MSG_RESULT([$GDB_VERSION])
       ])
 
