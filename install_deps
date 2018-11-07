@@ -6,11 +6,7 @@ RCDEPS="$DEPS gcc g++ lua5.3 jansson libusb-1.0"
 PKM=""
 
 echo Checking platform...
-if type apt >/dev/null 2>&1; then
-  echo Found apt, assuming Debian.
-  DEPS="$DEPS gcc g++ liblua5.3-dev libjansson-dev libusb-1.0-0-dev"
-  PKM="apt"
-elif type yum >/dev/null 2>&1; then
+if type yum >/dev/null 2>&1; then
   echo Found yum, assuming Red Hat.
   DEPS="$DEPS gcc gcc-c++ lua-devel jansson-devel libusb-devel"
   PKM="yum"
@@ -26,6 +22,14 @@ elif type emerge >/dev/null 2>&1; then
   fi
   DEPS="$DEPS gcc lua:5.3 jansson libusb"
   PKM="emerge"
+elif type brew >/dev/null 2>&1; then
+  echo Found brew, assuming macOS.
+  DEPS="lua jansson libusb gnu-sed"
+  PKM="brew"
+elif type apt >/dev/null 2>&1; then
+  echo Found apt, assuming Debian.
+  DEPS="$DEPS gcc g++ liblua5.3-dev libjansson-dev libusb-1.0-0-dev"
+  PKM="apt"
 elif type pacman >/dev/null 2>&1; then
   if test "x`uname -o`" = xMsys; then
     echo Found pacman with \`uname -o\` = "Msys", assuming MSYS2.
@@ -36,10 +40,6 @@ elif type pacman >/dev/null 2>&1; then
     DEPS="$DEPS gcc lua jansson libusb"
     PKM="pacman"
   fi
-elif type brew >/dev/null 2>&1; then
-  echo Found brew, assuming macOS.
-  DEPS="lua jansson libusb gnu-sed"
-  PKM="brew"
 fi
 
 if test -z "$PKM"; then
@@ -48,11 +48,11 @@ if test -z "$PKM"; then
 else
   echo Installing dependencies...
   case "$PKM" in
-    apt)    apt install -y $DEPS;;
     yum)    yum install -y $DEPS;;
     zypper) zypper install -y $DEPS;;
     emerge) emerge -n --autounmask-write $DEPS || ( dispatch-conf && emerge -n $DEPS );;
-    pacman) pacman -S --needed --noconfirm $DEPS;;
     brew)   brew install $DEPS;;
+    apt)    apt install -y $DEPS;;
+    pacman) pacman -S --needed --noconfirm $DEPS;;
   esac
 fi
