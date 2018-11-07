@@ -63,15 +63,16 @@ int main(int argc, char *argv[])
         if (fscanf(fi, " %8" SCNx32 " %4" SCNx16, &address, &value) != 2)
           break;
         if ((address & 0xFF000000) == 0x80000000)
-          fprintf(fo, "  {0x%08" PRIx32 ", {0x%02" PRIx8
-                      "}},\n",
-                  address & 0x00FFFFFF,
-                  (value >> 0) & 0xFF);
+          fprintf(fo,
+                  "  {0x%08" PRIx32 ", {0x%02" PRIx8 "}},\n",
+                  (uint32_t)(address & 0x00FFFFFF),
+                  (uint8_t)((value & 0x00FF) >> 0));
         else if ((address & 0xFF000000) == 0x81000000)
-          fprintf(fo, "  {0x%08" PRIx32 ", {0x%02" PRIx8
-                      ", 0x%02" PRIx8 "}},\n",
-                  address & 0x00FFFFFF,
-                  (value >> 8) & 0xFF, (value >> 0) & 0xFF);
+          fprintf(fo,
+                  "  {0x%08" PRIx32 ", {0x%02" PRIx8 ", 0x%02" PRIx8 "}},\n",
+                  (uint32_t)(address & 0x00FFFFFF),
+                  (uint8_t)((value & 0xFF00) >> 8),
+                  (uint8_t)((value & 0x00FF) >> 0));
         else
           continue;
       }
@@ -104,14 +105,16 @@ int main(int argc, char *argv[])
         e = -4;
         goto exit;
       }
-      fprintf(fo, "  {0x%08" PRIx32 ",\n    {", address & 0x00FFFFFF);
+      fprintf(fo,
+              "  {0x%08" PRIx32 ",\n    {",
+              (uint32_t)(address & 0x00FFFFFF));
       for (int n = 0; ; n = (n + 1) % 16) {
         int c = fgetc(fi);
         if (feof(fi))
           break;
         if (n == 0)
           fprintf(fo, "\n     ");
-        fprintf(fo, " 0x%02" PRIx8 ",", c);
+        fprintf(fo, " 0x%02" PRIx8 ",", (uint8_t)c);
       }
       fprintf(fo, "\n    }\n  },\n");
     }

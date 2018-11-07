@@ -253,7 +253,7 @@ static enum option_error option_handler_write(int argc, const char *argv[],
     if (data_chunk_size != 0)
       printf("  chunk size:   %u\n", data_chunk_size);
 
-    enum gs_error gs_error_code;
+    enum gs_error gs_error_code = GS_SUCCESS;
     char gs_error_description[GS_ERROR_LENGTH];
     if (format == FORMAT_TEXT)
       write_codes(code_vector.begin, code_vector.size, data_size,
