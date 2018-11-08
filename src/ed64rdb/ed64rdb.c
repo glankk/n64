@@ -28,6 +28,8 @@ typedef int socklen_t;
 #  include <pty.h>
 # elif defined(HAVE_UTIL_H)
 #  include <util.h>
+# elif defined(HAVE_LIBUTIL_H)
+#  include <libutil.h>
 # endif
 # define SEAGAIN      EAGAIN
 # define SEWOULDBLOCK EWOULDBLOCK

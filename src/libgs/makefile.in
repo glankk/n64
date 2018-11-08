@@ -6,7 +6,7 @@ CC                            = @CC@
 CPPFLAGS                      = -I$(srcdir)/.. -I$(srcdir)/../../include @CPPFLAGS@
 CFLAGS                        = -std=gnu11 -Wall @CFLAGS@
 LDFLAGS                       = -Wl,-rpath,\$$ORIGIN/../lib @LDFLAGS@
-LDLIBS                        = -lusb-1.0
+LDLIBS                        = @LIBUSB@ @LIBM@
 SRC                           = $(srcdir)/src/lib/*.c $(srcdir)/src/exe/*.c $(srcdir)/../../include/vector/vector.c
 PROGNAME                      = gs
 INSTALL                       = @INSTALL@

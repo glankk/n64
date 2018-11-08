@@ -1,9 +1,11 @@
 #ifndef GRU_LOS_H
 #define GRU_LOS_H
 #include <config.h>
-#ifdef HAVE_LUA5_3_LUA_H
+#if defined(HAVE_LUA5_3_LUA_H)
 #include <lua5.3/lua.h>
-#else
+#elif defined(HAVE_LUA53_LUA_H)
+#include <lua53/lua.h>
+#elif defined(HAVE_LUA_H)
 #include <lua.h>
 #endif
 #include "../lib/libgru.h"
