@@ -13,11 +13,11 @@
 /* Define to 1 if you have the <libutil.h> header file. */
 #undef HAVE_LIBUTIL_H
 
+/* Define to 1 if you have the <lua53/lua.h> header file. */
+#undef HAVE_LUA53_LUA_H
+
 /* Define to 1 if you have the <lua5.3/lua.h> header file. */
 #undef HAVE_LUA5_3_LUA_H
-
-/* Define to 1 if you have the <lua-5.3/lua.h> header file. */
-#undef HAVE_LUA_5_3_LUA_H
 
 /* Define to 1 if you have the <lua.h> header file. */
 #undef HAVE_LUA_H

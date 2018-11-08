@@ -79,7 +79,7 @@ AC_SEARCH_LIBS([gai_strerrorA], [Ws2_32],
                [AS_IF([test -n "$ac_lib"], [LIBWS2_32=-l$ac_lib])])
 
 # Checks for header files.
-AC_CHECK_HEADERS([lua-5.3/lua.h lua5.3/lua.h lua.h])
+AC_CHECK_HEADERS([lua5.3/lua.h lua53/lua.h lua.h])
 AC_CHECK_HEADERS([pty.h util.h libutil.h])
 
 # Checks for declarations.
