@@ -1,3 +1,4 @@
+#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,7 +7,11 @@
 #include <time.h>
 #include <sys/time.h>
 #include <inttypes.h>
+#if defined(HAVE_LIBUSB_1_0_LIBUSB_H)
 #include <libusb-1.0/libusb.h>
+#elif defined(HAVE_LIBUSB_H)
+#include <libusb.h>
+#endif
 #include "libgs.h"
 #include "mos.h"
 #include "mos_io.h"

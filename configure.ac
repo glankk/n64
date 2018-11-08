@@ -80,6 +80,7 @@ AC_SEARCH_LIBS([gai_strerrorA], [Ws2_32],
 
 # Checks for header files.
 AC_CHECK_HEADERS([lua5.3/lua.h lua53/lua.h lua.h])
+AC_CHECK_HEADERS([libusb-1.0/libusb.h libusb.h])
 AC_CHECK_HEADERS([pty.h util.h libutil.h])
 
 # Checks for declarations.
