@@ -22,8 +22,16 @@ elif type emerge >/dev/null 2>&1; then
   fi
   DEPS="$DEPS gcc lua:5.3 jansson libusb"
   PKM="emerge"
+elif type pkg >/dev/null 2>&1; then
+  echo Found pkg, assuming FreeBSD.
+  echo Note: Configure with 'CPPFLAGS=-I/usr/local/include LDFLAGS=-L/usr/local/lib'.
+  echo Note: gsed needs to be in your PATH as 'sed'.
+  echo Note: Make with gmake.
+  DEPS="texinfo lua53 jansson gmake gsed"
+  PKM="pkg"
 elif type brew >/dev/null 2>&1; then
   echo Found brew, assuming macOS.
+  echo Note: gsed needs to be in your PATH as 'sed'.
   DEPS="lua jansson libusb gnu-sed"
   PKM="brew"
 elif type apt >/dev/null 2>&1; then
@@ -51,6 +59,7 @@ else
     yum)    yum install -y $DEPS;;
     zypper) zypper install -y $DEPS;;
     emerge) emerge -n --autounmask-write $DEPS || ( dispatch-conf && emerge -n $DEPS );;
+    pkg)    pkg install $DEPS;;
     brew)   brew install $DEPS;;
     apt)    apt install -y $DEPS;;
     pacman) pacman -S --needed --noconfirm $DEPS;;
