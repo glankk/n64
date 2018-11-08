@@ -52,10 +52,10 @@ $(DISTCLEANPROGS)             :
 
 binutils.tar.gz               :
 	$(WGET) binutils.tar.gz "$(BINUTILS_URL)"
-binutils                      : binutils.tar.gz
+binutils                      : | binutils.tar.gz
 	mkdir binutils
 	tar xfv binutils.tar.gz --strip-components=1 -C binutils
-build-binutils/config.status  : binutils
+build-binutils/config.status  : | binutils
 	if test ! -d build-binutils; then mkdir build-binutils; fi
 	cd build-binutils && ../binutils/configure \
 		--prefix="$(prefix)" \
@@ -66,11 +66,11 @@ build-binutils/config.status  : binutils
 		CFLAGS_FOR_TARGET="$(CFLAGS_FOR_TARGET)" \
 		CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)" \
 		$(CONFIG_BINUTILS)
-configure-binutils            : build-binutils/config.status
-make-binutils                 : configure-binutils
+configure-binutils            : | build-binutils/config.status
+make-binutils                 : | configure-binutils
 	cd build-binutils && $(MAKE) all
 	touch $@
-install-binutils              : make-binutils
+install-binutils              : | make-binutils
 	cd build-binutils && $(MAKE) install
 	touch $@
 clean-binutils                :
@@ -80,11 +80,11 @@ quickclean-binutils           :
 
 gcc.tar.gz                    :
 	$(WGET) gcc.tar.gz "$(GCC_URL)"
-gcc                           : gcc.tar.gz
+gcc                           : | gcc.tar.gz
 	mkdir gcc
 	tar xfv gcc.tar.gz --strip-components=1 -C gcc
 	cd gcc && ./contrib/download_prerequisites
-build-gcc/config.status       : gcc
+build-gcc/config.status       : | gcc
 	if test ! -d build-gcc; then mkdir build-gcc; fi
 	cd build-gcc && ../gcc/configure \
 		--prefix="$(prefix)" \
@@ -103,17 +103,17 @@ build-gcc/config.status       : gcc
 		CFLAGS_FOR_TARGET="$(CFLAGS_FOR_TARGET)" \
 		CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)" \
 		$(CONFIG_GCC)
-configure-gcc                 : build-gcc/config.status
-make-gcc-executables          : configure-gcc
+configure-gcc                 : | build-gcc/config.status
+make-gcc-executables          : | configure-gcc
 	cd build-gcc && $(MAKE) all-gcc
 	touch $@
-install-gcc-executables       : make-gcc-executables
+install-gcc-executables       : | make-gcc-executables
 	cd build-gcc && $(MAKE) install-gcc
 	touch $@
-make-gcc                      : configure-gcc install-binutils install-newlib
+make-gcc                      : | configure-gcc install-binutils install-newlib
 	cd build-gcc && $(MAKE) all
 	touch $@
-install-gcc                   : make-gcc
+install-gcc                   : | make-gcc
 	cd build-gcc && $(MAKE) install
 	touch $@
 clean-gcc                     :
@@ -123,10 +123,10 @@ quickclean-gcc                :
 
 newlib.tar.gz                 :
 	$(WGET) newlib.tar.gz "$(NEWLIB_URL)"
-newlib                        : newlib.tar.gz
+newlib                        : | newlib.tar.gz
 	mkdir newlib
 	tar xfv newlib.tar.gz --strip-components=1 -C newlib
-build-newlib/config.status    : newlib install-binutils install-gcc-executables
+build-newlib/config.status    : | newlib install-binutils install-gcc-executables
 	if test ! -d build-newlib; then mkdir build-newlib; fi
 	cd build-newlib && ../newlib/configure \
 		--prefix="$(prefix)" \
@@ -142,11 +142,11 @@ build-newlib/config.status    : newlib install-binutils install-gcc-executables
 		CFLAGS_FOR_TARGET="$(CFLAGS_FOR_TARGET)" \
 		CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)" \
 		$(CONFIG_NEWLIB)
-configure-newlib              : build-newlib/config.status
-make-newlib                   : configure-newlib install-binutils install-gcc-executables
+configure-newlib              : | build-newlib/config.status
+make-newlib                   : | configure-newlib install-binutils install-gcc-executables
 	cd build-newlib && $(MAKE) all
 	touch $@
-install-newlib                : make-newlib
+install-newlib                : | make-newlib
 	cd build-newlib && $(MAKE) install
 	touch $@
 clean-newlib                  :
@@ -156,10 +156,10 @@ quickclean-newlib             :
 
 gdb.tar.gz                    :
 	$(WGET) gdb.tar.gz "$(GDB_URL)"
-gdb                           : gdb.tar.gz
+gdb                           : | gdb.tar.gz
 	mkdir gdb
 	tar xfv gdb.tar.gz --strip-components=1 -C gdb
-build-gdb/config.status       : gdb
+build-gdb/config.status       : | gdb
 	if test ! -d build-gdb; then mkdir build-gdb; fi
 	cd build-gdb && ../gdb/configure \
 		--prefix="$(prefix)" \
@@ -170,11 +170,11 @@ build-gdb/config.status       : gdb
 		CFLAGS_FOR_TARGET="$(CFLAGS_FOR_TARGET)" \
 		CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)" \
 		$(CONFIG_GDB)
-configure-gdb                 : build-gdb/config.status
-make-gdb                      : configure-gdb
+configure-gdb                 : | build-gdb/config.status
+make-gdb                      : | configure-gdb
 	cd build-gdb && $(MAKE) all
 	touch $@
-install-gdb                   : make-gdb
+install-gdb                   : | make-gdb
 	cd build-gdb && $(MAKE) install
 	touch $@
 clean-gdb                     :
@@ -183,6 +183,7 @@ quickclean-gdb                :
 	rm -rf build-gdb make-gdb install-gdb
 
 install-sys                   :
+	$(MKDIR_P) "$(sysroot)/usr"
 	$(MKDIR_P) "$(sysroot)/usr/bin"
 	for f in "$(bindir)/"*; do \
 		if test -f "$$f"; then \
@@ -197,4 +198,4 @@ clean-sys                     :
 remove-sys                    : clean-sys
 	rm -rf "$(sysroot)/usr/bin" "$(sysroot)/usr/include" "$(sysroot)/usr/lib"
 
-install-toolchain             : install-binutils install-gcc install-newlib install-gdb install-sys
+install-toolchain             : install-binutils install-gcc install-newlib install-gdb

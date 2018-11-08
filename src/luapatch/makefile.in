@@ -15,7 +15,7 @@ MKDIR_P                       = @MKDIR_P@
 .PHONY                        : all install install-strip clean distclean
 
 all                           : $(PROGNAME)
-install                       : $(bindir)
+install                       : | $(bindir)
 	$(INSTALL) -p $(PROGNAME) $(bindir)
 	@if test -n "$(EMUDIR)"; then \
 		echo installing \`patch.lua\` to "$(EMUDIR)/Lua"...; \
