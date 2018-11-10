@@ -71,7 +71,7 @@ AC_SEARCH_LIBS([pow], [m],
                [AS_IF([test -n "$ac_lib"], [LIBM=-l$ac_lib])])
 AC_SEARCH_LIBS([luaopen_utf8], [lua-5.3 lua5.3 lua],
                [AS_IF([test -n "$ac_lib"], [LIBLUA=-l$ac_lib])])
-AC_SEARCH_LIBS([libusb_init], [usb-1.0 usb],
+AC_SEARCH_LIBS([libusb_set_option], [usb-1.0 usb],
                [AS_IF([test -n "$ac_lib"], [LIBUSB=-l$ac_lib])])
 AC_SEARCH_LIBS([openpty], [util],
                [AS_IF([test -n "$ac_lib"], [LIBUTIL=-l$ac_lib])])

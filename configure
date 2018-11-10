@@ -3923,9 +3923,9 @@ if test "$ac_res" != no; then :
 fi
 fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing libusb_init" >&5
-$as_echo_n "checking for library containing libusb_init... " >&6; }
-if ${ac_cv_search_libusb_init+:} false; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing libusb_set_option" >&5
+$as_echo_n "checking for library containing libusb_set_option... " >&6; }
+if ${ac_cv_search_libusb_set_option+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_func_search_save_LIBS=$LIBS
@@ -3938,11 +3938,11 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 #ifdef __cplusplus
 extern "C"
 #endif
-char libusb_init ();
+char libusb_set_option ();
 int
 main ()
 {
-return libusb_init ();
+return libusb_set_option ();
   ;
   return 0;
 }
@@ -3955,25 +3955,25 @@ for ac_lib in '' usb-1.0 usb; do
     LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
   fi
   if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_search_libusb_init=$ac_res
+  ac_cv_search_libusb_set_option=$ac_res
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext
-  if ${ac_cv_search_libusb_init+:} false; then :
+  if ${ac_cv_search_libusb_set_option+:} false; then :
   break
 fi
 done
-if ${ac_cv_search_libusb_init+:} false; then :
+if ${ac_cv_search_libusb_set_option+:} false; then :
 
 else
-  ac_cv_search_libusb_init=no
+  ac_cv_search_libusb_set_option=no
 fi
 rm conftest.$ac_ext
 LIBS=$ac_func_search_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_libusb_init" >&5
-$as_echo "$ac_cv_search_libusb_init" >&6; }
-ac_res=$ac_cv_search_libusb_init
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_libusb_set_option" >&5
+$as_echo "$ac_cv_search_libusb_set_option" >&6; }
+ac_res=$ac_cv_search_libusb_set_option
 if test "$ac_res" != no; then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
   if test -n "$ac_lib"; then :

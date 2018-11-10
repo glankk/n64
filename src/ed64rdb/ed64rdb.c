@@ -1,29 +1,22 @@
 #include <config.h>
 #include <swap.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <signal.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
 
 #ifdef _WIN32
 # include <Winsock2.h>
 # include <ws2tcpip.h>
 # define ioctl        ioctlsocket
+# define close        closesocket
 # define SEAGAIN      WSAEWOULDBLOCK
 # define SEWOULDBLOCK WSAEWOULDBLOCK
 typedef int socklen_t;
 #else
+# include <fcntl.h>
 # include <netdb.h>
 # include <sys/ioctl.h>
-# include <sys/select.h>
 # include <sys/socket.h>
+# include <sys/types.h>
 # include <termios.h>
+# include <unistd.h>
 # if defined(HAVE_PTY_H)
 #  include <pty.h>
 # elif defined(HAVE_UTIL_H)
@@ -34,6 +27,13 @@ typedef int socklen_t;
 # define SEAGAIN      EAGAIN
 # define SEWOULDBLOCK EWOULDBLOCK
 #endif
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <string.h>
+#include <errno.h>
+#include <signal.h>
 
 union fifo_pkt
 {
@@ -67,9 +67,9 @@ static void stop_sig(int sig)
     if (hComm != INVALID_HANDLE_VALUE)
       CloseHandle(hComm);
     if (cl != INVALID_SOCKET)
-      closesocket(cl);
+      close(cl);
     if (sock != INVALID_SOCKET)
-      closesocket(sock);
+      close(sock);
 #else
     if (sv != -1)
       close(sv);
