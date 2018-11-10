@@ -365,21 +365,30 @@ int main(int argc, char *argv[])
         size = sizeof(sv_pkt.data);
       }
       int wr;
+#ifndef _WIN32
       if (cl_if == 1)
         wr = write(cl, sv_pkt.data, size);
       else
         wr = sendto(cl, sv_pkt.data, size, 0, &cl_sockaddr, cl_socklen);
+#else
+      wr = sendto(cl, sv_pkt.data, size, 0, &cl_sockaddr, cl_socklen);
+#endif
       if (wr == -1)
         die("sendto(cl)", 4);
       printf("RDB SEND  %.*s\n", size, sv_pkt.data);
     }
     /* check for client packet */
+#ifndef _WIN32
     if (cl_if == 1)
       rd = read(cl, cl_pkt.data, sizeof(cl_pkt.data));
     else {
       rd = recvfrom(cl, cl_pkt.data, sizeof(cl_pkt.data), 0,
                     &cl_sockaddr, &cl_socklen);
     }
+#else
+    rd = recvfrom(cl, cl_pkt.data, sizeof(cl_pkt.data), 0,
+                  &cl_sockaddr, &cl_socklen);
+#endif
     if (rd == -1) {
       if (sockerr() == SEAGAIN || sockerr() == SEWOULDBLOCK)
         rd = 0;
