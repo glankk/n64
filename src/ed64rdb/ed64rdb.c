@@ -14,7 +14,6 @@ typedef int socklen_t;
 # include <netdb.h>
 # include <sys/ioctl.h>
 # include <sys/socket.h>
-# include <sys/types.h>
 # include <termios.h>
 # include <unistd.h>
 # if defined(HAVE_PTY_H)
@@ -310,7 +309,11 @@ int main(int argc, char *argv[])
   }
 
   /* disable blocking on client */
+#ifndef _WIN32
+  int nbio = 1;
+#else
   u_long nbio = 1;
+#endif
   if (ioctl(cl, FIONBIO, &nbio))
     die("ioctl(cl)", 4);
 
