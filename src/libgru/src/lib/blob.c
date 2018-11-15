@@ -322,6 +322,7 @@ size_t gru_blob_find(struct gru_blob *blob,
   if (length < search->size)
     return -1;
   char *s = blob->data;
+  s += start;
   char *e = s + length - search->size + 1;
   char *ss = search->data;
   char *se = ss + search->size;
