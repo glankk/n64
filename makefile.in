@@ -2,7 +2,8 @@ prefix                        = @prefix@
 exec_prefix                   = @exec_prefix@
 bindir                        = @bindir@
 srcdir                        = @srcdir@
-sysroot                       = $(prefix)/mips64/n64-sysroot
+target                        = mips64
+sysroot                       = $(prefix)/$(target)/n64-sysroot
 export PATH                  := $(bindir):$(PATH)
 PROGS                         = ed64rdb gfxdis grc libgru libgs luapatch
 INSTALLPROGS                  = $(foreach prog,$(PROGS),install-$(prog))
@@ -26,6 +27,7 @@ CFLAGS_FOR_TARGET             = @CFLAGS_FOR_TARGET@
 CXXFLAGS_FOR_TARGET           = @CXXFLAGS_FOR_TARGET@
 INSTALL                       = @INSTALL@
 MKDIR_P                       = @MKDIR_P@
+LN_S                          = @LN_S@
 WGET                          = @WGET@
 
 .PHONY                        : all install install-strip clean distclean $(PROGS) $(INSTALLPROGS) $(INSTALLSTRIPPROGS) $(CLEANPROGS) $(DISTCLEANPROGS)
@@ -59,7 +61,7 @@ build-binutils/config.status  : | binutils
 	if test ! -d build-binutils; then mkdir build-binutils; fi
 	cd build-binutils && ../binutils/configure \
 		--prefix="$(prefix)" \
-		--target=mips64 \
+		--target=$(target) \
 		--with-sysroot="$(sysroot)" \
 		--disable-nls \
 		LDFLAGS="$(LDFLAGS)" \
@@ -88,7 +90,7 @@ build-gcc/config.status       : | gcc
 	if test ! -d build-gcc; then mkdir build-gcc; fi
 	cd build-gcc && ../gcc/configure \
 		--prefix="$(prefix)" \
-		--target=mips64 \
+		--target=$(target) \
 		--with-arch=vr4300 \
 		--with-abi=32 \
 		--with-newlib \
@@ -130,7 +132,7 @@ build-newlib/config.status    : | newlib install-binutils install-gcc-executable
 	if test ! -d build-newlib; then mkdir build-newlib; fi
 	cd build-newlib && ../newlib/configure \
 		--prefix="$(prefix)" \
-		--target=mips64 \
+		--target=$(target) \
 		--with-newlib \
 		--enable-newlib-global-atexit \
 		--disable-newlib-fvwrite-in-streamio \
@@ -163,7 +165,7 @@ build-gdb/config.status       : | gdb
 	if test ! -d build-gdb; then mkdir build-gdb; fi
 	cd build-gdb && ../gdb/configure \
 		--prefix="$(prefix)" \
-		--target=mips64 \
+		--target=$(target) \
 		--with-sysroot="$(sysroot)" \
 		--disable-nls \
 		LDFLAGS="$(LDFLAGS)" \
@@ -188,7 +190,7 @@ install-sys                   :
 	for f in "$(bindir)/"*; do \
 		if test -f "$$f"; then \
 			f="$${f##*/}"; \
-			ln -s -f "$(bindir)/$$f" "$(sysroot)/usr/bin/$${f##mips64-}"; \
+			(cd "$(sysroot)/usr/bin" && $(LN_S) -f "$(bindir)/$$f" "$${f##$(target)-}"); \
 		fi \
 	done
 	cp -R -p "$(srcdir)/include" "$(srcdir)/lib" "$(sysroot)/usr"

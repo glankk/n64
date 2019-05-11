@@ -3,7 +3,7 @@ exec_prefix                   = @exec_prefix@
 bindir                        = @bindir@
 srcdir                        = @srcdir@
 CC                            = @CC@
-CPPFLAGS                      = -I$(srcdir)/.. -I$(srcdir)/../../include @CPPFLAGS@
+CPPFLAGS                      = -I.. -I$(srcdir)/.. -I$(srcdir)/../../include @CPPFLAGS@
 CFLAGS                        = -std=gnu11 -Wall @CFLAGS@
 LDFLAGS                       = -Wl,-rpath,\$$ORIGIN/../lib @LDFLAGS@
 LDLIBS                        = @LIBUTIL@ @LIBWS2_32@
