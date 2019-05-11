@@ -1,0 +1,5 @@
+case "${target}" in
+mips*-ultra-elf*)
+	targ_emul=elf32ebmipultra
+	;;
+esac

@@ -1,0 +1,33 @@
+diff --git a/newlib/libc/include/sys/reent.h b/newlib/libc/include/sys/reent.h
+index 6e55e1c1f..28b6496b5 100644
+--- a/newlib/libc/include/sys/reent.h
++++ b/newlib/libc/include/sys/reent.h
+@@ -812,7 +812,7 @@ extern __FILE __sf[3];
+ #endif
+
+ extern struct _reent *_impure_ptr __ATTRIBUTE_IMPURE_PTR__;
+-extern struct _reent *const _global_impure_ptr __ATTRIBUTE_IMPURE_PTR__;
++extern struct _reent *_global_impure_ptr __ATTRIBUTE_IMPURE_PTR__;
+
+ void _reclaim_reent (struct _reent *);
+
+diff --git a/newlib/libc/machine/spu/impure.c b/newlib/libc/machine/spu/impure.c
+index f9c86efdc..69e078419 100644
+--- a/newlib/libc/machine/spu/impure.c
++++ b/newlib/libc/machine/spu/impure.c
+@@ -11,4 +11,4 @@
+
+ struct _reent __ATTRIBUTE_IMPURE_DATA__ _impure_data = _REENT_INIT(_impure_data);
+ struct _reent *__ATTRIBUTE_IMPURE_PTR__ _impure_ptr = &_impure_data;
+-struct _reent *const __ATTRIBUTE_IMPURE_PTR__ _global_impure_ptr = &_impure_data;
++struct _reent *__ATTRIBUTE_IMPURE_PTR__ _global_impure_ptr = &_impure_data;
+diff --git a/newlib/libc/reent/impure.c b/newlib/libc/reent/impure.c
+index 76f67459e..13635a01b 100644
+--- a/newlib/libc/reent/impure.c
++++ b/newlib/libc/reent/impure.c
+@@ -25,4 +25,4 @@ static struct _reent __ATTRIBUTE_IMPURE_DATA__ impure_data = _REENT_INIT (impure
+ extern struct _reent reent_data __attribute__ ((alias("impure_data")));
+ #endif
+ struct _reent *__ATTRIBUTE_IMPURE_PTR__ _impure_ptr = &impure_data;
+-struct _reent *const __ATTRIBUTE_IMPURE_PTR__ _global_impure_ptr = &impure_data;
++struct _reent *__ATTRIBUTE_IMPURE_PTR__ _global_impure_ptr = &impure_data;

@@ -1,0 +1,3 @@
+MULTILIB_OPTIONS = n64-dynamic n64-wiivc
+MULTILIB_DIRNAMES = dynamic wiivc
+MULTILIB_MATCHES =

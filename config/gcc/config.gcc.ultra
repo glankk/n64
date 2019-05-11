@@ -1,0 +1,7 @@
+case "${target}" in
+mips*-ultra-elf*)
+	tm_file="${tm_file} mips/ultra.h"
+	tmake_file="${tmake_file} mips/t-ultra"
+	extra_options="${extra_options} mips/ultra.opt"
+	;;
+esac

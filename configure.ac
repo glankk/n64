@@ -12,19 +12,8 @@ AC_ARG_ENABLE([static-executables],
               [LDFLAGS="-static $LDFLAGS"])
 AC_SUBST([CFLAGS_FOR_TARGET])
 AC_SUBST([CXXFLAGS_FOR_TARGET])
-CFLAGS_FOR_TARGET="-g -ffunction-sections -fdata-sections $CFLAGS_FOR_TARGET"
-CXXFLAGS_FOR_TARGET="-g -ffunction-sections -fdata-sections $CXXFLAGS_FOR_TARGET"
-AC_ARG_ENABLE([vc],
-              [AS_HELP_STRING([--enable-vc],
-                              [compile libraries with wii vc compatibility])],
-              [
-                CFLAGS_FOR_TARGET="-O1 -fno-reorder-blocks $CFLAGS_FOR_TARGET"
-                CXXFLAGS_FOR_TARGET="-O1 -fno-reorder-blocks $CXXFLAGS_FOR_TARGET"
-              ],
-              [
-                CFLAGS_FOR_TARGET="-Os $CFLAGS_FOR_TARGET"
-                CXXFLAGS_FOR_TARGET="-Os $CXXFLAGS_FOR_TARGET"
-              ])
+CFLAGS_FOR_TARGET="-Os -g -ffunction-sections -fdata-sections $CFLAGS_FOR_TARGET"
+CXXFLAGS_FOR_TARGET="-Os -g -ffunction-sections -fdata-sections $CXXFLAGS_FOR_TARGET"
 AC_SUBST([CONFIG_BINUTILS])
 AC_SUBST([CONFIG_GCC])
 AC_SUBST([CONFIG_NEWLIB])

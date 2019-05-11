@@ -1,0 +1,6 @@
+ALL_64_EMULATION_SOURCES += eelf32ebmipultra.c
+
+eelf32ebmipultra.c: $(srcdir)/emulparams/elf32ebmipultra.sh \
+  $(srcdir)/emulparams/elf32bmip.sh $(ELF_DEPS) \
+  $(srcdir)/emultempl/mipself.em $(srcdir)/emultempl/ultra.em \
+  $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}

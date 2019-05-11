@@ -694,7 +694,6 @@ ac_subst_files=''
 ac_user_opts='
 enable_option_checking
 enable_static_executables
-enable_vc
 with_configure_binutils
 with_configure_gcc
 with_configure_newlib
@@ -1323,7 +1322,6 @@ Optional Features:
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --enable-static-executables
                           enable static linking of executables
-  --enable-vc             compile libraries with wii vc compatibility
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -2124,21 +2122,8 @@ fi
 
 
 
-CFLAGS_FOR_TARGET="-g -ffunction-sections -fdata-sections $CFLAGS_FOR_TARGET"
-CXXFLAGS_FOR_TARGET="-g -ffunction-sections -fdata-sections $CXXFLAGS_FOR_TARGET"
-# Check whether --enable-vc was given.
-if test "${enable_vc+set}" = set; then :
-  enableval=$enable_vc;
-                CFLAGS_FOR_TARGET="-O1 -fno-reorder-blocks $CFLAGS_FOR_TARGET"
-                CXXFLAGS_FOR_TARGET="-O1 -fno-reorder-blocks $CXXFLAGS_FOR_TARGET"
-
-else
-
-                CFLAGS_FOR_TARGET="-Os $CFLAGS_FOR_TARGET"
-                CXXFLAGS_FOR_TARGET="-Os $CXXFLAGS_FOR_TARGET"
-
-fi
-
+CFLAGS_FOR_TARGET="-Os -g -ffunction-sections -fdata-sections $CFLAGS_FOR_TARGET"
+CXXFLAGS_FOR_TARGET="-Os -g -ffunction-sections -fdata-sections $CXXFLAGS_FOR_TARGET"
 
 
 
