@@ -69,7 +69,7 @@
 #define G_SETOTHERMODE_L              0xE2
 #define G_SETOTHERMODE_H              0xE3
 
-#endif
+#endif // F3D_GBI
 
 #define G_TEXRECT                     0xE4
 #define G_TEXRECTFLIP                 0xE5
@@ -101,8 +101,6 @@
 #define G_SETTIMG                     0xFD
 #define G_SETZIMG                     0xFE
 #define G_SETCIMG                     0xFF
-
-#endif
 
 /* s2dex2 commands */
 #define G_OBJ_RECTANGLE               0x01
