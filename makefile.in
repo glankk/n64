@@ -44,9 +44,9 @@ quickclean                    : $(CLEANPROGS) quickclean-binutils quickclean-gcc
 $(PROGS)                      :
 	cd src/$@ && $(MAKE)
 $(INSTALLPROGS)               :
-	cd src/$(patsubst install-%,%,$@) && $(MAKE) DESTDIR=$(DESTDIR) install
+	cd src/$(patsubst install-%,%,$@) && $(MAKE) install
 $(INSTALLSTRIPPROGS)          :
-	cd src/$(patsubst install-strip-%,%,$@) && $(MAKE) DESTDIR=$(DESTDIR) install-strip
+	cd src/$(patsubst install-strip-%,%,$@) && $(MAKE) install-strip
 $(CLEANPROGS)                 :
 	cd src/$(patsubst clean-%,%,$@) && $(MAKE) clean
 $(DISTCLEANPROGS)             :
