@@ -18,7 +18,7 @@ all                           : $(PROGNAME)
 install                       : | $(DESTDIR)$(bindir)
 	$(INSTALL) -p $(PROGNAME) $(DESTDIR)$(bindir)
 install-strip                 :
-	$(MAKE) INSTALL="$(INSTALL) -s" DESTDIR=$(DESTDIR) install
+	$(MAKE) INSTALL="$(INSTALL) -s" install
 clean                         :
 	rm -f $(PROGNAME)
 distclean                     :

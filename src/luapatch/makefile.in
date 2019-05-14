@@ -24,7 +24,7 @@ install                       : | $(DESTDIR)$(bindir)
 		echo warning: no EMUDIR specified, skipping \`patch.lua\` installation; \
 	fi
 install-strip                 :
-	$(MAKE) INSTALL="$(INSTALL) -s" DESTDIR=$(DESTDIR) install
+	$(MAKE) INSTALL="$(INSTALL) -s" install
 clean                         :
 	rm -f $(PROGNAME)
 distclean                     :
