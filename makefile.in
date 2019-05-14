@@ -185,19 +185,19 @@ quickclean-gdb                :
 	rm -rf build-gdb make-gdb install-gdb
 
 install-sys                   :
-	$(MKDIR_P) "$(sysroot)/usr"
-	$(MKDIR_P) "$(sysroot)/usr/bin"
+	$(MKDIR_P) "$(DESTDIR)$(sysroot)/usr"
+	$(MKDIR_P) "$(DESTDIR)$(sysroot)/usr/bin"
 	for f in "$(bindir)/"*; do \
 		if test -f "$$f"; then \
 			f="$${f##*/}"; \
-			(cd "$(sysroot)/usr/bin" && $(LN_S) -f "$(bindir)/$$f" "$${f##$(target)-}"); \
+			(cd "$(DESTDIR)$(sysroot)/usr/bin" && $(LN_S) -f "$(bindir)/$$f" "$${f##$(target)-}";) \
 		fi \
 	done
-	cp -R -p "$(srcdir)/include" "$(srcdir)/lib" "$(sysroot)/usr"
+	cp -R -p "$(srcdir)/include" "$(srcdir)/lib" "$(DESTDIR)$(sysroot)/usr"
 	touch $@
 clean-sys                     :
 	rm -f install-sys
 remove-sys                    : clean-sys
-	rm -rf "$(sysroot)/usr/bin" "$(sysroot)/usr/include" "$(sysroot)/usr/lib"
+	rm -rf "$(DESTDIR)$(sysroot)/usr/bin" "$(DESTDIR)$(sysroot)/usr/include" "$(DESTDIR)$(sysroot)/usr/lib"
 
 install-toolchain             : install-binutils install-gcc install-newlib install-gdb
