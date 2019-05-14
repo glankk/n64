@@ -15,15 +15,15 @@ MKDIR_P                       = @MKDIR_P@
 .PHONY                        : all install install-strip clean distclean
 
 all                           : $(PROGNAME)
-install                       : | $(DESTDIR)/$(bindir)
+install                       : | $(DESTDIR)$(bindir)
 	$(INSTALL) -p $(PROGNAME) $(DESTDIR)$(bindir)
 install-strip                 :
 	$(MAKE) INSTALL="$(INSTALL) -s" DESTDIR=$(DESTDIR) install
 clean                         :
-	rm -f $(DESTDIR)$(PROGNAME)
+	rm -f $(PROGNAME)
 distclean                     :
 	rm -f makefile
 $(PROGNAME)                   : $(SRC)
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $^ $(LDLIBS) -o $@
-$(DESTDIR)/$(bindir)                     :
-	$(MKDIR_P) $(DESTDIR)/$(bindir)
+$(DESTDIR)$(bindir)           :
+	$(MKDIR_P) $(DESTDIR)$(bindir)

@@ -48,7 +48,7 @@ $(INSTALLPROGS)               :
 $(INSTALLSTRIPPROGS)          :
 	cd src/$(patsubst install-strip-%,%,$@) && $(MAKE) DESTDIR=$(DESTDIR) install-strip
 $(CLEANPROGS)                 :
-	cd src/$(patsubst clean-%,%,$@) && $(MAKE) DESTDIR=$(DESTDIR) clean
+	cd src/$(patsubst clean-%,%,$@) && $(MAKE) clean
 $(DISTCLEANPROGS)             :
 	cd src/$(patsubst distclean-%,%,$@) && $(MAKE) distclean
 
@@ -190,14 +190,14 @@ install-sys                   :
 	for f in "$(bindir)/"*; do \
 		if test -f "$$f"; then \
 			f="$${f##*/}"; \
-			(cd "$(DESTDIR)/$(sysroot)/usr/bin" && $(LN_S) -f "$(bindir)/$$f" "$${f#$(target)-}";) \
+			(cd "$(DESTDIR)$(sysroot)/usr/bin" && $(LN_S) -f "$(bindir)/$$f" "$${f##$(target)-}";) \
 		fi \
 	done
-	cp -R -p "$(srcdir)/include" "$(srcdir)/lib" "$(DESTDIR)/$(sysroot)/usr"
+	cp -R -p "$(srcdir)/include" "$(srcdir)/lib" "$(DESTDIR)$(sysroot)/usr"
 	touch $@
 clean-sys                     :
 	rm -f install-sys
 remove-sys                    : clean-sys
-	rm -rf "$(DESTDIR)/$(sysroot)/usr/bin" "$(DESTDIR)/$(sysroot)/usr/include" "$(DESTDIR)/$(sysroot)/usr/lib"
+	rm -rf "$(DESTDIR)$(sysroot)/usr/bin" "$(DESTDIR)$(sysroot)/usr/include" "$(DESTDIR)$(sysroot)/usr/lib"
 
 install-toolchain             : install-binutils install-gcc install-newlib install-gdb
