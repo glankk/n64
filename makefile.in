@@ -4,8 +4,9 @@ bindir                        = @bindir@
 srcdir                        = @srcdir@
 target                        = mips64
 sysroot                       = $(prefix)/$(target)/n64-sysroot
-export PATH                  := $(bindir):$(PATH)
+export PATH                  := $(DESTDIR)$(bindir):$(PATH)
 PROGS                         = ed64rdb gfxdis grc libgru libgs luapatch
+ALLPROGS                      = $(foreach prog,$(PROGS),all-$(prog))
 INSTALLPROGS                  = $(foreach prog,$(PROGS),install-$(prog))
 INSTALLSTRIPPROGS             = $(foreach prog,$(PROGS),install-strip-$(prog))
 CLEANPROGS                    = $(foreach prog,$(PROGS),clean-$(prog))
@@ -30,19 +31,19 @@ MKDIR_P                       = @MKDIR_P@
 LN_S                          = @LN_S@
 WGET                          = @WGET@
 
-.PHONY                        : all install install-strip clean distclean $(PROGS) $(INSTALLPROGS) $(INSTALLSTRIPPROGS) $(CLEANPROGS) $(DISTCLEANPROGS)
+.PHONY                        : all install install-strip clean distclean $(ALLPROGS) $(INSTALLPROGS) $(INSTALLSTRIPPROGS) $(CLEANPROGS) $(DISTCLEANPROGS)
 .PHONY                        : configure-binutils configure-gcc configure-newlib configure-gdb clean-binutils clean-gcc clean-newlib clean-gdb
 .PHONY                        : install-sys clean-sys remove-sys install-toolchain
 
-all                           : $(PROGS)
+all                           : $(ALLPROGS)
 install                       : $(INSTALLPROGS)
 install-strip                 : $(INSTALLSTRIPPROGS)
 clean                         : $(CLEANPROGS) clean-binutils clean-gcc clean-newlib clean-gdb clean-sys
 distclean                     : $(DISTCLEANPROGS)
 	rm -f config.log config.status src/config.h makefile
 quickclean                    : $(CLEANPROGS) quickclean-binutils quickclean-gcc quickclean-newlib quickclean-gdb clean-sys
-$(PROGS)                      :
-	cd src/$@ && $(MAKE)
+$(ALLPROGS)                   :
+	cd src/$(patsubst all-%,%,$@) && $(MAKE) all
 $(INSTALLPROGS)               :
 	cd src/$(patsubst install-%,%,$@) && $(MAKE) install
 $(INSTALLSTRIPPROGS)          :
@@ -69,16 +70,16 @@ build-binutils/config.status  : | binutils
 		CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)" \
 		$(CONFIG_BINUTILS)
 configure-binutils            : build-binutils/config.status
-make-binutils                 : | configure-binutils
+all-binutils                  : | configure-binutils
 	cd build-binutils && $(MAKE) all
 	touch $@
-install-binutils              : | make-binutils
+install-binutils              : | all-binutils
 	cd build-binutils && $(MAKE) install
 	touch $@
 clean-binutils                :
-	rm -rf binutils.tar.gz binutils build-binutils make-binutils install-binutils
+	rm -rf binutils.tar.gz binutils build-binutils all-binutils install-binutils
 quickclean-binutils           :
-	rm -rf build-binutils make-binutils install-binutils
+	rm -rf build-binutils all-binutils install-binutils
 
 gcc.tar.gz                    :
 	$(WGET) gcc.tar.gz "$(GCC_URL)"
@@ -106,22 +107,22 @@ build-gcc/config.status       : | gcc
 		CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)" \
 		$(CONFIG_GCC)
 configure-gcc                 : build-gcc/config.status
-make-gcc-executables          : | configure-gcc
+all-gcc-executables           : | configure-gcc
 	cd build-gcc && $(MAKE) all-gcc
 	touch $@
-install-gcc-executables       : | make-gcc-executables
+install-gcc-executables       : | all-gcc-executables
 	cd build-gcc && $(MAKE) install-gcc
 	touch $@
-make-gcc                      : | configure-gcc install-binutils install-newlib
+all-gcc                       : | configure-gcc install-binutils install-newlib
 	cd build-gcc && $(MAKE) all
 	touch $@
-install-gcc                   : | make-gcc
+install-gcc                   : | all-gcc
 	cd build-gcc && $(MAKE) install
 	touch $@
 clean-gcc                     :
-	rm -rf gcc.tar.gz gcc build-gcc make-gcc-executables install-gcc-executables make-gcc install-gcc
+	rm -rf gcc.tar.gz gcc build-gcc all-gcc-executables install-gcc-executables all-gcc install-gcc
 quickclean-gcc                :
-	rm -rf build-gcc make-gcc-executables install-gcc-executables make-gcc install-gcc
+	rm -rf build-gcc all-gcc-executables install-gcc-executables all-gcc install-gcc
 
 newlib.tar.gz                 :
 	$(WGET) newlib.tar.gz "$(NEWLIB_URL)"
@@ -145,16 +146,16 @@ build-newlib/config.status    : | newlib install-binutils install-gcc-executable
 		CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)" \
 		$(CONFIG_NEWLIB)
 configure-newlib              : build-newlib/config.status
-make-newlib                   : | configure-newlib install-binutils install-gcc-executables
+all-newlib                    : | configure-newlib install-binutils install-gcc-executables
 	cd build-newlib && $(MAKE) all
 	touch $@
-install-newlib                : | make-newlib
+install-newlib                : | all-newlib
 	cd build-newlib && $(MAKE) install
 	touch $@
 clean-newlib                  :
-	rm -rf newlib.tar.gz newlib build-newlib make-newlib install-newlib
+	rm -rf newlib.tar.gz newlib build-newlib all-newlib install-newlib
 quickclean-newlib             :
-	rm -rf build-newlib make-newlib install-newlib
+	rm -rf build-newlib all-newlib install-newlib
 
 gdb.tar.gz                    :
 	$(WGET) gdb.tar.gz "$(GDB_URL)"
@@ -173,31 +174,31 @@ build-gdb/config.status       : | gdb
 		CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)" \
 		$(CONFIG_GDB)
 configure-gdb                 : build-gdb/config.status
-make-gdb                      : | configure-gdb
+all-gdb                       : | configure-gdb
 	cd build-gdb && $(MAKE) all
 	touch $@
-install-gdb                   : | make-gdb
+install-gdb                   : | all-gdb
 	cd build-gdb && $(MAKE) install
 	touch $@
 clean-gdb                     :
-	rm -rf gdb.tar.gz gdb build-gdb make-gdb install-gdb
+	rm -rf gdb.tar.gz gdb build-gdb all-gdb install-gdb
 quickclean-gdb                :
-	rm -rf build-gdb make-gdb install-gdb
+	rm -rf build-gdb all-gdb install-gdb
 
 install-sys                   :
 	$(MKDIR_P) "$(DESTDIR)$(sysroot)/usr"
 	$(MKDIR_P) "$(DESTDIR)$(sysroot)/usr/bin"
-	for f in "$(bindir)/"*; do \
+	for f in "$(DESTDIR)$(bindir)/"*; do \
 		if test -f "$$f"; then \
 			f="$${f##*/}"; \
-			(cd "$(DESTDIR)$(sysroot)/usr/bin" && $(LN_S) -f "$(bindir)/$$f" "$${f##$(target)-}";) \
+			(cd "$(DESTDIR)$(sysroot)/usr/bin" && $(LN_S) -f "$(bindir)/$$f" "$${f##$(target)-}"); \
 		fi \
 	done
 	cp -R -p "$(srcdir)/include" "$(srcdir)/lib" "$(DESTDIR)$(sysroot)/usr"
 	touch $@
 clean-sys                     :
 	rm -f install-sys
-remove-sys                    : clean-sys
+uninstall-sys                 : clean-sys
 	rm -rf "$(DESTDIR)$(sysroot)/usr/bin" "$(DESTDIR)$(sysroot)/usr/include" "$(DESTDIR)$(sysroot)/usr/lib"
 
 install-toolchain             : install-binutils install-gcc install-newlib install-gdb
