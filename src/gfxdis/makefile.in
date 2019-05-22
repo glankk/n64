@@ -3,27 +3,33 @@ exec_prefix                   = @exec_prefix@
 bindir                        = @bindir@
 srcdir                        = @srcdir@
 CC                            = @CC@
-CPPFLAGS                      = -I.. -I$(srcdir)/.. -I$(srcdir)/../../include -DF3DEX_GBI_2 @CPPFLAGS@
+CPPFLAGS                      = -I.. -I$(srcdir)/.. -I$(srcdir)/../../include @CPPFLAGS@
 CFLAGS                        = -std=c11 -Wall @CFLAGS@
 LDFLAGS                       = -Wl,-rpath,\$$ORIGIN/../lib @LDFLAGS@
 LDLIBS                        =
 SRC                           = $(srcdir)/*.c
-PROGNAME                      = gfxdis
+PROGS                         = gfxdis.f3d gfxdis.f3db gfxdis.f3dex gfxdis.f3dexb gfxdis.f3dex2
 INSTALL                       = @INSTALL@
 MKDIR_P                       = @MKDIR_P@
 
+gfxdis.f3d                    : CPPFLAGS += -DF3D_GBI
+gfxdis.f3db                   : CPPFLAGS += -DF3D_GBI -DF3D_BETA
+gfxdis.f3dex                  : CPPFLAGS += -DF3DEX_GBI
+gfxdis.f3dexb                 : CPPFLAGS += -DF3DEX_GBI -DF3D_BETA
+gfxdis.f3dex2                 : CPPFLAGS += -DF3DEX_GBI_2
+
 .PHONY                        : all install install-strip clean distclean
 
-all                           : $(PROGNAME)
+all                           : $(PROGS)
 install                       : | $(bindir)
-	$(INSTALL) -p $(PROGNAME) $(bindir)
+	$(INSTALL) -p $(PROGS) $(bindir)
 install-strip                 :
 	$(MAKE) INSTALL="$(INSTALL) -s" install
 clean                         :
-	rm -f $(PROGNAME)
+	rm -f $(PROGS)
 distclean                     :
 	rm -f makefile
-$(PROGNAME)                   : $(SRC)
+$(PROGS)                      : $(SRC)
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $^ $(LDLIBS) -o $@
 $(bindir)                     :
 	$(MKDIR_P) $(bindir)
