@@ -2,6 +2,7 @@
  * gbi.h version 0.2rev2
  * n64 graphics microcode interface library
  * compatible with fast3d, f3dex, f3dex2, s2dex, and s2dex2
+ *
  * select a microcode with one of these preprocessor definitions;
  * #define F3D_GBI
  * for fast3d (selected automatically by default), or
@@ -9,6 +10,9 @@
  * for f3dex/s2dex, or
  * #define F3DEX_GBI_2
  * for f3dex2/s2dex2
+ *
+ * for early versions of fast3d and f3dex, also define the following;
+ * #define F3D_BETA
 **/
 
 #ifndef N64_GBI_H
@@ -29,8 +33,13 @@
 # define G_MOVEMEM                    0x03
 # define G_VTX                        0x04
 # define G_DL                         0x06
+# define G_RDPHALF_CONT               0xB2
 # define G_RDPHALF_2                  0xB3
-# define G_RDPHALF_1                  0xB4
+# if defined(F3D_BETA)
+#  define G_PERSPNORM                 0xB4
+# else
+#  define G_RDPHALF_1                 0xB4
+# endif
 # define G_LINE3D                     0xB5
 # define G_CLEARGEOMETRYMODE          0xB6
 # define G_SETGEOMETRYMODE            0xB7
@@ -183,6 +192,7 @@
 #define G_LIGHTING                    (gI_(0b1)<<17)
 #define G_TEXTURE_GEN                 (gI_(0b1)<<18)
 #define G_TEXTURE_GEN_LINEAR          (gI_(0b1)<<19)
+#define G_LOD                         (gI_(0b1)<<20)
 
 /* geometry mode for fast3d */
 #if defined(F3D_GBI)
@@ -1837,7 +1847,6 @@ gsDPSetTile(fmt,siz,line,tmem,      \
 #define gsSPLine3D(v0,v1,flag)        gsSPLineW3D(v0,v1,0,flag)
 #define gsSPLookAt(l)                 gsSPLookAtX(l),                         \
                                       gsSPLookAtY(gI_(l)+0x10)
-#define gsSPPerspNormalize(scale)     gsMoveWd(G_MW_PERSPNORM,0,scale)
 #define gsSPSegment(seg,base)         gsMoveWd(G_MW_SEGMENT,(seg)*4,base)
 #define gsSPSetLights0(lites)         gsSPNumLights(NUMLIGHTS_0),             \
                                       gsSPLight(&(lites).l[0],1),             \
@@ -1983,8 +1992,6 @@ gsSPScisTextureRectangleFlip(ulx,   \
                                                       (count)-1),             \
                                       gsDPPipeSync()
 #define gsDisplayList(dl,branch)      gO_(G_DL,gF_(branch,8,16),dl)
-#define gsDPHalf1(wordhi)             gO_(G_RDPHALF_1,0,wordhi)
-#define gsDPHalf2(wordlo)             gO_(G_RDPHALF_2,0,wordlo)
 #define gsDPLoadTile(tile,uls,ult,  \
                      lrs,lrt)         gO_(G_LOADTILE,                         \
                                           gF_(uls,12,12)|gF_(ult,12,0),       \
@@ -2018,16 +2025,16 @@ gsTexRectFlip(ulx,uly,lrx,lry,tile)   gO_(G_TEXRECTFLIP,                      \
 
 /* instruction macros for fast3d */
 #if defined(F3D_GBI)
-# define gsSP1Triangle(v0,v1,v2,flag) gO_(G_TRI1,gF_(flag,8,24)|              \
+# define gsSP1Triangle(v0,v1,v2,flag) gO_(G_TRI1,0,gF_(flag,8,24)|            \
                                           gF_(gI_(v0)*10,8,16)|               \
                                           gF_(gI_(v1)*10,8,8)|                \
-                                          gF_(gI_(v2)*10,8,0),0)
-# define gsSPCullDisplayList(v0,vn)   gO_(G_CULLDL,((v0)&0xF)*40,            \
+                                          gF_(gI_(v2)*10,8,0))
+# define gsSPCullDisplayList(v0,vn)   gO_(G_CULLDL,((v0)&0xF)*40,             \
                                           (((vn)+1)&0xF)*40)
-# define gsSPLineW3D(v0,v1,wd,flag)   gO_(G_LINE3D,gF_(flag,8,24)|            \
+# define gsSPLineW3D(v0,v1,wd,flag)   gO_(G_LINE3D,0,gF_(flag,8,24)|          \
                                           gF_(gI_(v0)*10,8,16)|               \
                                           gF_(gI_(v1)*10,8,8)|                \
-                                          gF_(wd,8,0),0)
+                                          gF_(wd,8,0))
 # define gsSPModifyVertex(vtx,where,\
                           val)        gsMoveWd(G_MW_POINTS,(vtx)*40+(where),  \
                                                val)
@@ -2037,7 +2044,6 @@ gsTexRectFlip(ulx,uly,lrx,lry,tile)   gO_(G_TEXRECTFLIP,                      \
 
 /* instruction macros for fast3d and f3dex */
 #if defined(F3D_GBI) || defined(F3DEX_GBI)
-# define gsSPInsertMatrix(where,num)  gsMoveWd(G_MW_MATRIX,where,num)
 # define gsSPForceMatrix(mptr)        gsMoveMem(16,G_MV_MATRIX_1,             \
                                                 (char*)(mptr)),               \
                                       gsMoveMem(16,G_MV_MATRIX_2,             \
@@ -2050,6 +2056,7 @@ gsTexRectFlip(ulx,uly,lrx,lry,tile)   gO_(G_TEXRECTFLIP,                      \
 # define gsSPClearGeometryMode(mode)  gO_(G_CLEARGEOMETRYMODE,0,gI_(mode))
 # define gsSPLoadGeometryMode(mode)   gsSPClearGeometryMode(~gI_(0)),         \
                                       gsSPSetGeometryMode(mode)
+# define gsSPInsertMatrix(where,num)  gsMoveWd(G_MW_MATRIX,where,num)
 # define gsSPLookAtX(l)               gsMoveMem(sizeof(Light),G_MV_LOOKATX,l)
 # define gsSPLookAtY(l)               gsMoveMem(sizeof(Light),G_MV_LOOKATY,l)
 # define gsSPMatrix(matrix,param)     gO_(G_MTX,gF_(param,8,16)|              \
@@ -2265,6 +2272,17 @@ gsSPDma_io(flag,dmem,dram,size)       gO_(G_DMA_IO,gF_(flag,1,23)|            \
 # define gsSpecial1(hi,lo)            gO_(G_SPECIAL_1,hi,lo)
 #endif
 
+/* instruction macros for beta fast3d and f3dex */
+#if defined(F3D_BETA) && (defined(F3D_GBI) || defined(F3DEX_GBI))
+# define gsSPPerspNormalize(scale)    gO_(G_PERSPNORM,0,scale)
+# define gsDPHalf1(wordhi)            gO_(G_RDPHALF_2,0,wordhi)
+# define gsDPHalf2(wordlo)            gO_(G_RDPHALF_CONT,0,wordlo)
+#else
+# define gsSPPerspNormalize(scale)    gsMoveWd(G_MW_PERSPNORM,0,scale)
+# define gsDPHalf1(wordhi)            gO_(G_RDPHALF_1,0,wordhi)
+# define gsDPHalf2(wordlo)            gO_(G_RDPHALF_2,0,wordlo)
+#endif
+
 /* dynamic instruction macros */
 #define gDisplayListPut(gdl,...)      ({Gfx Gdl__[]={__VA_ARGS__};            \
                                         for(size_t Gi__=0;Gi__<sizeof(Gdl__)/ \
@@ -2402,13 +2420,13 @@ _gDPLoadTextureTileYuv(gdl,...)       gD_(gdl,_gsDPLoadTextureTileYuv,        \
 #define gSPDisplayList(gdl,...)       gD_(gdl,gsSPDisplayList,__VA_ARGS__)
 #define gSPEndDisplayList(gdl)        gDisplayListPut(gdl,gsSPEndDisplayList())
 #define gSPFogPosition(gdl,...)       gD_(gdl,gsSPFogPosition,__VA_ARGS__)
-#if defined(F3D_GBI)
-#define gSPInsertMatrix(gdl,...)      gD_(gdl,gsSPInsertMatrix,__VA_ARGS__)
-#endif
 #define gSPForceMatrix(gdl,...)       gD_(gdl,gsSPForceMatrix,__VA_ARGS__)
 #define gSPSetGeometryMode(gdl,...)   gD_(gdl,gsSPSetGeometryMode,__VA_ARGS__)
 #define gSPClearGeometryMode(gdl,...) gD_(gdl,gsSPClearGeometryMode,__VA_ARGS__)
 #define gSPLoadGeometryMode(gdl,...)  gD_(gdl,gsSPLoadGeometryMode,__VA_ARGS__)
+#if defined(F3D_GBI) || defined(F3DEX_GBI)
+# define gSPInsertMatrix(gdl,...)     gD_(gdl,gsSPInsertMatrix,__VA_ARGS__)
+#endif
 #define gSPLine3D(gdl,...)            gD_(gdl,gsSPLine3D,__VA_ARGS__)
 #define gSPLineW3D(gdl,...)           gD_(gdl,gsSPLineW3D,__VA_ARGS__)
 #define gSPLoadUcode(gdl,...)         gD_(gdl,gsSPLoadUcode,__VA_ARGS__)
