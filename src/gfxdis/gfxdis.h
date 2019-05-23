@@ -83,10 +83,12 @@ enum gfx_insn_def
   GFX_ID_DPSETTILE,
   GFX_ID_DPSETTILESIZE,
   GFX_ID_SP1TRIANGLE,
+#if defined(F3DEX_GBI) || defined(F3DEX_GBI_2)
   GFX_ID_SP2TRIANGLES,
   GFX_ID_SP1QUADRANGLE,
   GFX_ID_SPBRANCHLESSZ,
   GFX_ID_SPBRANCHLESSZRG,
+#endif
   GFX_ID_SPBRANCHLIST,
   GFX_ID_SPCLIPRATIO,
   GFX_ID_SPCULLDISPLAYLIST,
@@ -97,9 +99,14 @@ enum gfx_insn_def
   GFX_ID_SPSETGEOMETRYMODE,
   GFX_ID_SPCLEARGEOMETRYMODE,
   GFX_ID_SPLOADGEOMETRYMODE,
+#if defined(F3D_GBI) || defined(F3DB_GBI) || defined(F3DEX_GBI)
+  GFX_ID_SPINSERTMATRIX,
+#endif
   GFX_ID_SPLINE3D,
   GFX_ID_SPLINEW3D,
+#if defined(F3DEX_GBI) || defined(F3DEX_GBI_2)
   GFX_ID_SPLOADUCODE,
+#endif
   GFX_ID_SPLOOKATX,
   GFX_ID_SPLOOKATY,
   GFX_ID_SPLOOKAT,
@@ -107,7 +114,9 @@ enum gfx_insn_def
   GFX_ID_SPMODIFYVERTEX,
   GFX_ID_SPPERSPNORMALIZE,
   GFX_ID_SPPOPMATRIX,
+#if defined(F3DEX_GBI_2)
   GFX_ID_SPPOPMATRIXN,
+#endif
   GFX_ID_SPSEGMENT,
   GFX_ID_SPSETLIGHTS1,
   GFX_ID_SPSETLIGHTS2,
@@ -126,28 +135,38 @@ enum gfx_insn_def
   GFX_ID_SPVIEWPORT,
   GFX_ID_DPLOADTLUTCMD,
   GFX_ID_DPLOADTLUT,
+#if defined(F3DEX_GBI) || defined(F3DEX_GBI_2)
   GFX_ID_BRANCHZ,
+#endif
   GFX_ID_DISPLAYLIST,
   GFX_ID_DPHALF1,
   GFX_ID_DPHALF2,
   GFX_ID_DPLOADTILE,
+#if defined(F3DEX_GBI_2)
   GFX_ID_SPGEOMETRYMODE,
+#endif
   GFX_ID_SPSETOTHERMODELO,
   GFX_ID_SPSETOTHERMODEHI,
   GFX_ID_DPSETOTHERMODE,
   GFX_ID_MOVEWD,
   GFX_ID_MOVEMEM,
+#if defined(F3DEX_GBI_2)
   GFX_ID_SPDMA_IO,
   GFX_ID_SPDMAREAD,
   GFX_ID_SPDMAWRITE,
+#endif
+#if defined(F3DEX_GBI) || defined(F3DEX_GBI_2)
   GFX_ID_LOADUCODE,
   GFX_ID_SPLOADUCODEEX,
+#endif
   GFX_ID_TEXRECT,
   GFX_ID_TEXRECTFLIP,
   GFX_ID_SPNOOP,
+#if defined(F3DEX_GBI_2)
   GFX_ID_SPECIAL3,
   GFX_ID_SPECIAL2,
   GFX_ID_SPECIAL1,
+#endif
   GFX_ID_MAX,
 };
 
@@ -254,10 +273,12 @@ int gfx_dis_dpSetTexturePersp(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
 int gfx_dis_dpSetTile(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
 int gfx_dis_dpSetTileSize(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
 int gfx_dis_sp1Triangle(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
+#if defined(F3DEX_GBI) || defined(F3DEX_GBI_2)
 int gfx_dis_sp2Triangles(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
 int gfx_dis_sp1Quadrangle(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
 int gfx_col_spBranchLessZ(struct gfx_insn *insn, int n_insn);
 int gfx_col_spBranchLessZrg(struct gfx_insn *insn, int n_insn);
+#endif
 int gfx_dis_spBranchList(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
 int gfx_col_spClipRatio(struct gfx_insn *insn, int n_insn);
 int gfx_dis_spCullDisplayList(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
@@ -270,9 +291,14 @@ int gfx_dis_spClearGeometryMode(struct gfx_insn *insn,
                                 uint32_t hi, uint32_t lo);
 int gfx_dis_spLoadGeometryMode(struct gfx_insn *insn,
                                uint32_t hi, uint32_t lo);
+#if defined(F3D_GBI) || defined(F3DB_GBI) || defined(F3DEX_GBI)
+int gfx_dis_spInsertMatrix(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
+#endif
 int gfx_dis_spLine3D(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
 int gfx_dis_spLineW3D(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
+#if defined(F3DEX_GBI) || defined(F3DEX_GBI_2)
 int gfx_col_spLoadUcode(struct gfx_insn *insn, int n_insn);
+#endif
 int gfx_dis_spLookAtX(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
 int gfx_dis_spLookAtY(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
 int gfx_col_spLookAt(struct gfx_insn *insn, int n_insn);
@@ -280,7 +306,9 @@ int gfx_dis_spMatrix(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
 int gfx_dis_spModifyVertex(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
 int gfx_dis_spPerspNormalize(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
 int gfx_dis_spPopMatrix(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
+#if defined(F3DEX_GBI_2)
 int gfx_dis_spPopMatrixN(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
+#endif
 int gfx_dis_spSegment(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
 int gfx_col_spSetLights1(struct gfx_insn *insn, int n_insn);
 int gfx_col_spSetLights2(struct gfx_insn *insn, int n_insn);
@@ -299,7 +327,9 @@ int gfx_dis_spVertex(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
 int gfx_dis_spViewport(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
 int gfx_dis_dpLoadTLUTCmd(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
 int gfx_col_dpLoadTLUT(struct gfx_insn *insn, int n_insn);
+#if defined(F3DEX_GBI) || defined(F3DEX_GBI_2)
 int gfx_dis_BranchZ(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
+#endif
 int gfx_dis_DisplayList(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
 int gfx_dis_dpHalf1(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
 int gfx_dis_dpHalf2(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
@@ -310,17 +340,23 @@ int gfx_dis_spSetOtherModeHi(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
 int gfx_dis_dpSetOtherMode(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
 int gfx_dis_MoveWd(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
 int gfx_dis_MoveMem(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
+#if defined(F3DEX_GBI_2)
 int gfx_dis_spDma_io(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
 int gfx_dis_spDmaRead(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
 int gfx_dis_spDmaWrite(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
+#endif
+#if defined(F3DEX_GBI) || defined(F3DEX_GBI_2)
 int gfx_dis_LoadUcode(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
 int gfx_col_spLoadUcodeEx(struct gfx_insn *insn, int n_insn);
+#endif
 int gfx_dis_TexRect(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
 int gfx_dis_TexRectFlip(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
 int gfx_dis_spNoOp(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
+#if defined(F3DEX_GBI_2)
 int gfx_dis_Special3(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
 int gfx_dis_Special2(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
 int gfx_dis_Special1(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
+#endif
 
 extern struct gfx_insn_info gfx_insn_info[];
 
