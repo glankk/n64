@@ -21,8 +21,8 @@ gfxdis.f3dex2                 : CPPFLAGS += -DF3DEX_GBI_2
 .PHONY                        : all install install-strip clean distclean
 
 all                           : $(PROGS)
-install                       : | $(bindir)
-	$(INSTALL) -p $(PROGS) $(bindir)
+install                       : | $(DESTDIR)$(bindir)
+	$(INSTALL) -p $(PROGS) $(DESTDIR)$(bindir)
 install-strip                 :
 	$(MAKE) INSTALL="$(INSTALL) -s" install
 clean                         :
@@ -31,5 +31,5 @@ distclean                     :
 	rm -f makefile
 $(PROGS)                      : $(SRC)
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $^ $(LDLIBS) -o $@
-$(bindir)                     :
-	$(MKDIR_P) $(bindir)
+$(DESTDIR)$(bindir)           :
+	$(MKDIR_P) $(DESTDIR)$(bindir)
