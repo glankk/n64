@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
     /* lua initialization */
     lua_State *L = luaL_newstate();
     if (!L) {
-      puts("failed to create lua state");
+      fputs("failed to create lua state", stderr);
       return LUA_ERRMEM;
     }
     luaL_requiref(L, "_G", luaopen_base, 1);
@@ -105,14 +105,14 @@ int main(int argc, char *argv[])
     if (!is_builtin)
       e = luaL_loadfile(L, argv[1]);
     if (e) {
-      printf("failed to load script `%s`\n", argv[1]);
+      fprintf(stderr, "failed to load script `%s`\n", argv[1]);
       return e;
     }
     for (int i = 2; i < argc; ++i)
       lua_pushstring(L, argv[i]);
     e = lua_pcall(L, argc - 2, LUA_MULTRET, 0);
     if (e)
-      puts(lua_tostring(L, -1));
+      fputs(lua_tostring(L, -1), stderr);
     else if (lua_gettop(L) > 0)
       e = lua_tointeger(L, 1);
     lua_close(L);
