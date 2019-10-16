@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
     /* lua initialization */
     lua_State *L = luaL_newstate();
     if (!L) {
-      fputs("failed to create lua state", stderr);
+      fprintf(stderr, "failed to create lua state\n");
       return LUA_ERRMEM;
     }
     luaL_requiref(L, "_G", luaopen_base, 1);
@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
       lua_pushstring(L, argv[i]);
     e = lua_pcall(L, argc - 2, LUA_MULTRET, 0);
     if (e)
-      fputs(lua_tostring(L, -1), stderr);
+      fprintf(stderr, "%s\n", lua_tostring(L, -1));
     else if (lua_gettop(L) > 0)
       e = lua_tointeger(L, 1);
     lua_close(L);
