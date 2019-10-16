@@ -269,8 +269,7 @@ enum grc_error make_texture(const char *input_file, const char *output_file,
   }
   if (tile_height <= 0)
     tile_height = image_height;
-  size_t tile_size = ((tile_width * tile_height * fi->bpp + 7) / 8 + 63) /
-                     64 * 64;
+  size_t tile_size = (tile_width * tile_height * fi->bpp + 63) / 64 * 8;
   size_t tiles_x = (image_width + tile_width - 1) / tile_width;
   size_t tiles_y = (image_height + tile_height - 1) / tile_height;
   size_t resource_size = sizeof(struct grc_texture) +
