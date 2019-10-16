@@ -19,6 +19,7 @@ struct grc_texture
   uint16_t  tile_height;
   uint16_t  tiles_x;
   uint16_t  tiles_y;
+  uint16_t  pad;
   char      texture_data[];
 };
 
