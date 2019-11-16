@@ -3,7 +3,8 @@ exec_prefix                   = @exec_prefix@
 bindir                        = @bindir@
 srcdir                        = @srcdir@
 target                        = mips64
-sysroot                       = $(prefix)/$(target)/n64-sysroot
+tooldir                       = $(exec_prefix)/$(target)
+sysroot                       = $(tooldir)/n64-sysroot
 export PATH                  := $(DESTDIR)$(bindir):$(PATH)
 PROGS                         = ed64rdb gfxdis grc libgru libgs luapatch
 ALLPROGS                      = $(foreach prog,$(PROGS),all-$(prog))
@@ -33,15 +34,15 @@ WGET                          = @WGET@
 
 .PHONY                        : all install install-strip clean distclean $(ALLPROGS) $(INSTALLPROGS) $(INSTALLSTRIPPROGS) $(CLEANPROGS) $(DISTCLEANPROGS)
 .PHONY                        : configure-binutils configure-gcc configure-newlib configure-gdb clean-binutils clean-gcc clean-newlib clean-gdb
-.PHONY                        : install-sys clean-sys remove-sys install-toolchain
+.PHONY                        : install-sys clean-sys uninstall-sys install-local-exec clean-local-exec uninstall-local-exec install-toolchain
 
 all                           : $(ALLPROGS)
 install                       : $(INSTALLPROGS)
 install-strip                 : $(INSTALLSTRIPPROGS)
-clean                         : $(CLEANPROGS) clean-binutils clean-gcc clean-newlib clean-gdb clean-sys
+clean                         : $(CLEANPROGS) clean-binutils clean-gcc clean-newlib clean-gdb clean-sys clean-local-exec
 distclean                     : $(DISTCLEANPROGS)
 	rm -f config.log config.status src/config.h makefile
-quickclean                    : $(CLEANPROGS) quickclean-binutils quickclean-gcc quickclean-newlib quickclean-gdb clean-sys
+quickclean                    : $(CLEANPROGS) quickclean-binutils quickclean-gcc quickclean-newlib quickclean-gdb clean-sys clean-local-exec
 $(ALLPROGS)                   :
 	cd src/$(patsubst all-%,%,$@) && $(MAKE) all
 $(INSTALLPROGS)               :
@@ -185,20 +186,35 @@ clean-gdb                     :
 quickclean-gdb                :
 	rm -rf build-gdb all-gdb install-gdb
 
-install-sys                   :
-	$(MKDIR_P) "$(DESTDIR)$(sysroot)/usr"
-	$(MKDIR_P) "$(DESTDIR)$(sysroot)/usr/bin"
+install-local-exec            :
+	$(MKDIR_P) "$(DESTDIR)$(tooldir)/bin"
 	for f in "$(DESTDIR)$(bindir)/"*; do \
 		if test -f "$$f"; then \
 			f="$${f##*/}"; \
-			(cd "$(DESTDIR)$(sysroot)/usr/bin" && $(LN_S) -f "$(bindir)/$$f" "$${f##$(target)-}"); \
+			(cd "$(DESTDIR)$(tooldir)/bin" && rm -f "$${f##$(target)-}" && $(LN_S) -f "$(bindir)/$$f" "$${f##$(target)-}"); \
 		fi \
 	done
+	touch $@
+clean-local-exec              :
+	rm -f clean-local-exec
+uninstall-local-exec          : clean-local-exec
+	for f in "$(DESTDIR)$(bindir)/"*; do \
+		if test -f "$$f"; then \
+			f="$${f##*/}"; \
+			(cd "$(DESTDIR)$(tooldir)/bin" && rm -f "$${f##$(target)-}"); \
+		fi \
+	done
+	-rm -df "$(DESTDIR)$(tooldir)/bin"
+
+install-sys                   :
+	$(MKDIR_P) "$(DESTDIR)$(sysroot)/usr"
 	cp -R -p "$(srcdir)/include" "$(srcdir)/lib" "$(DESTDIR)$(sysroot)/usr"
 	touch $@
 clean-sys                     :
 	rm -f install-sys
 uninstall-sys                 : clean-sys
-	rm -rf "$(DESTDIR)$(sysroot)/usr/bin" "$(DESTDIR)$(sysroot)/usr/include" "$(DESTDIR)$(sysroot)/usr/lib"
+	(cd "$(srcdir)/include" && find . -depth -exec rm -df "$(DESTDIR)$(sysroot)/usr/include/"\{\} \;)
+	(cd "$(srcdir)/lib" && find . -depth -exec rm -df "$(DESTDIR)$(sysroot)/usr/lib/"\{\} \;)
+	-rm -df "$(DESTDIR)$(sysroot)/usr"
 
 install-toolchain             : install-binutils install-gcc install-newlib install-gdb

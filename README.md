@@ -57,6 +57,8 @@ environment variable to the path to your BizHawk installation.
 6.  Compile and install the included programs by running `make && make
     install`.
 7.  Install the included headers and libraries by running `make install-sys`.
+    Optionally, install prefixless binaries to `your-prefix/mips64/bin` by
+    running `make install-local-exec`.
 8.  The n64 tools and MIPS toolchain will have been installed to `/opt/n64` (or
     the prefix you chose). Add `/opt/n64/bin` to your `PATH` variable (or
     `your-prefix/bin`, `C:\msys64\opt\n64\bin` on Windows). If you're using
