@@ -111,11 +111,13 @@ static int makeraw(int fd)
   struct termios t;
   if (tcgetattr(fd, &t) == -1)
     return -1;
-  t.c_iflag = 0;
-  t.c_oflag = 0;
-  t.c_lflag = 0;
-  t.c_cflag = CS8;
-  t.c_cc[VMIN] = 0;
+  t.c_iflag &= ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL |
+                 IXON);
+  t.c_oflag &= ~OPOST;
+  t.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
+  t.c_cflag &= ~(CSIZE | PARENB);
+  t.c_cflag |= CS8;
+  t.c_cc[VMIN] = 1;
   t.c_cc[VTIME] = 0;
   if (tcsetattr(fd, TCSAFLUSH, &t) == -1)
     return -1;
@@ -347,14 +349,22 @@ int main(int argc, char *argv[])
       die("GetOverlappedResult(sv)", 3);
 #else
     rd = read(sv, &sv_pkt.mem[0], sizeof(sv_pkt.mem));
-    if (rd == -1)
-      die("read(sv)", 1);
-    else if (rd != 0) {
+    if (rd == -1) {
+      if (errno == EAGAIN || errno == EWOULDBLOCK)
+        rd = 0;
+      else
+        die("read(sv)", 1);
+    }
+    if (rd != 0) {
       int total = rd;
       while (total != sizeof(sv_pkt.mem)) {
         rd = read(sv, &sv_pkt.mem[total], sizeof(sv_pkt.mem) - total);
-        if (rd == -1)
-          die("read(sv)", 1);
+        if (rd == -1) {
+          if (errno == EAGAIN || errno == EWOULDBLOCK)
+            continue;
+          else
+            die("read(sv)", 1);
+        }
         total += rd;
       }
       rd = total;
