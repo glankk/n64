@@ -34,15 +34,15 @@ WGET                          = @WGET@
 
 .PHONY                        : all install install-strip clean distclean $(ALLPROGS) $(INSTALLPROGS) $(INSTALLSTRIPPROGS) $(CLEANPROGS) $(DISTCLEANPROGS)
 .PHONY                        : configure-binutils configure-gcc configure-newlib configure-gdb clean-binutils clean-gcc clean-newlib clean-gdb
-.PHONY                        : install-sys clean-sys uninstall-sys install-local-exec clean-local-exec uninstall-local-exec install-toolchain
+.PHONY                        : clean-local-exec uninstall-local-exec clean-sys uninstall-sys install-toolchain
 
 all                           : $(ALLPROGS)
 install                       : $(INSTALLPROGS)
 install-strip                 : $(INSTALLSTRIPPROGS)
-clean                         : $(CLEANPROGS) clean-binutils clean-gcc clean-newlib clean-gdb clean-sys clean-local-exec
+clean                         : $(CLEANPROGS) clean-binutils clean-gcc clean-newlib clean-gdb clean-local-exec clean-sys
 distclean                     : $(DISTCLEANPROGS)
 	rm -f config.log config.status src/config.h makefile
-quickclean                    : $(CLEANPROGS) quickclean-binutils quickclean-gcc quickclean-newlib quickclean-gdb clean-sys clean-local-exec
+quickclean                    : $(CLEANPROGS) quickclean-binutils quickclean-gcc quickclean-newlib quickclean-gdb clean-local-exec clean-sys
 $(ALLPROGS)                   :
 	cd src/$(patsubst all-%,%,$@) && $(MAKE) all
 $(INSTALLPROGS)               :
@@ -204,7 +204,7 @@ install-local-exec            :
 	done
 	touch $@
 clean-local-exec              :
-	rm -f clean-local-exec
+	rm -f install-local-exec
 uninstall-local-exec          : clean-local-exec
 	for f in "$(DESTDIR)$(bindir)/"*; do \
 		if test -f "$$f"; then \

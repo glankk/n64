@@ -154,7 +154,7 @@ static void die(const char *note, int errtype)
       if (FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, GetLastError(), 0,
                         s, sizeof(s), NULL))
       {
-        fprintf(stderr, "%s: %s\n", note, s);
+        fprintf(stderr, "%s: %s", note, s);
       }
 #endif
       break;
@@ -163,7 +163,7 @@ static void die(const char *note, int errtype)
       if (FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, WSAGetLastError(), 0,
                         s, sizeof(s), NULL))
       {
-        fprintf(stderr, "%s: %s\n", note, s);
+        fprintf(stderr, "%s: %s", note, s);
       }
 #else
       fprintf(stderr, "%s: %s\n", note, strerror(errno));
@@ -206,8 +206,8 @@ int main(int argc, char *argv[])
   signal(SIGTERM, stop_sig);
 
 #ifdef _WIN32
-  HANDLE hComm = CreateFile(argv[1], GENERIC_READ | GENERIC_WRITE, 0, NULL,
-                            OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
+  hComm = CreateFile(argv[1], GENERIC_READ | GENERIC_WRITE, 0, NULL,
+                     OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
   if (hComm == INVALID_HANDLE_VALUE)
     die("CreateFile(usb-tty)", 3);
   if (makeraw(hComm))
