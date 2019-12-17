@@ -34,15 +34,15 @@ WGET                          = @WGET@
 
 .PHONY                        : all install install-strip clean distclean $(ALLPROGS) $(INSTALLPROGS) $(INSTALLSTRIPPROGS) $(CLEANPROGS) $(DISTCLEANPROGS)
 .PHONY                        : configure-binutils configure-gcc configure-newlib configure-gdb clean-binutils clean-gcc clean-newlib clean-gdb
-.PHONY                        : clean-local-exec uninstall-local-exec clean-sys uninstall-sys install-toolchain
+.PHONY                        : clean-local-exec uninstall-local-exec clean-compat-exec uninstall-compat-exec clean-sys uninstall-sys install-toolchain
 
 all                           : $(ALLPROGS)
 install                       : $(INSTALLPROGS)
 install-strip                 : $(INSTALLSTRIPPROGS)
-clean                         : $(CLEANPROGS) clean-binutils clean-gcc clean-newlib clean-gdb clean-local-exec clean-sys
+clean                         : $(CLEANPROGS) clean-binutils clean-gcc clean-newlib clean-gdb clean-local-exec clean-compat-exec clean-sys
 distclean                     : $(DISTCLEANPROGS)
 	rm -f config.log config.status src/config.h makefile
-quickclean                    : $(CLEANPROGS) quickclean-binutils quickclean-gcc quickclean-newlib quickclean-gdb clean-local-exec clean-sys
+quickclean                    : $(CLEANPROGS) quickclean-binutils quickclean-gcc quickclean-newlib quickclean-gdb clean-local-exec clean-compat-exec clean-sys
 $(ALLPROGS)                   :
 	cd src/$(patsubst all-%,%,$@) && $(MAKE) all
 $(INSTALLPROGS)               :
@@ -213,6 +213,24 @@ uninstall-local-exec          : clean-local-exec
 		fi \
 	done
 	-rm -df "$(DESTDIR)$(tooldir)/bin"
+
+install-compat-exec           :
+	for f in "$(DESTDIR)$(bindir)/$(target)-"*; do \
+		if test -f "$$f"; then \
+			f="$${f##*/}"; \
+			(cd "$(DESTDIR)$(bindir)" && $(LN_S) -f "$$f" "mips64-$${f##$(target)-}"); \
+		fi \
+	done
+	touch $@
+clean-compat-exec             :
+	rm -f install-compat-exec
+uninstall-compat-exec         : clean-compat-exec
+	for f in "$(DESTDIR)$(bindir)/$(target)-"*; do \
+		if test -f "$$f"; then \
+			f="$${f##*/}"; \
+			(cd "$(DESTDIR)$(bindir)" && rm -f "mips64-$${f##$(target)-}"); \
+		fi \
+	done
 
 install-sys                   :
 	$(MKDIR_P) "$(DESTDIR)$(sysroot)/usr"
