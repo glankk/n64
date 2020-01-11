@@ -59,12 +59,10 @@ binutils.tar.gz               :
 binutils                      : | binutils.tar.gz
 	mkdir binutils
 	tar xfv binutils.tar.gz --strip-components=1 -C binutils
+	patch -d binutils/ld -p 1 < "$(srcdir)/config/ld/ld.diff"
 	cp "$(srcdir)/config/ld/emulparams/"* binutils/ld/emulparams
 	cp "$(srcdir)/config/ld/emultempl/"* binutils/ld/emultempl
 	cat "$(srcdir)/config/ld/configure.tgt.ultra" >> binutils/ld/configure.tgt
-	cat "$(srcdir)/config/ld/Makefile.am.ultra" >> binutils/ld/Makefile.am
-	rm -f binutils/ld/po/BLD-POTFILES.in
-	autoreconf binutils/ld
 build-binutils/config.status  : | binutils
 	if test ! -d build-binutils; then mkdir build-binutils; fi
 	cd build-binutils && ../binutils/configure \

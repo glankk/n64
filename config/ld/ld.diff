@@ -1,0 +1,40 @@
+diff --git a/Makefile.in b/Makefile.in
+index e79a8c8..fdfc8ce 100644
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -904,6 +904,7 @@ ALL_64_EMULATION_SOURCES = \
+ 	eelf32btsmipn32.c \
+ 	eelf32btsmipn32_fbsd.c \
+ 	eelf32ebmip.c \
++	eelf32ebmipultra.c \
+ 	eelf32ebmipvxworks.c \
+ 	eelf32elmip.c \
+ 	eelf32elmipvxworks.c \
+@@ -1297,6 +1298,7 @@ distclean-compile:
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf32cr16.Po@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf32crx.Po@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf32ebmip.Po@am__quote@
++@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf32ebmipultra.Po@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf32ebmipvxworks.Po@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf32elmip.Po@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf32elmipvxworks.Po@am__quote@
+@@ -2507,6 +2509,7 @@ $(ALL_EMULATION_SOURCES) $(ALL_64_EMULATION_SOURCES): $(GEN_DEPENDS)
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf32btsmipn32.Pc@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf32btsmipn32_fbsd.Pc@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf32ebmip.Pc@am__quote@
++@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf32ebmipultra.Pc@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf32ebmipvxworks.Pc@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf32elmip.Pc@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf32elmipvxworks.Pc@am__quote@
+diff --git a/po/BLD-POTFILES.in b/po/BLD-POTFILES.in
+index 768f25a..9af3f94 100644
+--- a/po/BLD-POTFILES.in
++++ b/po/BLD-POTFILES.in
+@@ -99,6 +99,7 @@ eelf32btsmipn32_fbsd.c
+ eelf32cr16.c
+ eelf32crx.c
+ eelf32ebmip.c
++eelf32ebmipultra.c
+ eelf32ebmipvxworks.c
+ eelf32elmip.c
+ eelf32elmipvxworks.c

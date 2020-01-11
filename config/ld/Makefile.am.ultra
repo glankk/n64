@@ -1,3 +1,0 @@
-ALL_64_EMULATION_SOURCES += eelf32ebmipultra.c
-
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/eelf32ebmipultra.Pc@am__quote@
