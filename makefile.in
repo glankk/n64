@@ -136,6 +136,7 @@ newlib                        : | newlib.tar.gz
 	mkdir newlib
 	tar xfv newlib.tar.gz --strip-components=1 -C newlib
 	patch -d newlib -p 1 < "$(srcdir)/config/newlib/newlib.diff"
+	if test -f $(srcdir)/config/newlib/$(NEWLIB_VERSION).diff; then patch -d newlib -p 1 < "$(srcdir)/config/newlib/$(NEWLIB_VERSION).diff"; fi
 build-newlib/config.status    : | newlib install-binutils install-gcc-executables
 	if test ! -d build-newlib; then mkdir build-newlib; fi
 	cd build-newlib && ../newlib/configure \
