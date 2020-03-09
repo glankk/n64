@@ -3,9 +3,15 @@
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
+#include <errno.h>
 #include <vector/vector.h>
 #include "gfxdis.h"
 #include <n64.h>
+
+#ifdef _WIN32
+# include <io.h>
+# include <fcntl.h>
+#endif
 
 #if defined(F3D_GBI)
 # if defined(F3D_BETA)
@@ -108,25 +114,47 @@ static int from_file(struct vector *gfx_v, const char *filename, int max,
                      int offset)
 {
   int result = 0;
+#ifdef _WIN32
+  int mode = _O_TEXT;
+#endif
 
   FILE *f = NULL;
-  if (strcmp(filename, "-") == 0)
-    f = freopen(NULL, "rb", stdin);
-  else
+  if (strcmp(filename, "-") == 0) {
+    filename = "stdin";
+#ifdef _WIN32
+    mode = _setmode(_fileno(stdin), _O_BINARY);
+    if (mode == -1) {
+      fprintf(stderr, "%s: %s: %s\n", prog_name, strerror(errno), filename);
+      goto err;
+    }
+#endif
+    f = stdin;
+  }
+  else {
     f = fopen(filename, "rb");
-  if (!f) {
-    fprintf(stderr, "%s: %s: %s\n", prog_name, strerror(errno), filename);
-    goto err;
+    if (!f) {
+      fprintf(stderr, "%s: %s: %s\n", prog_name, strerror(errno), filename);
+      goto err;
+    }
   }
 
   if (offset != 0 && fseek(f, offset, SEEK_SET)) {
-    fprintf(stderr, "%s: %s: %s\n", prog_name, strerror(errno), filename);
-    goto err;
+    for (int i = 0; i < offset; ++i) {
+      if (fgetc(f) == EOF) {
+        if (ferror(f)) {
+          fprintf(stderr, "%s: %s: %s\n", prog_name, strerror(errno),
+                  filename);
+          goto err;
+        }
+        else
+          break;
+      }
+    }
   }
 
   while (!gfx_v_ate(gfx_v, max)) {
     Gfx gfx;
-    if (fread(&gfx, sizeof(Gfx), 1, f) != 1) {
+    if (fread(&gfx, sizeof(gfx), 1, f) != 1) {
       if (ferror(f)) {
         fprintf(stderr, "%s: %s: %s\n", prog_name, strerror(errno), filename);
         goto err;
@@ -134,7 +162,7 @@ static int from_file(struct vector *gfx_v, const char *filename, int max,
       else
         break;
     }
-    int n = gfx_v->element_size / sizeof(gfx);
+    int n = sizeof(gfx) / gfx_v->element_size;
     if (!vector_push_back(gfx_v, n, &gfx)) {
       fprintf(stderr, "%s: out of memory\n", prog_name);
       goto err;
@@ -148,8 +176,11 @@ err:
 
 exit:
   if (f) {
-    if (strcmp(filename, "-") != 0)
-      freopen(NULL, "r", stdin);
+    if (f == stdin) {
+#ifdef _WIN32
+      _setmode(_fileno(f), mode);
+#endif
+    }
     else
       fclose(f);
   }
@@ -305,11 +336,14 @@ int main(int argc, char *argv[])
         int n = opt_r ? insn->n_gfx : 1;
         for (int j = 0; j < n; ++j) {
           printf("    /*");
-          if (opt_p)
-            printf(" %08" PRIX32 ":", offset + (raw_p + j) * sizeof(Gfx));
+          if (opt_p) {
+            uint32_t addr = offset + (raw_p + j) * sizeof(Gfx);
+            printf(" %08" PRIX32 ":", addr);
+          }
           if (opt_r) {
-            printf(" %08" PRIX32 " %08" PRIX32,
-                   btoh32(raw[raw_p + j].hi), btoh32(raw[raw_p + j].lo));
+            uint32_t hi = btoh32(raw[raw_p + j].hi);
+            uint32_t lo = btoh32(raw[raw_p + j].lo);
+            printf(" %08" PRIX32 " %08" PRIX32, hi, lo);
           }
           if (j == 0)
             printf(" */ %s,\n", s);
