@@ -52,7 +52,10 @@ int gfx_insn_col(struct gfx_insn *insn, int n_insn)
 char *gfx_insn_str(struct gfx_insn *insn, char *buf)
 {
   struct gfx_insn_info *info = &gfx_insn_info[insn->def];
-  buf += sprintf(buf, "%s(", info->name);
+  if (insn->def == GFX_ID_INVD)
+    buf += sprintf(buf, "(%s){", info->name);
+  else
+    buf += sprintf(buf, "%s(", info->name);
   for (int i = 0; i < info->n_args; ++i) {
     if (i > 0)
       buf += sprintf(buf, ", ");
@@ -61,7 +64,33 @@ char *gfx_insn_str(struct gfx_insn *insn, char *buf)
     else
       buf += sprintf(buf, "%" PRIi32, (int32_t)insn->arg[i]);
   }
-  buf += sprintf(buf, ")");
+  if (insn->def == GFX_ID_INVD)
+    buf += sprintf(buf, "}");
+  else
+    buf += sprintf(buf, ")");
+  return buf;
+}
+
+char *gfx_insn_str_dyn(struct gfx_insn *insn, const char *arg, char *buf)
+{
+  struct gfx_insn_info *info = &gfx_insn_info[insn->def];
+  if (insn->def == GFX_ID_INVD)
+    buf += sprintf(buf, "%s = (%s){", arg, info->name);
+  else if (strncmp(info->name, "gs", 2) == 0)
+    buf += sprintf(buf, "g%s(%s", &info->name[2], arg);
+  else if (strncmp(info->name, "_gs", 3) == 0)
+    buf += sprintf(buf, "_g%s(%s", &info->name[3], arg);
+  for (int i = 0; i < info->n_args; ++i) {
+    buf += sprintf(buf, ", ");
+    if (insn->strarg[i])
+      buf += insn->strarg[i](buf, insn->arg[i]);
+    else
+      buf += sprintf(buf, "%" PRIi32, (int32_t)insn->arg[i]);
+  }
+  if (insn->def == GFX_ID_INVD)
+    buf += sprintf(buf, "}");
+  else
+    buf += sprintf(buf, ")");
   return buf;
 }
 
@@ -194,7 +223,7 @@ static int strarg_qs105(char *buf, uint32_t arg)
 
 static int strarg_invd(char *buf, uint32_t arg)
 {
-  return sprintf(buf, "**INVALID**");
+  return sprintf(buf, "%" PRIi32 " /* INVALID */", (int32_t)arg);
 }
 
 static int strarg_fmt(char *buf, uint32_t arg)
@@ -1925,19 +1954,21 @@ int gfx_dis_dpSetCombineMode(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
       p1 = i;
     }
   }
-  _Bool err = 0;
-  if (p0 == -1) {
-    err = 1;
-    p0 = 0;
-  }
-  if (p1 == -1) {
-    err = 1;
-    p1 = 0;
-  }
   insn->arg[0] = p0;
   insn->arg[1] = p1;
   insn->strarg[0] = strarg_ccpre;
   insn->strarg[1] = strarg_ccpre;
+  _Bool err = 0;
+  if (p0 == -1) {
+    insn->arg[0] = 0;
+    insn->strarg[0] = strarg_invd;
+    err = 1;
+  }
+  if (p1 == -1) {
+    insn->arg[1] = 0;
+    insn->strarg[1] = strarg_invd;
+    err = 1;
+  }
   return err;
 }
 
@@ -2267,7 +2298,20 @@ int gfx_dis_sp1Triangle(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
   insn->arg[1] = n1 / 10;
   insn->arg[2] = n2 / 10;
   insn->arg[3] = getfield(lo, 8, 24);
-  return n0 % 10 != 0 || n1 % 10 != 0 || n2 % 10 != 0;
+  _Bool err = 0;
+  if (n0 % 10 != 0) {
+    insn->strarg[0] = strarg_invd;
+    err = 1;
+  }
+  if (n1 % 10 != 0) {
+    insn->strarg[1] = strarg_invd;
+    err = 1;
+  }
+  if (n2 % 10 != 0) {
+    insn->strarg[2] = strarg_invd;
+    err = 1;
+  }
+  return err;
 }
 #elif defined(F3DEX_GBI) || defined(F3DEX_GBI_2)
 int gfx_dis_sp1Triangle(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
@@ -2281,7 +2325,20 @@ int gfx_dis_sp1Triangle(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
   insn->arg[1] = n1 / 2;
   insn->arg[2] = n2 / 2;
   insn->arg[3] = 0;
-  return n0 % 2 != 0 || n1 % 2 != 0 || n2 % 2 != 0;
+  _Bool err = 0;
+  if (n0 % 2 != 0) {
+    insn->strarg[0] = strarg_invd;
+    err = 1;
+  }
+  if (n1 % 2 != 0) {
+    insn->strarg[1] = strarg_invd;
+    err = 1;
+  }
+  if (n2 % 2 != 0) {
+    insn->strarg[2] = strarg_invd;
+    err = 1;
+  }
+  return err;
 }
 
 int gfx_dis_sp2Triangles(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
@@ -2306,8 +2363,32 @@ int gfx_dis_sp2Triangles(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
   insn->arg[5] = n11 / 2;
   insn->arg[6] = n12 / 2;
   insn->arg[7] = 0;
-  return n00 % 2 != 0 || n01 % 2 != 0 || n02 % 2 != 0 ||
-         n10 % 2 != 0 || n11 % 2 != 0 || n12 % 2 != 0;
+  _Bool err = 0;
+  if (n00 % 2 != 0) {
+    insn->strarg[0] = strarg_invd;
+    err = 1;
+  }
+  if (n01 % 2 != 0) {
+    insn->strarg[1] = strarg_invd;
+    err = 1;
+  }
+  if (n02 % 2 != 0) {
+    insn->strarg[2] = strarg_invd;
+    err = 1;
+  }
+  if (n10 % 2 != 0) {
+    insn->strarg[4] = strarg_invd;
+    err = 1;
+  }
+  if (n11 % 2 != 0) {
+    insn->strarg[5] = strarg_invd;
+    err = 1;
+  }
+  if (n12 % 2 != 0) {
+    insn->strarg[6] = strarg_invd;
+    err = 1;
+  }
+  return err;
 }
 
 int gfx_dis_sp1Quadrangle(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
@@ -2331,9 +2412,24 @@ int gfx_dis_sp1Quadrangle(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
   insn->arg[2] = v11;
   insn->arg[3] = v12;
   insn->arg[4] = 0;
-  return v00 != v10 || v02 != v11 ||
-         n00 % 2 != 0 || n01 % 2 != 0 || n02 % 2 != 0 ||
-         n10 % 2 != 0 || n11 % 2 != 0 || n12 % 2 != 0;
+  _Bool err = 0;
+  if (v00 != v10 || n00 % 2 != 0 || n10 % 2 != 0) {
+    insn->strarg[0] = strarg_invd;
+    err = 1;
+  }
+  if (n01 % 2 != 0) {
+    insn->strarg[1] = strarg_invd;
+    err = 1;
+  }
+  if (v02 != v11 || n02 % 2 != 0 || n11 % 2 != 0) {
+    insn->strarg[2] = strarg_invd;
+    err = 1;
+  }
+  if (n12 % 2 != 0) {
+    insn->strarg[3] = strarg_invd;
+    err = 1;
+  }
+  return err;
 }
 
 int gfx_col_spBranchLessZ(struct gfx_insn *insn, int n_insn)
@@ -2465,7 +2561,16 @@ int gfx_dis_spCullDisplayList(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
   int nn = getfield(lo, 16, 0);
   insn->arg[0] = n0 / 40;
   insn->arg[1] = nn / 40 - 1;
-  return n0 % 40 != 0 || nn % 40 != 0;
+  _Bool err = 0;
+  if (n0 % 40 != 0) {
+    insn->strarg[0] = strarg_invd;
+    err = 1;
+  }
+  if (nn % 40 != 0) {
+    insn->strarg[1] = strarg_invd;
+    err = 1;
+  }
+  return err;
 }
 #elif defined(F3DEX_GBI) || defined(F3DEX_GBI_2)
 int gfx_dis_spCullDisplayList(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
@@ -2476,7 +2581,16 @@ int gfx_dis_spCullDisplayList(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
   int nn = getfield(lo, 16, 0);
   insn->arg[0] = n0 / 2;
   insn->arg[1] = nn / 2;
-  return n0 % 2 != 0 || nn % 2 != 0;
+  _Bool err = 0;
+  if (n0 % 2 != 0) {
+    insn->strarg[0] = strarg_invd;
+    err = 1;
+  }
+  if (nn % 2 != 0) {
+    insn->strarg[1] = strarg_invd;
+    err = 1;
+  }
+  return err;
 }
 #endif
 
@@ -2655,7 +2769,16 @@ int gfx_dis_spLine3D(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
   insn->arg[0] = v0 / 10;
   insn->arg[1] = v1 / 10;
   insn->arg[2] = getfield(lo, 8, 24);
-  return v0 % 10 != 0 || v1 % 10 != 0;
+  _Bool err = 0;
+  if (v0 % 10 != 0) {
+    insn->strarg[0] = strarg_invd;
+    err = 1;
+  }
+  if (v1 % 10 != 0) {
+    insn->strarg[1] = strarg_invd;
+    err = 1;
+  }
+  return err;
 }
 #elif defined(F3DEX_GBI) || defined(F3DEX_GBI_2)
 int gfx_dis_spLine3D(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
@@ -2667,7 +2790,16 @@ int gfx_dis_spLine3D(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
   insn->arg[0] = v0 / 2;
   insn->arg[1] = v1 / 2;
   insn->arg[2] = 0;
-  return v0 % 2 != 0 || v1 % 2 != 0;
+  _Bool err = 0;
+  if (v0 % 2 != 0) {
+    insn->strarg[0] = strarg_invd;
+    err = 1;
+  }
+  if (v1 % 2 != 0) {
+    insn->strarg[1] = strarg_invd;
+    err = 1;
+  }
+  return err;
 }
 #endif
 
@@ -2686,7 +2818,16 @@ int gfx_dis_spLineW3D(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
     insn->arg[1] = v1 / 10;
     insn->arg[2] = wd;
     insn->arg[3] = getfield(lo, 8, 24);
-    return v0 % 10 != 0 || v1 % 10 != 0;
+    _Bool err = 0;
+    if (v0 % 10 != 0) {
+      insn->strarg[0] = strarg_invd;
+      err = 1;
+    }
+    if (v1 % 10 != 0) {
+      insn->strarg[1] = strarg_invd;
+      err = 1;
+    }
+    return err;
   }
 }
 #elif defined(F3DEX_GBI) || defined(F3DEX_GBI_2)
@@ -2704,7 +2845,16 @@ int gfx_dis_spLineW3D(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
     insn->arg[1] = v1 / 2;
     insn->arg[2] = wd;
     insn->arg[3] = 0;
-    return v0 % 2 != 0 || v1 % 2 != 0;
+    _Bool err = 0;
+    if (v0 % 2 != 0) {
+      insn->strarg[0] = strarg_invd;
+      err = 1;
+    }
+    if (v1 % 2 != 0) {
+      insn->strarg[1] = strarg_invd;
+      err = 1;
+    }
+    return err;
   }
 }
 #endif
@@ -2808,10 +2958,16 @@ int gfx_dis_spModifyVertex(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
   insn->arg[2] = lo;
   insn->strarg[1] = strarg_mwo_point;
   insn->strarg[2] = strarg_x32;
-  return offset % 40 != G_MWO_POINT_RGBA ||
-         offset % 40 != G_MWO_POINT_ST ||
-         offset % 40 != G_MWO_POINT_XYSCREEN ||
-         offset % 40 != G_MWO_POINT_ZSCREEN;
+  _Bool err = 0;
+  if (offset % 40 != G_MWO_POINT_RGBA ||
+      offset % 40 != G_MWO_POINT_ST ||
+      offset % 40 != G_MWO_POINT_XYSCREEN ||
+      offset % 40 != G_MWO_POINT_ZSCREEN)
+  {
+    insn->strarg[1] = strarg_invd;
+    err = 1;
+  }
+  return err;
 }
 #elif defined(F3DEX_GBI) || defined(F3DEX_GBI_2)
 int gfx_dis_spModifyVertex(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
@@ -2824,7 +2980,12 @@ int gfx_dis_spModifyVertex(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
   insn->arg[2] = lo;
   insn->strarg[1] = strarg_mwo_point;
   insn->strarg[2] = strarg_x32;
-  return vtx % 2 != 0;
+  _Bool err = 0;
+  if (vtx % 2 != 0) {
+    insn->strarg[0] = strarg_invd;
+    err = 1;
+  }
+  return err;
 }
 #endif
 
@@ -2857,8 +3018,13 @@ int gfx_dis_spPopMatrixN(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
   int ofs = getfield(hi, 8, 8) * 8;
   int idx = getfield(hi, 8, 0);
   int n = lo / sizeof(Mtx);
-  _Bool err = lo % sizeof(Mtx) != 0 || len != sizeof(Mtx) || ofs != 0 ||
-              idx != 2;
+  _Bool err = 0;
+  if (lo % sizeof(Mtx) != 0) {
+    insn->strarg[1] = strarg_invd;
+    err = 1;
+  }
+  if (len != sizeof(Mtx) || ofs != 0 || idx != 2)
+    err = 1;
   if (n != 1 || err)
   {
     insn->def = GFX_ID_SPPOPMATRIXN;
@@ -2886,7 +3052,12 @@ int gfx_dis_spSegment(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
   insn->arg[1] = lo;
   insn->strarg[0] = strarg_x8;
   insn->strarg[1] = strarg_x32;
-  return offset % 4 != 0 || offset > G_MWO_SEGMENT_F;
+  _Bool err = 0;
+  if (offset % 4 != 0 || offset > G_MWO_SEGMENT_F) {
+    insn->strarg[0] = strarg_invd;
+    err = 1;
+  }
+  return err;
 }
 
 static int gfx_col_spSetLights(struct gfx_insn *insn, int n_insn,
@@ -2958,7 +3129,12 @@ int gfx_dis_spNumLights(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
   insn->def = GFX_ID_SPNUMLIGHTS;
   insn->n_gfx = 1;
   insn->arg[0] = (lo - 0x80000000) / 32 - 1;
-  return lo < 0x80000040 || lo % 32 != 0;
+  _Bool err = 0;
+  if (lo < 0x80000040 || lo % 32 != 0) {
+    insn->strarg[0] = strarg_invd;
+    err = 1;
+  }
+  return err;
 }
 #elif defined(F3DEX_GBI_2)
 int gfx_dis_spNumLights(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
@@ -2966,7 +3142,12 @@ int gfx_dis_spNumLights(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
   insn->def = GFX_ID_SPNUMLIGHTS;
   insn->n_gfx = 1;
   insn->arg[0] = lo / 24;
-  return lo < 24 || lo % 24 != 0;
+  _Bool err = 0;
+  if (lo < 24 || lo % 24 != 0) {
+    insn->strarg[0] = strarg_invd;
+    err = 1;
+  }
+  return err;
 }
 #endif
 
@@ -3139,7 +3320,12 @@ int gfx_dis_spVertex(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
   insn->arg[1] = n;
   insn->arg[2] = v0;
   insn->strarg[0] = strarg_x32;
-  return size != sizeof(Vtx) * n;
+  _Bool err = 0;
+  if (size != sizeof(Vtx) * n) {
+    insn->strarg[1] = strarg_invd;
+    err = 1;
+  }
+  return err;
 }
 #elif defined(F3DEX_GBI)
 int gfx_dis_spVertex(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
@@ -3153,7 +3339,16 @@ int gfx_dis_spVertex(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
   insn->arg[1] = n;
   insn->arg[2] = v0 / 2;
   insn->strarg[0] = strarg_x32;
-  return v0 % 2 != 0 || size != sizeof(Vtx) * n - 1;
+  _Bool err = 0;
+  if (size != sizeof(Vtx) * n - 1) {
+    insn->strarg[1] = strarg_invd;
+    err = 1;
+  }
+  if (v0 % 2 != 0) {
+    insn->strarg[2] = strarg_invd;
+    err = 1;
+  }
+  return err;
 }
 #elif defined(F3DEX_GBI_2)
 int gfx_dis_spVertex(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
@@ -3256,7 +3451,14 @@ int gfx_dis_BranchZ(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
   insn->strarg[2] = strarg_f;
   insn->strarg[3] = strarg_f;
   insn->strarg[4] = strarg_bz;
-  return na % 5 != 0 || nb % 2 != 0 || na / 5 != nb / 2;
+  _Bool err = 0;
+  if (nb % 2 != 0 || na / 5 != nb / 2) {
+    insn->strarg[0] = strarg_invd;
+    err = 1;
+  }
+  if (na % 5 != 0)
+    err = 1;
+  return err;
 }
 #endif
 

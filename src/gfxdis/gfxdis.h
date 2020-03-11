@@ -204,6 +204,7 @@ struct gfxdis_cfg
 int   gfx_insn_dis(struct gfx_insn *insn, Gfx *gfx);
 int   gfx_insn_col(struct gfx_insn *insn, int n_insn);
 char *gfx_insn_str(struct gfx_insn *insn, char *buf);
+char *gfx_insn_str_dyn(struct gfx_insn *insn, const char *arg, char *buf);
 int   gfx_dis(struct vector *insn_vect, Gfx *gfx, int max);
 
 int gfx_dis_invd(struct gfx_insn *insn, uint32_t hi, uint32_t lo);

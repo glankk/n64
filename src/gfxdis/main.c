@@ -32,11 +32,11 @@ static const char *prog_name = "gfxdis.f3dex2";
 static int usage(void)
 {
   fprintf(stderr,
-          "gfxdis-0.3: display list disassembler\n"
+          "gfxdis-0.4: display list disassembler\n"
           "written by: glank\n"
           "build date: " __TIME__ ", " __DATE__ "\n"
           "usage:\n"
-          "  %s [-x] [-i] [-p] [-r] [-n <max>] [-a <offset>] "
+          "  %s [-x] [-i] [-p] [-r] [-g <arg>] [-n <max>] [-a <offset>] "
           "{-f <file> | -d <data>}\n"
           "options:\n"
           "  -x            do not use fixed-point conversion macros\n"
@@ -44,6 +44,8 @@ static int usage(void)
           "instructions\n"
           "  -p            print offsets\n"
           "  -r            print raw data\n"
+          "  -g <arg>      generate dynamic macros with <arg> as the first "
+          "argument\n"
           "  -n <max>      disassemble at most <max> instructions\n"
           "  -a <offset>   start disassembling at <offset>\n"
           "  -f <file>     disassemble <file>, '-' for stdin\n"
@@ -249,6 +251,7 @@ int main(int argc, char *argv[])
   const char *opt_i = NULL;
   const char *opt_p = NULL;
   const char *opt_r = NULL;
+  const char *opt_g = NULL;
   const char *opt_n = NULL;
   const char *opt_a = NULL;
   const char *opt_f = NULL;
@@ -264,6 +267,10 @@ int main(int argc, char *argv[])
       p_opt = &opt_p;
     else if (strcmp(argv[argp], "-r") == 0)
       p_opt = &opt_r;
+    else if (strcmp(argv[argp], "-g") == 0) {
+      param = 1;
+      p_opt = &opt_g;
+    }
     else if (strcmp(argv[argp], "-n") == 0) {
       param = 1;
       p_opt = &opt_n;
@@ -328,15 +335,22 @@ int main(int argc, char *argv[])
     int raw_p = 0;
     struct vector insn_vect;
     result = gfx_dis(&insn_vect, raw, gfx_v_num(&gfx_v));
-    printf("{\n");
+    if (opt_g == NULL)
+      printf("{\n");
     for (int i = 0; i < insn_vect.size; ++i) {
       char s[1024];
       struct gfx_insn *insn = vector_at(&insn_vect, i);
-      gfx_insn_str(insn, s);
+      if (opt_g == NULL)
+        gfx_insn_str(insn, s);
+      else
+        gfx_insn_str_dyn(insn, opt_g, s);
       if (opt_p || opt_r) {
         int n = opt_r ? insn->n_gfx : 1;
         for (int j = 0; j < n; ++j) {
-          printf("    /*");
+          if (opt_g == NULL)
+            printf("    /*");
+          else
+            printf("/*");
           if (opt_p) {
             uint32_t addr = offset + (raw_p + j) * sizeof(Gfx);
             printf(" %08" PRIX32 ":", addr);
@@ -346,18 +360,27 @@ int main(int argc, char *argv[])
             uint32_t lo = btoh32(raw[raw_p + j].lo);
             printf(" %08" PRIX32 " %08" PRIX32, hi, lo);
           }
-          if (j == 0)
-            printf(" */ %s,\n", s);
+          if (j == 0) {
+            if (opt_g == NULL)
+              printf(" */ %s,\n", s);
+            else
+              printf(" */ %s;\n", s);
+          }
           else
-            printf("\n");
+            printf(" */\n");
         }
       }
-      else
-        printf("    %s,\n", s);
+      else {
+        if (opt_g == NULL)
+          printf("    %s,\n", s);
+        else
+          printf("%s;\n", s);
+      }
       raw_p += insn->n_gfx;
     }
     vector_destroy(&insn_vect);
-    printf("}\n");
+    if (opt_g == NULL)
+      printf("}\n");
     if (result == -1)
       fprintf(stderr, "%s: out of memory\n", prog_name);
   }
