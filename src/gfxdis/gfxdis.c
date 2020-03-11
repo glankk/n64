@@ -76,12 +76,17 @@ char *gfx_insn_str_dyn(struct gfx_insn *insn, const char *arg, char *buf)
   struct gfx_insn_info *info = &gfx_insn_info[insn->def];
   if (insn->def == GFX_ID_INVD)
     buf += sprintf(buf, "%s = (%s){", arg, info->name);
-  else if (strncmp(info->name, "gs", 2) == 0)
-    buf += sprintf(buf, "g%s(%s", &info->name[2], arg);
-  else if (strncmp(info->name, "_gs", 3) == 0)
-    buf += sprintf(buf, "_g%s(%s", &info->name[3], arg);
+  else {
+    if (strncmp(info->name, "gs", 2) == 0)
+      buf += sprintf(buf, "g%s(%s", &info->name[2], arg);
+    else if (strncmp(info->name, "_gs", 3) == 0)
+      buf += sprintf(buf, "_g%s(%s", &info->name[3], arg);
+    if (info->n_args > 0)
+      buf += sprintf(buf, ", ");
+  }
   for (int i = 0; i < info->n_args; ++i) {
-    buf += sprintf(buf, ", ");
+    if (i > 0)
+      buf += sprintf(buf, ", ");
     if (insn->strarg[i])
       buf += insn->strarg[i](buf, insn->arg[i]);
     else
