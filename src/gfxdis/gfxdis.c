@@ -332,7 +332,7 @@ static int strarg_gm(char *buf, uint32_t arg)
     if (arg & G_CULL_BACK) {
       if (p > 0)
         strappf(" | ");
-      strappf("G_G_CULL_BACK");
+      strappf("G_CULL_BACK");
     }
   }
   if (arg & G_FOG) {
