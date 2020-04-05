@@ -190,14 +190,22 @@ struct gfx_insn_info
 struct gfx_insn
 {
   enum gfx_insn_def   def;
+  int                 n_gfx;
   uint32_t            arg[18];
   gfx_insn_strarg_t   strarg[18];
+};
+
+struct gfxdis_cfg
+{
+  _Bool               dis_invd;
+  _Bool               use_q;
 };
 
 int   gfx_insn_dis(struct gfx_insn *insn, Gfx *gfx);
 int   gfx_insn_col(struct gfx_insn *insn, int n_insn);
 char *gfx_insn_str(struct gfx_insn *insn, char *buf);
-int   gfx_dis(struct vector *insn_vect, Gfx *gfx, int max, _Bool dis_invd);
+char *gfx_insn_str_dyn(struct gfx_insn *insn, const char *arg, char *buf);
+int   gfx_dis(struct vector *insn_vect, Gfx *gfx, int max);
 
 int gfx_dis_invd(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
 int gfx_dis_dpFillRectangle(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
@@ -359,5 +367,6 @@ int gfx_dis_Special1(struct gfx_insn *insn, uint32_t hi, uint32_t lo);
 #endif
 
 extern struct gfx_insn_info gfx_insn_info[];
+extern struct gfxdis_cfg gfxdis_cfg;
 
 #endif
