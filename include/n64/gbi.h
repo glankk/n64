@@ -651,11 +651,11 @@
 #define G_RM_SPRITE2                  G_RM_OPA_SURF2
 #define G_RM_RA_SPRITE                (AA_EN|CVG_DST_CLAMP|ZMODE_OPA|         \
                                        CVG_X_ALPHA|ALPHA_CVG_SEL|             \
-                                       GBL_c1(G_BL_CLR_IN G_BL_A_IN,          \
+                                       GBL_c1(G_BL_CLR_IN,G_BL_A_IN,          \
                                               G_BL_CLR_MEM,G_BL_1MA))
 #define G_RM_RA_SPRITE2               (AA_EN|CVG_DST_CLAMP|ZMODE_OPA|         \
                                        CVG_X_ALPHA|ALPHA_CVG_SEL|             \
-                                       GBL_c2(G_BL_CLR_IN G_BL_A_IN,          \
+                                       GBL_c2(G_BL_CLR_IN,G_BL_A_IN,          \
                                               G_BL_CLR_MEM,G_BL_1MA))
 #define G_RM_AA_SPRITE                G_RM_AA_TEX_TERR
 #define G_RM_AA_SPRITE2               G_RM_AA_TEX_TERR2
