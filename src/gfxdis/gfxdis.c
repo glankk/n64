@@ -502,15 +502,19 @@ static struct rm_preset rm_presets[] =
   {G_RM_ZB_OVL_SURF2,     "G_RM_ZB_OVL_SURF2"},
   {G_RM_ADD,              "G_RM_ADD"},
   {G_RM_ADD2,             "G_RM_ADD2"},
-  {G_RM_FOG_SHADE_A,      "G_RM_FOG_SHADE_A"},
-  {G_RM_FOG_PRIM_A,       "G_RM_FOG_PRIM_A"},
-  {G_RM_PASS,             "G_RM_PASS"},
   {G_RM_VISCVG,           "G_RM_VISCVG"},
   {G_RM_VISCVG2,          "G_RM_VISCVG2"},
   {G_RM_OPA_CI,           "G_RM_OPA_CI"},
   {G_RM_OPA_CI2,          "G_RM_OPA_CI2"},
-  {G_RM_NOOP,             "G_RM_NOOP"},
   {G_RM_NOOP2,            "G_RM_NOOP2"},
+};
+
+static struct rm_preset cbl1_presets[] =
+{
+  {G_RM_FOG_SHADE_A,      "G_RM_FOG_SHADE_A"},
+  {G_RM_FOG_PRIM_A,       "G_RM_FOG_PRIM_A"},
+  {G_RM_PASS,             "G_RM_PASS"},
+  {G_RM_NOOP,             "G_RM_NOOP"},
 };
 
 static int rm_str(char *buf, uint32_t arg)
@@ -610,26 +614,30 @@ static int rmcbl_str(char *buf, uint32_t arg, int c)
 
 static int strarg_rm1(char *buf, uint32_t arg)
 {
-  arg &= 0xCCCCFFF8;
-  int n_presets = sizeof(rm_presets) / sizeof(*rm_presets);
-  for (int i = 0; i < n_presets; ++i) {
-    if (arg == rm_presets[i].rm)
+  uint32_t cbl1 = arg & 0xCCCC0000;
+  int n_cbl1_presets = sizeof(cbl1_presets) / sizeof(*cbl1_presets);
+  for (int i = 0; i < n_cbl1_presets; ++i) {
+    if (cbl1 == cbl1_presets[i].rm)
+      return sprintf(buf, "%s", cbl1_presets[i].name);
+  }
+  uint32_t c1 = arg & 0xCCCCFFF8;
+  int n_rm_presets = sizeof(rm_presets) / sizeof(*rm_presets);
+  for (int i = 0; i < n_rm_presets; ++i) {
+    if (c1 == rm_presets[i].rm)
       return sprintf(buf, "%s", rm_presets[i].name);
   }
-  return rmcbl_str(buf, arg, 1);
+  return rmcbl_str(buf, c1, 1);
 }
 
 static int strarg_rm2(char *buf, uint32_t arg)
 {
-  arg &= 0x3333FFF8;
-  int n_presets = sizeof(rm_presets) / sizeof(*rm_presets);
-  for (int i = 0; i < n_presets; ++i) {
-    if (rm_presets[i].rm == G_RM_NOOP)
-      ++i;
-    if (arg == rm_presets[i].rm)
+  uint32_t c2 = arg & 0x3333FFF8;
+  int n_rm_presets = sizeof(rm_presets) / sizeof(*rm_presets);
+  for (int i = 0; i < n_rm_presets; ++i) {
+    if (c2 == rm_presets[i].rm)
       return sprintf(buf, "%s", rm_presets[i].name);
   }
-  return rmcbl_str(buf, arg, 2);
+  return rmcbl_str(buf, c2, 2);
 }
 
 static int strarg_othermodelo(char *buf, uint32_t arg)
@@ -638,33 +646,37 @@ static int strarg_othermodelo(char *buf, uint32_t arg)
   strapp(strarg_ac(buf, arg));
   strappf(" | ");
   strapp(strarg_zs(buf, arg));
+  const char *p1 = NULL;
+  const char *p2 = NULL;
+  uint32_t cbl1 = arg & 0xCCCC0000;
+  int n_cbl1_presets = sizeof(cbl1_presets) / sizeof(*cbl1_presets);
+  for (int i = 0; i < n_cbl1_presets; ++i) {
+    if (p1 == NULL && cbl1 == cbl1_presets[i].rm)
+      p1 = cbl1_presets[i].name;
+  }
   uint32_t c1 = arg & 0xCCCCFFF8;
   uint32_t c2 = arg & 0x3333FFF8;
-  int p1 = -1;
-  int p2 = -1;
-  int n_presets = sizeof(rm_presets) / sizeof(*rm_presets);
-  for (int i = 0; i < n_presets; ++i) {
-    if (p1 == -1 && c1 == rm_presets[i].rm)
-      p1 = i;
-    if (rm_presets[i].rm == G_RM_NOOP)
-      ++i;
-    if (p2 == -1 && c2 == rm_presets[i].rm)
-      p2 = i;
+  int n_rm_presets = sizeof(rm_presets) / sizeof(*rm_presets);
+  for (int i = 0; i < n_rm_presets; ++i) {
+    if (p1 == NULL && c1 == rm_presets[i].rm)
+      p1 = rm_presets[i].name;
+    if (p2 == NULL && c2 == rm_presets[i].rm)
+      p2 = rm_presets[i].name;
   }
-  if (p1 == -1 && p2 == -1) {
+  if (p1 == NULL && p2 == NULL) {
     strappf(" | ");
     strapp(rm_str(buf, arg));
   }
   strappf(" | ");
-  if (p1 == -1)
+  if (p1 == NULL)
     strapp(cbl_str(buf, arg, 1));
   else
-    strappf("%s", rm_presets[p1].name);
+    strappf("%s", p1);
   strappf(" | ");
-  if (p2 == -1)
+  if (p2 == NULL)
     strapp(cbl_str(buf, arg, 2));
   else
-    strappf("%s", rm_presets[p2].name);
+    strappf("%s", p2);
   return p;
 }
 
