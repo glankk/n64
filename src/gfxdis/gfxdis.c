@@ -506,6 +506,8 @@ static struct rm_preset rm_presets[] =
   {G_RM_VISCVG2,          "G_RM_VISCVG2"},
   {G_RM_OPA_CI,           "G_RM_OPA_CI"},
   {G_RM_OPA_CI2,          "G_RM_OPA_CI2"},
+  {G_RM_RA_SPRITE,        "G_RM_RA_SPRITE"},
+  {G_RM_RA_SPRITE2,       "G_RM_RA_SPRITE2"},
   {G_RM_NOOP2,            "G_RM_NOOP2"},
 };
 

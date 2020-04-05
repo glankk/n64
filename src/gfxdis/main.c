@@ -32,7 +32,7 @@ static const char *prog_name = "gfxdis.f3dex2";
 static int usage(void)
 {
   fprintf(stderr,
-          "gfxdis-0.4.1: display list disassembler\n"
+          "gfxdis-0.4.2: display list disassembler\n"
           "written by: glank\n"
           "build date: " __TIME__ ", " __DATE__ "\n"
           "usage:\n"
