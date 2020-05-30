@@ -8,15 +8,20 @@
 #include <vector/vector.h>
 #include "gfxdis.h"
 
+#define MDMASK(md)        ((((uint32_t)1<<G_MDSIZ_##md)-1)<<G_MDSFT_##md)
+#define MDMASK_RM_C1      ((uint32_t)0xCCCC0000)
+#define MDMASK_RM_C2      ((uint32_t)0x33330000)
+#define MDMASK_RM_LO      ((uint32_t)0x0000FFF8)
+
+#define getfield(w,n,s)   (((uint32_t)(w)>>(s))&(((uint32_t)1<<(n))-1))
+#define strapp(s)         ({int n=(s);p+=n;buf+=n;})
+#define strappf(fmt,...)  ({int n=sprintf(buf,fmt,##__VA_ARGS__);p+=n;buf+=n;})
+
 struct gfxdis_cfg gfxdis_cfg =
 {
   .dis_invd = 0,
   .use_q = 1,
 };
-
-#define getfield(w,n,s)   (((uint32_t)(w)>>(s))&((((uint32_t)1)<<(n))-1))
-#define strapp(s)         ({int n=(s);p+=n;buf+=n;})
-#define strappf(fmt,...)  ({int n=sprintf(buf,fmt,##__VA_ARGS__);p+=n;buf+=n;})
 
 int gfx_insn_dis(struct gfx_insn *insn, Gfx *gfx)
 {
@@ -391,23 +396,90 @@ static int strarg_sftlo(char *buf, uint32_t arg)
   }
 }
 
-static int strarg_ac(char *buf, uint32_t arg)
+static int rm_mode_str(char *buf, uint32_t arg)
 {
-  uint32_t ac = arg & 0x00000003;
-  switch (ac) {
-    case G_AC_NONE      : return sprintf(buf, "G_AC_NONE");
-    case G_AC_THRESHOLD : return sprintf(buf, "G_AC_THRESHOLD");
-    case G_AC_DITHER    : return sprintf(buf, "G_AC_DITHER");
-    default             : return strarg_x32(buf, ac);
+  int p = 0;
+  if (arg & AA_EN)
+    strappf("AA_EN");
+  if (arg & Z_CMP) {
+    if (p > 0)
+      strappf(" | ");
+    strappf("Z_CMP");
   }
+  if (arg & Z_UPD) {
+    if (p > 0)
+      strappf(" | ");
+    strappf("Z_UPD");
+  }
+  if (arg & IM_RD) {
+    if (p > 0)
+      strappf(" | ");
+    strappf("IM_RD");
+  }
+  if (arg & CLR_ON_CVG) {
+    if (p > 0)
+      strappf(" | ");
+    strappf("CLR_ON_CVG");
+  }
+  if (p > 0)
+    strappf(" | ");
+  int cvg = arg & 0x00000300;
+  switch (cvg) {
+    case CVG_DST_CLAMP  : strappf("CVG_DST_CLAMP"); break;
+    case CVG_DST_WRAP   : strappf("CVG_DST_WRAP");  break;
+    case CVG_DST_FULL   : strappf("CVG_DST_FULL");  break;
+    case CVG_DST_SAVE   : strappf("CVG_DST_SAVE");  break;
+  }
+  int zmode = arg & 0x00000C00;
+  switch (zmode) {
+    case ZMODE_OPA    : strappf(" | ZMODE_OPA");    break;
+    case ZMODE_INTER  : strappf(" | ZMODE_INTER");  break;
+    case ZMODE_XLU    : strappf(" | ZMODE_XLU");    break;
+    case ZMODE_DEC    : strappf(" | ZMODE_DEC");    break;
+  }
+  if (arg & CVG_X_ALPHA)
+    strappf(" | CVG_X_ALPHA");
+  if (arg & ALPHA_CVG_SEL)
+    strappf(" | ALPHA_CVG_SEL");
+  if (arg & FORCE_BL)
+    strappf(" | FORCE_BL");
+  return p;
 }
 
-static int strarg_zs(char *buf, uint32_t arg)
+static int rm_cbl_str(char *buf, uint32_t arg, int c)
 {
-  if (arg & G_ZS_PRIM)
-    return sprintf(buf, "G_ZS_PRIM");
-  else
-    return sprintf(buf, "G_ZS_PIXEL");
+  int p = 0;
+  if (c == 2)
+    arg <<= 2;
+  int bp = (arg >> 30) & 0b11;
+  switch (bp) {
+    case G_BL_CLR_IN  : strappf("GBL_c%i(G_BL_CLR_IN",   c); break;
+    case G_BL_CLR_MEM : strappf("GBL_c%i(G_BL_CLR_MEM",  c); break;
+    case G_BL_CLR_BL  : strappf("GBL_c%i(G_BL_CLR_BL",   c); break;
+    case G_BL_CLR_FOG : strappf("GBL_c%i(G_BL_CLR_FOG",  c); break;
+  }
+  int ba = (arg >> 26) & 0b11;
+  switch (ba) {
+    case G_BL_A_IN    : strappf(", G_BL_A_IN");    break;
+    case G_BL_A_FOG   : strappf(", G_BL_A_FOG");   break;
+    case G_BL_A_SHADE : strappf(", G_BL_A_SHADE"); break;
+    case G_BL_0       : strappf(", G_BL_0");       break;
+  }
+  int bm = (arg >> 22) & 0b11;
+  switch (bm) {
+    case G_BL_CLR_IN  : strappf(", G_BL_CLR_IN");  break;
+    case G_BL_CLR_MEM : strappf(", G_BL_CLR_MEM"); break;
+    case G_BL_CLR_BL  : strappf(", G_BL_CLR_BL");  break;
+    case G_BL_CLR_FOG : strappf(", G_BL_CLR_FOG"); break;
+  }
+  int bb = (arg >> 18) & 0b11;
+  switch (bb) {
+    case G_BL_1MA   : strappf(", G_BL_1MA)");    break;
+    case G_BL_A_MEM : strappf(", G_BL_A_MEM)");  break;
+    case G_BL_1     : strappf(", G_BL_1)");      break;
+    case G_BL_0     : strappf(", G_BL_0)");      break;
+  }
+  return p;
 }
 
 struct rm_preset
@@ -498,7 +570,7 @@ static struct rm_preset rm_presets[] =
   {G_RM_CLD_SURF2,        "G_RM_CLD_SURF2"},
   {G_RM_ZB_CLD_SURF,      "G_RM_ZB_CLD_SURF"},
   {G_RM_ZB_CLD_SURF2,     "G_RM_ZB_CLD_SURF2"},
-  {G_RM_ZB_CLD_SURF2,     "G_RM_ZB_CLD_SURF2"},
+  {G_RM_ZB_OVL_SURF,      "G_RM_ZB_OVL_SURF"},
   {G_RM_ZB_OVL_SURF2,     "G_RM_ZB_OVL_SURF2"},
   {G_RM_ADD,              "G_RM_ADD"},
   {G_RM_ADD2,             "G_RM_ADD2"},
@@ -508,10 +580,9 @@ static struct rm_preset rm_presets[] =
   {G_RM_OPA_CI2,          "G_RM_OPA_CI2"},
   {G_RM_RA_SPRITE,        "G_RM_RA_SPRITE"},
   {G_RM_RA_SPRITE2,       "G_RM_RA_SPRITE2"},
-  {G_RM_NOOP2,            "G_RM_NOOP2"},
 };
 
-static struct rm_preset cbl1_presets[] =
+static struct rm_preset bl1_presets[] =
 {
   {G_RM_FOG_SHADE_A,      "G_RM_FOG_SHADE_A"},
   {G_RM_FOG_PRIM_A,       "G_RM_FOG_PRIM_A"},
@@ -519,167 +590,138 @@ static struct rm_preset cbl1_presets[] =
   {G_RM_NOOP,             "G_RM_NOOP"},
 };
 
-static int rm_str(char *buf, uint32_t arg)
+static struct rm_preset bl2_presets[] =
+{
+  {G_RM_NOOP2,            "G_RM_NOOP2"},
+};
+
+static int othermodelo_str(char *buf, uint32_t arg, uint32_t which)
 {
   int p = 0;
-  if (arg & AA_EN)
-    strappf("AA_EN");
-  if (arg & Z_CMP) {
+  uint32_t rm_c1_mask = MDMASK_RM_C1;
+  uint32_t rm_c2_mask = MDMASK_RM_C2;
+  uint32_t rm_mode_lo = MDMASK_RM_LO;
+  uint32_t rm_mask = rm_c1_mask | rm_c2_mask | rm_mode_lo;
+  struct rm_preset *pre_c1 = NULL;
+  struct rm_preset *pre_c2 = NULL;
+  int n_rm_presets = sizeof(rm_presets) / sizeof(*rm_presets);
+  for (int i = 0; i < n_rm_presets; ++i) {
+    struct rm_preset *pre = &rm_presets[i];
+    uint32_t rm_c1 = arg & (rm_c1_mask | rm_mode_lo | (pre->rm & ~rm_mask));
+    if (!pre_c1 && rm_c1 == pre->rm)
+      pre_c1 = pre;
+    uint32_t rm_c2 = arg & (rm_c2_mask | rm_mode_lo | (pre->rm & ~rm_mask));
+    if (!pre_c2 && rm_c2 == pre->rm)
+      pre_c2 = pre;
+  }
+  if (!pre_c1 || !pre_c2 || pre_c1 + 1 != pre_c2) {
+    int n_bl1_presets = sizeof(bl1_presets) / sizeof(*bl1_presets);
+    for (int i = 0; i < n_bl1_presets; ++i) {
+      struct rm_preset *pre = &bl1_presets[i];
+      uint32_t rm_c1 = arg & (rm_c1_mask | (pre->rm & ~rm_mask));
+      if (rm_c1 == pre->rm) {
+        pre_c1 = pre;
+        break;
+      }
+    }
+    int n_bl2_presets = sizeof(bl2_presets) / sizeof(*bl2_presets);
+    for (int i = 0; i < n_bl2_presets; ++i) {
+      struct rm_preset *pre = &bl2_presets[i];
+      uint32_t rm_c2 = arg & (rm_c2_mask | (pre->rm & ~rm_mask));
+      if (rm_c2 == pre->rm) {
+        pre_c2 = pre;
+        break;
+      }
+    }
+  }
+  uint32_t pre_rm = 0;
+  if (pre_c1)
+    pre_rm |= pre_c1->rm;
+  if (pre_c2)
+    pre_rm |= pre_c2->rm;
+  uint32_t ac_mask = MDMASK(ALPHACOMPARE);
+  if (((arg & ~pre_rm) | which) & ac_mask) {
+    uint32_t ac = arg & ac_mask;
+    switch (ac) {
+      case G_AC_NONE      : strappf("G_AC_NONE");         break;
+      case G_AC_THRESHOLD : strappf("G_AC_THRESHOLD");    break;
+      case G_AC_DITHER    : strappf("G_AC_DITHER");       break;
+      default             : strapp(strarg_x32(buf, ac));  break;
+    }
+  }
+  uint32_t zs_mask = MDMASK(ZSRCSEL);
+  if (((arg & ~pre_rm) | which) & zs_mask) {
     if (p > 0)
       strappf(" | ");
-    strappf("Z_CMP");
+    uint32_t zs = arg & zs_mask;
+    switch (zs) {
+      case G_ZS_PIXEL : strappf("G_ZS_PIXEL");        break;
+      case G_ZS_PRIM  : strappf("G_ZS_PRIM");         break;
+      default         : strapp(strarg_x32(buf, zs));  break;
+    }
   }
-  if (arg & Z_UPD) {
+  uint32_t rm = arg & (rm_mask | pre_rm);
+  if (((arg & ~pre_rm) | which) & rm_mode_lo) {
     if (p > 0)
       strappf(" | ");
-    strappf("Z_UPD");
+    strapp(rm_mode_str(buf, rm));
   }
-  if (arg & IM_RD) {
+  int c = 0;
+  if (which & rm_c1_mask)
+    c |= 1;
+  if (which & rm_c2_mask)
+    c |= 2;
+  if (c & 1 || (c == 0 && arg & rm_c1_mask)) {
     if (p > 0)
       strappf(" | ");
-    strappf("IM_RD");
+    if (pre_c1)
+      strappf("%s", pre_c1->name);
+    else
+      strapp(rm_cbl_str(buf, rm, 1));
   }
-  if (arg & CLR_ON_CVG) {
+  if (c & 2 || (c == 0 && arg & rm_c2_mask)) {
     if (p > 0)
       strappf(" | ");
-    strappf("CLR_ON_CVG");
+    if (pre_c2)
+      strappf("%s", pre_c2->name);
+    else
+      strapp(rm_cbl_str(buf, rm, 2));
   }
-  if (p > 0)
-    strappf(" | ");
-  int cvg = arg & 0x00000300;
-  switch (cvg) {
-    case CVG_DST_CLAMP  : strappf("CVG_DST_CLAMP"); break;
-    case CVG_DST_WRAP   : strappf("CVG_DST_WRAP");  break;
-    case CVG_DST_FULL   : strappf("CVG_DST_FULL");  break;
-    case CVG_DST_SAVE   : strappf("CVG_DST_SAVE");  break;
+  uint32_t unk_mask = ~(rm_mask | ac_mask | zs_mask);
+  if (arg & unk_mask) {
+    if (p > 0)
+      strappf(" | ");
+    uint32_t unk = arg & unk_mask;
+    strapp(strarg_x32(buf, unk));
   }
-  int zmode = arg & 0x00000C00;
-  switch (zmode) {
-    case ZMODE_OPA    : strappf(" | ZMODE_OPA");    break;
-    case ZMODE_INTER  : strappf(" | ZMODE_INTER");  break;
-    case ZMODE_XLU    : strappf(" | ZMODE_XLU");    break;
-    case ZMODE_DEC    : strappf(" | ZMODE_DEC");    break;
-  }
-  if (arg & CVG_X_ALPHA)
-    strappf(" | CVG_X_ALPHA");
-  if (arg & ALPHA_CVG_SEL)
-    strappf(" | ALPHA_CVG_SEL");
-  if (arg & FORCE_BL)
-    strappf(" | FORCE_BL");
   return p;
 }
 
-static int cbl_str(char *buf, uint32_t arg, int c)
+static int strarg_ac(char *buf, uint32_t arg)
 {
-  int p = 0;
-  if (c == 2)
-    arg <<= 2;
-  int bp = (arg >> 30) & 0b11;
-  switch (bp) {
-    case G_BL_CLR_IN  : strappf("GBL_c%i(G_BL_CLR_IN",   c); break;
-    case G_BL_CLR_MEM : strappf("GBL_c%i(G_BL_CLR_MEM",  c); break;
-    case G_BL_CLR_BL  : strappf("GBL_c%i(G_BL_CLR_BL",   c); break;
-    case G_BL_CLR_FOG : strappf("GBL_c%i(G_BL_CLR_FOG",  c); break;
-  }
-  int ba = (arg >> 26) & 0b11;
-  switch (ba) {
-    case G_BL_A_IN    : strappf(", G_BL_A_IN");    break;
-    case G_BL_A_FOG   : strappf(", G_BL_A_FOG");   break;
-    case G_BL_A_SHADE : strappf(", G_BL_A_SHADE"); break;
-    case G_BL_0       : strappf(", G_BL_0");       break;
-  }
-  int bm = (arg >> 22) & 0b11;
-  switch (bm) {
-    case G_BL_CLR_IN  : strappf(", G_BL_CLR_IN");  break;
-    case G_BL_CLR_MEM : strappf(", G_BL_CLR_MEM"); break;
-    case G_BL_CLR_BL  : strappf(", G_BL_CLR_BL");  break;
-    case G_BL_CLR_FOG : strappf(", G_BL_CLR_FOG"); break;
-  }
-  int bb = (arg >> 18) & 0b11;
-  switch (bb) {
-    case G_BL_1MA   : strappf(", G_BL_1MA)");    break;
-    case G_BL_A_MEM : strappf(", G_BL_A_MEM)");  break;
-    case G_BL_1     : strappf(", G_BL_1)");      break;
-    case G_BL_0     : strappf(", G_BL_0)");      break;
-  }
-  return p;
+  return othermodelo_str(buf, arg, MDMASK(ALPHACOMPARE));
 }
 
-static int rmcbl_str(char *buf, uint32_t arg, int c)
+static int strarg_zs(char *buf, uint32_t arg)
 {
-  int p = 0;
-  strapp(rm_str(buf, arg));
-  strappf(" | ");
-  strapp(cbl_str(buf, arg, c));
-  return p;
+  return othermodelo_str(buf, arg, MDMASK(ZSRCSEL));
 }
 
 static int strarg_rm1(char *buf, uint32_t arg)
 {
-  uint32_t cbl1 = arg & 0xCCCC0000;
-  int n_cbl1_presets = sizeof(cbl1_presets) / sizeof(*cbl1_presets);
-  for (int i = 0; i < n_cbl1_presets; ++i) {
-    if (cbl1 == cbl1_presets[i].rm)
-      return sprintf(buf, "%s", cbl1_presets[i].name);
-  }
-  uint32_t c1 = arg & 0xCCCCFFF8;
-  int n_rm_presets = sizeof(rm_presets) / sizeof(*rm_presets);
-  for (int i = 0; i < n_rm_presets; ++i) {
-    if (c1 == rm_presets[i].rm)
-      return sprintf(buf, "%s", rm_presets[i].name);
-  }
-  return rmcbl_str(buf, c1, 1);
+  return othermodelo_str(buf, arg, MDMASK_RM_C1);
 }
 
 static int strarg_rm2(char *buf, uint32_t arg)
 {
-  uint32_t c2 = arg & 0x3333FFF8;
-  int n_rm_presets = sizeof(rm_presets) / sizeof(*rm_presets);
-  for (int i = 0; i < n_rm_presets; ++i) {
-    if (c2 == rm_presets[i].rm)
-      return sprintf(buf, "%s", rm_presets[i].name);
-  }
-  return rmcbl_str(buf, c2, 2);
+  return othermodelo_str(buf, arg, MDMASK_RM_C2);
 }
 
 static int strarg_othermodelo(char *buf, uint32_t arg)
 {
-  int p = 0;
-  strapp(strarg_ac(buf, arg));
-  strappf(" | ");
-  strapp(strarg_zs(buf, arg));
-  const char *p1 = NULL;
-  const char *p2 = NULL;
-  uint32_t cbl1 = arg & 0xCCCC0000;
-  int n_cbl1_presets = sizeof(cbl1_presets) / sizeof(*cbl1_presets);
-  for (int i = 0; i < n_cbl1_presets; ++i) {
-    if (p1 == NULL && cbl1 == cbl1_presets[i].rm)
-      p1 = cbl1_presets[i].name;
-  }
-  uint32_t c1 = arg & 0xCCCCFFF8;
-  uint32_t c2 = arg & 0x3333FFF8;
-  int n_rm_presets = sizeof(rm_presets) / sizeof(*rm_presets);
-  for (int i = 0; i < n_rm_presets; ++i) {
-    if (p1 == NULL && c1 == rm_presets[i].rm)
-      p1 = rm_presets[i].name;
-    if (p2 == NULL && c2 == rm_presets[i].rm)
-      p2 = rm_presets[i].name;
-  }
-  if (p1 == NULL && p2 == NULL) {
-    strappf(" | ");
-    strapp(rm_str(buf, arg));
-  }
-  strappf(" | ");
-  if (p1 == NULL)
-    strapp(cbl_str(buf, arg, 1));
-  else
-    strappf("%s", p1);
-  strappf(" | ");
-  if (p2 == NULL)
-    strapp(cbl_str(buf, arg, 2));
-  else
-    strappf("%s", p2);
-  return p;
+  uint32_t mask = MDMASK(ALPHACOMPARE) | MDMASK(ZSRCSEL) | MDMASK_RM_C1 |
+                  MDMASK_RM_C2;
+  return othermodelo_str(buf, arg, mask);
 }
 
 static int strarg_sfthi(char *buf, uint32_t arg)
@@ -700,143 +742,212 @@ static int strarg_sfthi(char *buf, uint32_t arg)
   }
 }
 
+static int othermodehi_str(char *buf, uint32_t arg, uint32_t which)
+{
+  int p = 0;
+  uint32_t ad_mask = MDMASK(ALPHADITHER);
+  if ((arg | which) & ad_mask) {
+    uint32_t ad = arg & ad_mask;
+    switch (ad) {
+      case G_AD_PATTERN     : strappf("G_AD_PATTERN");      break;
+      case G_AD_NOTPATTERN  : strappf("G_AD_NOTPATTERN");   break;
+      case G_AD_NOISE       : strappf("G_AD_NOISE");        break;
+      case G_AD_DISABLE     : strappf("G_AD_DISABLE");      break;
+      default               : strapp(strarg_x32(buf, ad));  break;
+    }
+  }
+  uint32_t cd_mask = MDMASK(RGBDITHER);
+  if ((arg | which) & cd_mask) {
+    if (p > 0)
+      strappf(" | ");
+    uint32_t cd = arg & cd_mask;
+    switch (cd) {
+      case G_CD_MAGICSQ : strappf("G_CD_MAGICSQ");      break;
+      case G_CD_BAYER   : strappf("G_CD_BAYER");        break;
+      case G_CD_NOISE   : strappf("G_CD_NOISE");        break;
+      case G_CD_DISABLE : strappf("G_CD_DISABLE");      break;
+      default           : strapp(strarg_x32(buf, cd));  break;
+    }
+  }
+  uint32_t ck_mask = MDMASK(COMBKEY);
+  if ((arg | which) & ck_mask) {
+    if (p > 0)
+      strappf(" | ");
+    uint32_t ck = arg & ck_mask;
+    switch (ck) {
+      case G_CK_NONE  : strappf("G_CK_NONE");         break;
+      case G_CK_KEY   : strappf("G_CK_KEY");          break;
+      default         : strapp(strarg_x32(buf, ck));  break;
+    }
+  }
+  uint32_t tc_mask = MDMASK(TEXTCONV);
+  if ((arg | which) & tc_mask) {
+    if (p > 0)
+      strappf(" | ");
+    uint32_t tc = arg & tc_mask;
+    switch (tc) {
+      case G_TC_CONV      : strappf("G_TC_CONV");         break;
+      case G_TC_FILTCONV  : strappf("G_TC_FILTCONV");     break;
+      case G_TC_FILT      : strappf("G_TC_FILT");         break;
+      default             : strapp(strarg_x32(buf, tc));  break;
+    }
+  }
+  uint32_t tf_mask = MDMASK(TEXTFILT);
+  if ((arg | which) & tf_mask) {
+    if (p > 0)
+      strappf(" | ");
+    uint32_t tf = arg & tf_mask;
+    switch (tf) {
+      case G_TF_POINT   : strappf("G_TF_POINT");        break;
+      case G_TF_BILERP  : strappf("G_TF_BILERP");       break;
+      case G_TF_AVERAGE : strappf("G_TF_AVERAGE");      break;
+      default           : strapp(strarg_x32(buf, tf));  break;
+    }
+  }
+  uint32_t tt_mask = MDMASK(TEXTLUT);
+  if ((arg | which) & tt_mask) {
+    if (p > 0)
+      strappf(" | ");
+    uint32_t tt = arg & tt_mask;
+    switch (tt) {
+      case G_TT_NONE    : strappf("G_TT_NONE");         break;
+      case G_TT_RGBA16  : strappf("G_TT_RGBA16");       break;
+      case G_TT_IA16    : strappf("G_TT_IA16");         break;
+      default           : strapp(strarg_x32(buf, tt));  break;
+    }
+  }
+  uint32_t tl_mask = MDMASK(TEXTLOD);
+  if ((arg | which) & tl_mask) {
+    if (p > 0)
+      strappf(" | ");
+    uint32_t tl = arg & tl_mask;
+    switch (tl) {
+      case G_TL_TILE  : strappf("G_TL_TILE");         break;
+      case G_TL_LOD   : strappf("G_TL_LOD");          break;
+      default         : strapp(strarg_x32(buf, tl));  break;
+    }
+  }
+  uint32_t td_mask = MDMASK(TEXTDETAIL);
+  if ((arg | which) & td_mask) {
+    if (p > 0)
+      strappf(" | ");
+    uint32_t td = arg & td_mask;
+    switch (td) {
+      case G_TD_CLAMP   : strappf("G_TD_CLAMP");        break;
+      case G_TD_SHARPEN : strappf("G_TD_SHARPEN");      break;
+      case G_TD_DETAIL  : strappf("G_TD_DETAIL");       break;
+      default           : strapp(strarg_x32(buf, td));  break;
+    }
+  }
+  uint32_t tp_mask = MDMASK(TEXTPERSP);
+  if ((arg | which) & tp_mask) {
+    if (p > 0)
+      strappf(" | ");
+    uint32_t tp = arg & tp_mask;
+    switch (tp) {
+      case G_TP_NONE  : strappf("G_TP_NONE");         break;
+      case G_TP_PERSP : strappf("G_TP_PERSP");        break;
+      default         : strapp(strarg_x32(buf, tp));  break;
+    }
+  }
+  uint32_t cyc_mask = MDMASK(CYCLETYPE);
+  if ((arg | which) & cyc_mask) {
+    if (p > 0)
+      strappf(" | ");
+    uint32_t cyc = arg & cyc_mask;
+    switch (cyc) {
+      case G_CYC_1CYCLE : strappf("G_CYC_1CYCLE");      break;
+      case G_CYC_2CYCLE : strappf("G_CYC_2CYCLE");      break;
+      case G_CYC_COPY   : strappf("G_CYC_COPY");        break;
+      case G_CYC_FILL   : strappf("G_CYC_FILL");        break;
+      default           : strapp(strarg_x32(buf, cyc)); break;
+    }
+  }
+  uint32_t pm_mask = MDMASK(PIPELINE);
+  if ((arg | which) & pm_mask) {
+    if (p > 0)
+      strappf(" | ");
+    uint32_t pm = arg & pm_mask;
+    switch (pm) {
+      case G_PM_NPRIMITIVE  : strappf("G_PM_NPRIMITIVE");   break;
+      case G_PM_1PRIMITIVE  : strappf("G_PM_1PRIMITIVE");   break;
+      default               : strapp(strarg_x32(buf, pm));  break;
+    }
+  }
+  uint32_t unk_mask = ~(ad_mask | cd_mask | ck_mask | tc_mask | tf_mask |
+                        tt_mask | tl_mask | td_mask | tp_mask | cyc_mask |
+                        pm_mask);
+  if (arg & unk_mask) {
+    if (p > 0)
+      strappf(" | ");
+    uint32_t unk = arg & unk_mask;
+    strapp(strarg_x32(buf, unk));
+  }
+  return p;
+}
+
 static int strarg_ad(char *buf, uint32_t arg)
 {
-  uint32_t ad = arg & 0x00000030;
-  switch (ad) {
-    case G_AD_PATTERN     : return sprintf(buf, "G_AD_PATTERN");
-    case G_AD_NOTPATTERN  : return sprintf(buf, "G_AD_NOTPATTERN");
-    case G_AD_NOISE       : return sprintf(buf, "G_AD_NOISE");
-    case G_AD_DISABLE     : return sprintf(buf, "G_AD_DISABLE");
-    default               : return strarg_x32(buf, ad);
-  }
+  return othermodehi_str(buf, arg, MDMASK(ALPHADITHER));
 }
 
 static int strarg_cd(char *buf, uint32_t arg)
 {
-  uint32_t cd = arg & 0x000000C0;
-  switch (cd) {
-    case G_CD_MAGICSQ : return sprintf(buf, "G_CD_MAGICSQ");
-    case G_CD_BAYER   : return sprintf(buf, "G_CD_BAYER");
-    case G_CD_NOISE   : return sprintf(buf, "G_CD_NOISE");
-    case G_CD_DISABLE : return sprintf(buf, "G_CD_DISABLE");
-    default           : return strarg_x32(buf, cd);
-  }
+  return othermodehi_str(buf, arg, MDMASK(RGBDITHER));
 }
 
 static int strarg_ck(char *buf, uint32_t arg)
 {
-  if (arg & G_CK_KEY)
-    return sprintf(buf, "G_CK_KEY");
-  else
-    return sprintf(buf, "G_CK_NONE");
+  return othermodehi_str(buf, arg, MDMASK(COMBKEY));
 }
 
 static int strarg_tc(char *buf, uint32_t arg)
 {
-  uint32_t tc = arg & 0x00000E00;
-  switch (tc) {
-    case G_TC_CONV      : return sprintf(buf, "G_TC_CONV");
-    case G_TC_FILTCONV  : return sprintf(buf, "G_TC_FILTCONV");
-    case G_TC_FILT      : return sprintf(buf, "G_TC_FILT");
-    default             : return strarg_x32(buf, tc);
-  }
+  return othermodehi_str(buf, arg, MDMASK(TEXTCONV));
 }
 
 static int strarg_tf(char *buf, uint32_t arg)
 {
-  uint32_t tf = arg & 0x00003000;
-  switch (tf) {
-    case G_TF_POINT   : return sprintf(buf, "G_TF_POINT");
-    case G_TF_BILERP  : return sprintf(buf, "G_TF_BILERP");
-    case G_TF_AVERAGE : return sprintf(buf, "G_TF_AVERAGE");
-    default           : return strarg_x32(buf, tf);
-  }
+  return othermodehi_str(buf, arg, MDMASK(TEXTFILT));
 }
 
 static int strarg_tt(char *buf, uint32_t arg)
 {
-  uint32_t tt = arg & 0x0000C000;
-  switch (tt) {
-    case G_TT_NONE    : return sprintf(buf, "G_TT_NONE");
-    case G_TT_RGBA16  : return sprintf(buf, "G_TT_RGBA16");
-    case G_TT_IA16    : return sprintf(buf, "G_TT_IA16");
-    default           : return strarg_x32(buf, tt);
-  }
+  return othermodehi_str(buf, arg, MDMASK(TEXTLUT));
 }
 
 static int strarg_tl(char *buf, uint32_t arg)
 {
-  if (arg & G_TL_LOD)
-    return sprintf(buf, "G_TL_LOD");
-  else
-    return sprintf(buf, "G_TL_TILE");
+  return othermodehi_str(buf, arg, MDMASK(TEXTLOD));
 }
 
 static int strarg_td(char *buf, uint32_t arg)
 {
-  uint32_t td = arg & 0x00060000;
-  switch (td) {
-    case G_TD_CLAMP   : return sprintf(buf, "G_TD_CLAMP");
-    case G_TD_SHARPEN : return sprintf(buf, "G_TD_SHARPEN");
-    case G_TD_DETAIL  : return sprintf(buf, "G_TD_DETAIL");
-    default           : return strarg_x32(buf, td);
-  }
+  return othermodehi_str(buf, arg, MDMASK(TEXTDETAIL));
 }
 
 static int strarg_tp(char *buf, uint32_t arg)
 {
-  if (arg & G_TP_PERSP)
-    return sprintf(buf, "G_TP_PERSP");
-  else
-    return sprintf(buf, "G_TP_NONE");
+  return othermodehi_str(buf, arg, MDMASK(TEXTPERSP));
 }
 
 static int strarg_cyc(char *buf, uint32_t arg)
 {
-  uint32_t cyc = arg & 0x00300000;
-  switch (cyc) {
-    case G_CYC_1CYCLE : return sprintf(buf, "G_CYC_1CYCLE");
-    case G_CYC_2CYCLE : return sprintf(buf, "G_CYC_2CYCLE");
-    case G_CYC_COPY   : return sprintf(buf, "G_CYC_COPY");
-    case G_CYC_FILL   : return sprintf(buf, "G_CYC_FILL");
-    default           : return strarg_x32(buf, cyc);
-  }
+  return othermodehi_str(buf, arg, MDMASK(CYCLETYPE));
 }
 
 static int strarg_pm(char *buf, uint32_t arg)
 {
-  if (arg & G_PM_1PRIMITIVE)
-    return sprintf(buf, "G_PM_1PRIMITIVE");
-  else
-    return sprintf(buf, "G_PM_NPRIMITIVE");
+  return othermodehi_str(buf, arg, MDMASK(PIPELINE));
 }
 
 static int strarg_othermodehi(char *buf, uint32_t arg)
 {
-  int p = 0;
-  strapp(strarg_ad(buf, arg));
-  strappf(" | ");
-  strapp(strarg_cd(buf, arg));
-  strappf(" | ");
-  strapp(strarg_ck(buf, arg));
-  strappf(" | ");
-  strapp(strarg_tc(buf, arg));
-  strappf(" | ");
-  strapp(strarg_tf(buf, arg));
-  strappf(" | ");
-  strapp(strarg_tt(buf, arg));
-  strappf(" | ");
-  strapp(strarg_tl(buf, arg));
-  strappf(" | ");
-  strapp(strarg_td(buf, arg));
-  strappf(" | ");
-  strapp(strarg_tp(buf, arg));
-  strappf(" | ");
-  strapp(strarg_cyc(buf, arg));
-  strappf(" | ");
-  strapp(strarg_pm(buf, arg));
-  return p;
+  uint32_t mask = MDMASK(ALPHADITHER) | MDMASK(RGBDITHER) | MDMASK(COMBKEY) |
+                  MDMASK(TEXTCONV) | MDMASK(TEXTFILT) | MDMASK(TEXTLUT) |
+                  MDMASK(TEXTLOD) | MDMASK(TEXTDETAIL) | MDMASK(TEXTPERSP) |
+                  MDMASK(CYCLETYPE) | MDMASK(PIPELINE);
+  return othermodehi_str(buf, arg, mask);
 }
 
 static int strarg_cv(char *buf, uint32_t arg)
@@ -947,23 +1058,30 @@ static int strarg_acmuxc(char *buf, uint32_t arg)
   }
 }
 
-struct cc_preset
+struct cc_mode
 {
-  int         a;
-  int         b;
-  int         c;
-  int         d;
-  int         Aa;
-  int         Ab;
-  int         Ac;
-  int         Ad;
-  const char *name;
+  int             a;
+  int             b;
+  int             c;
+  int             d;
+  int             Aa;
+  int             Ab;
+  int             Ac;
+  int             Ad;
 };
 
-#define CC_(a,b,c,d,Aa,Ab,Ac,Ad)  G_CCMUX_##a,  G_CCMUX_##b,  \
-                                  G_CCMUX_##c,  G_CCMUX_##d,  \
-                                  G_ACMUX_##Aa, G_ACMUX_##Ab, \
-                                  G_ACMUX_##Ac, G_ACMUX_##Ad
+struct cc_preset
+{
+  struct cc_mode  mode;
+  const char     *name;
+};
+
+#define CC_(a,b,c,d,Aa,Ab,Ac,Ad)  { \
+                                    G_CCMUX_##a,  G_CCMUX_##b,  \
+                                    G_CCMUX_##c,  G_CCMUX_##d,  \
+                                    G_ACMUX_##Aa, G_ACMUX_##Ab, \
+                                    G_ACMUX_##Ac, G_ACMUX_##Ad  \
+                                  }
 #define CC(m)                     CC_(m)
 static struct cc_preset cc_presets[] =
 {
@@ -1937,42 +2055,56 @@ int gfx_dis_dpSetColorDither(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
   return 0;
 }
 
+static void cc_unpack(struct cc_mode *m0, struct cc_mode *m1,
+                      uint32_t hi, uint32_t lo)
+{
+  m0->a = getfield(hi, 4, 20);
+  m0->b = getfield(lo, 4, 28);
+  m0->c = getfield(hi, 5, 15);
+  m0->d = getfield(lo, 3, 15);
+  m0->Aa = getfield(hi, 3, 12);
+  m0->Ab = getfield(lo, 3, 12);
+  m0->Ac = getfield(hi, 3, 9);
+  m0->Ad = getfield(lo, 3, 9);
+  m1->a = getfield(hi, 4, 5);
+  m1->b = getfield(lo, 4, 24);
+  m1->c = getfield(hi, 5, 0);
+  m1->d = getfield(lo, 3, 6);
+  m1->Aa = getfield(lo, 3, 21);
+  m1->Ab = getfield(lo, 3, 3);
+  m1->Ac = getfield(lo, 3, 18);
+  m1->Ad = getfield(lo, 3, 0);
+}
+
+static int cc_lookup(struct cc_mode *m)
+{
+  struct cc_mode m_norm = *m;
+  if (m_norm.a > 0x7) m_norm.a = G_CCMUX_0;
+  if (m_norm.b > 0x7) m_norm.b = G_CCMUX_0;
+  if (m_norm.c > 0xF) m_norm.c = G_CCMUX_0;
+  if (m_norm.d > 0x6) m_norm.d = G_CCMUX_0;
+  m = &m_norm;
+  int n_presets = sizeof(cc_presets) / sizeof(*cc_presets);
+  for (int i = 0; i < n_presets; ++i) {
+    struct cc_mode *p = &cc_presets[i].mode;
+    if (m->a == p->a && m->b == p->b && m->c == p->c && m->d == p->d &&
+        m->Aa == p->Aa && m->Ab == p->Ab && m->Ac == p->Ac && m->Ad == p->Ad)
+    {
+      return i;
+    }
+  }
+  return -1;
+}
+
 int gfx_dis_dpSetCombineMode(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
 {
   insn->def = GFX_ID_DPSETCOMBINEMODE;
   insn->n_gfx = 1;
-  int a0 = getfield(hi, 4, 20);
-  int b0 = getfield(lo, 4, 28);
-  int c0 = getfield(hi, 5, 15);
-  int d0 = getfield(lo, 3, 15);
-  int Aa0 = getfield(hi, 3, 12);
-  int Ab0 = getfield(lo, 3, 12);
-  int Ac0 = getfield(hi, 3, 9);
-  int Ad0 = getfield(lo, 3, 9);
-  int a1 = getfield(hi, 4, 5);
-  int b1 = getfield(lo, 4, 24);
-  int c1 = getfield(hi, 5, 0);
-  int d1 = getfield(lo, 3, 6);
-  int Aa1 = getfield(lo, 3, 21);
-  int Ab1 = getfield(lo, 3, 3);
-  int Ac1 = getfield(lo, 3, 18);
-  int Ad1 = getfield(lo, 3, 0);
-  int n_presets = sizeof(cc_presets) / sizeof(*cc_presets);
-  int p0 = -1;
-  int p1 = -1;
-  for (int i = 0; i < n_presets; ++i) {
-    struct cc_preset *p = &cc_presets[i];
-    if (p0 == -1 && a0 == p->a && b0 == p->b && c0 == p->c && d0 == p->d &&
-        Aa0 == p->Aa && Ab0 == p->Ab && Ac0 == p->Ac && Ad0 == p->Ad)
-    {
-      p0 = i;
-    }
-    if (p1 == -1 && a1 == p->a && b1 == p->b && c1 == p->c && d1 == p->d &&
-        Aa1 == p->Aa && Ab1 == p->Ab && Ac1 == p->Ac && Ad1 == p->Ad)
-    {
-      p1 = i;
-    }
-  }
+  struct cc_mode m0;
+  struct cc_mode m1;
+  cc_unpack(&m0, &m1, hi, lo);
+  int p0 = cc_lookup(&m0);
+  int p1 = cc_lookup(&m1);
   insn->arg[0] = p0;
   insn->arg[1] = p1;
   insn->strarg[0] = strarg_ccpre;
@@ -1993,59 +2125,32 @@ int gfx_dis_dpSetCombineMode(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
 
 int gfx_dis_dpSetCombineLERP(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
 {
-  int a0 = getfield(hi, 4, 20);
-  int b0 = getfield(lo, 4, 28);
-  int c0 = getfield(hi, 5, 15);
-  int d0 = getfield(lo, 3, 15);
-  int Aa0 = getfield(hi, 3, 12);
-  int Ab0 = getfield(lo, 3, 12);
-  int Ac0 = getfield(hi, 3, 9);
-  int Ad0 = getfield(lo, 3, 9);
-  int a1 = getfield(hi, 4, 5);
-  int b1 = getfield(lo, 4, 24);
-  int c1 = getfield(hi, 5, 0);
-  int d1 = getfield(lo, 3, 6);
-  int Aa1 = getfield(lo, 3, 21);
-  int Ab1 = getfield(lo, 3, 3);
-  int Ac1 = getfield(lo, 3, 18);
-  int Ad1 = getfield(lo, 3, 0);
-  int n_presets = sizeof(cc_presets) / sizeof(*cc_presets);
-  int p0 = -1;
-  int p1 = -1;
-  for (int i = 0; i < n_presets; ++i) {
-    struct cc_preset *p = &cc_presets[i];
-    if (p0 == -1 && a0 == p->a && b0 == p->b && c0 == p->c && d0 == p->d &&
-        Aa0 == p->Aa && Ab0 == p->Ab && Ac0 == p->Ac && Ad0 == p->Ad)
-    {
-      p0 = i;
-    }
-    if (p1 == -1 && a1 == p->a && b1 == p->b && c1 == p->c && d1 == p->d &&
-        Aa1 == p->Aa && Ab1 == p->Ab && Ac1 == p->Ac && Ad1 == p->Ad)
-    {
-      p1 = i;
-    }
-  }
-  if (p0 >= 0 && p1 >= 0)
+  struct cc_mode m0;
+  struct cc_mode m1;
+  cc_unpack(&m0, &m1, hi, lo);
+  int p0 = cc_lookup(&m0);
+  int p1 = cc_lookup(&m1);
+  if (p0 != -1 && p1 != -1)
     return gfx_dis_dpSetCombineMode(insn, hi, lo);
   else {
     insn->def = GFX_ID_DPSETCOMBINELERP;
     insn->n_gfx = 1;
-    insn->arg[0] = a0;
-    insn->arg[1] = b0;
-    insn->arg[2] = c0;
-    insn->arg[3] = d0;
-    insn->arg[4] = Aa0;
-    insn->arg[5] = Ab0;
-    insn->arg[6] = Ac0;
-    insn->arg[7] = Ad0;
-    insn->arg[8] = a1;
-    insn->arg[9] = b1;
-    insn->arg[10] = c1;
-    insn->arg[11] = d1;
-    insn->arg[12] = Aa1;
-    insn->arg[13] = Ab1;
-    insn->arg[14] = Ac1;
-    insn->arg[15] = Ad1;
+    insn->arg[0] = m0.a;
+    insn->arg[1] = m0.b;
+    insn->arg[2] = m0.c;
+    insn->arg[3] = m0.d;
+    insn->arg[4] = m0.Aa;
+    insn->arg[5] = m0.Ab;
+    insn->arg[6] = m0.Ac;
+    insn->arg[7] = m0.Ad;
+    insn->arg[8] = m1.a;
+    insn->arg[9] = m1.b;
+    insn->arg[10] = m1.c;
+    insn->arg[11] = m1.d;
+    insn->arg[12] = m1.Aa;
+    insn->arg[13] = m1.Ab;
+    insn->arg[14] = m1.Ac;
+    insn->arg[15] = m1.Ad;
     insn->strarg[0] = strarg_ccmuxa;
     insn->strarg[1] = strarg_ccmuxb;
     insn->strarg[2] = strarg_ccmuxc;
@@ -2167,8 +2272,8 @@ int gfx_dis_dpSetRenderMode(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
 {
   insn->def = GFX_ID_DPSETRENDERMODE;
   insn->n_gfx = 1;
-  insn->arg[0] = lo & 0xCCCCFFF8;
-  insn->arg[1] = lo & 0x3333FFF8;
+  insn->arg[0] = lo;
+  insn->arg[1] = lo;
   insn->strarg[0] = strarg_rm1;
   insn->strarg[1] = strarg_rm2;
   return 0;
@@ -3578,7 +3683,7 @@ int gfx_dis_spSetOtherModeLo(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
     insn->arg[1] = length;
     insn->arg[2] = lo;
     insn->strarg[0] = strarg_sftlo;
-    insn->strarg[2] = strarg_x32;
+    insn->strarg[2] = strarg_othermodelo;
     return 1;
   }
 }
@@ -3621,7 +3726,7 @@ int gfx_dis_spSetOtherModeHi(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
     insn->arg[1] = length;
     insn->arg[2] = lo;
     insn->strarg[0] = strarg_sfthi;
-    insn->strarg[2] = strarg_x32;
+    insn->strarg[2] = strarg_othermodehi;
     return 1;
   }
   return 0;
