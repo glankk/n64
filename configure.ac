@@ -10,6 +10,12 @@ AC_ARG_ENABLE([static-executables],
               [AS_HELP_STRING([--enable-static-executables],
                               [enable static linking of executables])],
               [LDFLAGS="-static $LDFLAGS"])
+AC_SUBST([GCC_IN_TREE_DEPS])
+AC_ARG_ENABLE([gcc-in-tree-deps],
+              [AS_HELP_STRING([--disable-gcc-in-tree-deps],
+                              [do not download in-tree gcc prerequisites])],
+              [], [enable_gcc_in_tree_deps=yes])
+GCC_IN_TREE_DEPS="$enable_gcc_in_tree_deps"
 AC_SUBST([CFLAGS_FOR_TARGET])
 AC_SUBST([CXXFLAGS_FOR_TARGET])
 CFLAGS_FOR_TARGET="-Os -g -ffunction-sections -fdata-sections $CFLAGS_FOR_TARGET"

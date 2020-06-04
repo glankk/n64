@@ -652,6 +652,7 @@ CONFIG_GCC
 CONFIG_BINUTILS
 CXXFLAGS_FOR_TARGET
 CFLAGS_FOR_TARGET
+GCC_IN_TREE_DEPS
 target_alias
 host_alias
 build_alias
@@ -694,6 +695,7 @@ ac_subst_files=''
 ac_user_opts='
 enable_option_checking
 enable_static_executables
+enable_gcc_in_tree_deps
 with_configure_binutils
 with_configure_gcc
 with_configure_newlib
@@ -1322,6 +1324,8 @@ Optional Features:
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --enable-static-executables
                           enable static linking of executables
+  --disable-gcc-in-tree-deps
+                          do not download in-tree gcc prerequisites
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -2120,6 +2124,15 @@ if test "${enable_static_executables+set}" = set; then :
   enableval=$enable_static_executables; LDFLAGS="-static $LDFLAGS"
 fi
 
+
+# Check whether --enable-gcc-in-tree-deps was given.
+if test "${enable_gcc_in_tree_deps+set}" = set; then :
+  enableval=$enable_gcc_in_tree_deps;
+else
+  enable_gcc_in_tree_deps=yes
+fi
+
+GCC_IN_TREE_DEPS="$enable_gcc_in_tree_deps"
 
 
 CFLAGS_FOR_TARGET="-Os -g -ffunction-sections -fdata-sections $CFLAGS_FOR_TARGET"
