@@ -20,6 +20,7 @@ BINUTILS_URL                  = https://ftp.gnu.org/gnu/binutils/$(BINUTILS_VERS
 GCC_URL                       = https://ftp.gnu.org/gnu/gcc/$(GCC_VERSION)/$(GCC_VERSION).tar.gz
 NEWLIB_URL                    = https://sourceware.org/pub/newlib/$(NEWLIB_VERSION).tar.gz
 GDB_URL                       = https://ftp.gnu.org/gnu/gdb/$(GDB_VERSION).tar.gz
+GCC_IN_TREE_DEPS              = @GCC_IN_TREE_DEPS@
 CONFIG_BINUTILS               = @CONFIG_BINUTILS@
 CONFIG_GCC                    = @CONFIG_GCC@
 CONFIG_NEWLIB                 = @CONFIG_NEWLIB@
@@ -87,7 +88,9 @@ gcc.tar.gz                    :
 gcc                           : | gcc.tar.gz
 	mkdir gcc
 	tar xfv gcc.tar.gz --strip-components=1 -C gcc
-	cd gcc && ./contrib/download_prerequisites
+	if [ x"$(GCC_IN_TREE_DEPS)" = x"yes" ]; then \
+		cd gcc && ./contrib/download_prerequisites; \
+	fi
 build-gcc/config.status       : | gcc
 	if test ! -d build-gcc; then mkdir build-gcc; fi
 	cd build-gcc && ../gcc/configure \
