@@ -32,16 +32,17 @@ static const char *prog_name = "gfxdis.f3dex2";
 static int usage(void)
 {
   fprintf(stderr,
-          "gfxdis-0.5: display list disassembler\n"
+          "gfxdis-0.6: display list disassembler\n"
           "written by: glank\n"
           "build date: " __TIME__ ", " __DATE__ "\n"
           "usage:\n"
-          "  %s [-x] [-i] [-p] [-r] [-g <arg>] [-n <max>] [-a <offset>] "
-          "{-f <file> | -d <data>}\n"
+          "  %s [-x] [-i] [-dc] [-p] [-r] [-g <arg>] [-n <max>] [-a <offset>] "
+          "{ -f <file> | -d <data> }\n"
           "options:\n"
           "  -x            do not use fixed-point conversion macros\n"
           "  -i            do not stop at unrecognized or malformed "
           "instructions\n"
+          "  -dc           use decimal numbers for color components\n"
           "  -p            print offsets\n"
           "  -r            print raw data\n"
           "  -g <arg>      generate dynamic macros with <arg> as the first "
@@ -249,6 +250,7 @@ int main(int argc, char *argv[])
   int argp = 1;
   const char *opt_x = NULL;
   const char *opt_i = NULL;
+  const char *opt_dc = NULL;
   const char *opt_p = NULL;
   const char *opt_r = NULL;
   const char *opt_g = NULL;
@@ -263,6 +265,8 @@ int main(int argc, char *argv[])
       p_opt = &opt_x;
     else if (strcmp(argv[argp], "-i") == 0)
       p_opt = &opt_i;
+    else if (strcmp(argv[argp], "-dc") == 0)
+      p_opt = &opt_dc;
     else if (strcmp(argv[argp], "-p") == 0)
       p_opt = &opt_p;
     else if (strcmp(argv[argp], "-r") == 0)
@@ -329,6 +333,7 @@ int main(int argc, char *argv[])
 
   gfxdis_cfg.dis_invd = (opt_i != NULL);
   gfxdis_cfg.use_q = (opt_x == NULL);
+  gfxdis_cfg.dec_color = (opt_dc != NULL);
 
   {
     Gfx *raw = gfx_v.begin;

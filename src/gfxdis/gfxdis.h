@@ -199,6 +199,7 @@ struct gfxdis_cfg
 {
   _Bool               dis_invd;
   _Bool               use_q;
+  _Bool               dec_color;
 };
 
 int   gfx_insn_dis(struct gfx_insn *insn, Gfx *gfx);

@@ -21,6 +21,7 @@ struct gfxdis_cfg gfxdis_cfg =
 {
   .dis_invd = 0,
   .use_q = 1,
+  .dec_color = 0,
 };
 
 int gfx_insn_dis(struct gfx_insn *insn, Gfx *gfx)
@@ -158,6 +159,14 @@ static int strarg_f(char *buf, uint32_t arg)
   return sprintf(buf, "%g", reint_f.f);
 }
 #endif
+
+static int strarg_color(char *buf, uint32_t arg)
+{
+  if (gfxdis_cfg.dec_color)
+    return sprintf(buf, "%u", arg);
+  else
+    return sprintf(buf, "0x%02" PRIX8, (uint8_t)arg);
+}
 
 static int strarg_qu08(char *buf, uint32_t arg)
 {
@@ -1926,10 +1935,10 @@ int gfx_dis_dpSetBlendColor(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
   insn->arg[1] = getfield(lo, 8, 16);
   insn->arg[2] = getfield(lo, 8, 8);
   insn->arg[3] = getfield(lo, 8, 0);
-  insn->strarg[0] = strarg_x8;
-  insn->strarg[1] = strarg_x8;
-  insn->strarg[2] = strarg_x8;
-  insn->strarg[3] = strarg_x8;
+  insn->strarg[0] = strarg_color;
+  insn->strarg[1] = strarg_color;
+  insn->strarg[2] = strarg_color;
+  insn->strarg[3] = strarg_color;
   return 0;
 }
 
@@ -1941,10 +1950,10 @@ int gfx_dis_dpSetEnvColor(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
   insn->arg[1] = getfield(lo, 8, 16);
   insn->arg[2] = getfield(lo, 8, 8);
   insn->arg[3] = getfield(lo, 8, 0);
-  insn->strarg[0] = strarg_x8;
-  insn->strarg[1] = strarg_x8;
-  insn->strarg[2] = strarg_x8;
-  insn->strarg[3] = strarg_x8;
+  insn->strarg[0] = strarg_color;
+  insn->strarg[1] = strarg_color;
+  insn->strarg[2] = strarg_color;
+  insn->strarg[3] = strarg_color;
   return 0;
 }
 
@@ -1965,10 +1974,10 @@ int gfx_dis_dpSetFogColor(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
   insn->arg[1] = getfield(lo, 8, 16);
   insn->arg[2] = getfield(lo, 8, 8);
   insn->arg[3] = getfield(lo, 8, 0);
-  insn->strarg[0] = strarg_x8;
-  insn->strarg[1] = strarg_x8;
-  insn->strarg[2] = strarg_x8;
-  insn->strarg[3] = strarg_x8;
+  insn->strarg[0] = strarg_color;
+  insn->strarg[1] = strarg_color;
+  insn->strarg[2] = strarg_color;
+  insn->strarg[3] = strarg_color;
   return 0;
 }
 
@@ -1984,10 +1993,10 @@ int gfx_dis_dpSetPrimColor(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
   insn->arg[5] = getfield(lo, 8, 0);
   insn->strarg[0] = strarg_qu08;
   insn->strarg[1] = strarg_qu08;
-  insn->strarg[2] = strarg_x8;
-  insn->strarg[3] = strarg_x8;
-  insn->strarg[4] = strarg_x8;
-  insn->strarg[5] = strarg_x8;
+  insn->strarg[2] = strarg_color;
+  insn->strarg[3] = strarg_color;
+  insn->strarg[4] = strarg_color;
+  insn->strarg[5] = strarg_color;
   return 0;
 }
 
@@ -2237,11 +2246,11 @@ int gfx_dis_dpSetKeyGB(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
   insn->arg[3] = getfield(lo, 8, 8);
   insn->arg[4] = getfield(lo, 8, 0);
   insn->arg[5] = sx(getfield(hi, 12, 0), 12);
-  insn->strarg[0] = strarg_x8;
-  insn->strarg[1] = strarg_x8;
+  insn->strarg[0] = strarg_color;
+  insn->strarg[1] = strarg_color;
   insn->strarg[2] = strarg_qs48;
-  insn->strarg[3] = strarg_x8;
-  insn->strarg[4] = strarg_x8;
+  insn->strarg[3] = strarg_color;
+  insn->strarg[4] = strarg_color;
   insn->strarg[5] = strarg_qs48;
   return 0;
 }
@@ -2253,8 +2262,8 @@ int gfx_dis_dpSetKeyR(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
   insn->arg[0] = getfield(lo, 8, 8);
   insn->arg[1] = getfield(lo, 8, 0);
   insn->arg[2] = sx(getfield(lo, 12, 16), 12);
-  insn->strarg[0] = strarg_x8;
-  insn->strarg[1] = strarg_x8;
+  insn->strarg[0] = strarg_color;
+  insn->strarg[1] = strarg_color;
   insn->strarg[2] = strarg_qs48;
   return 0;
 }
