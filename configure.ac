@@ -76,7 +76,7 @@ AC_SUBST([LIBUTIL])
 AC_SUBST([LIBWS2_32])
 AC_SEARCH_LIBS([pow], [m],
                [AS_IF([test -n "$ac_lib"], [LIBM=-l$ac_lib])])
-AC_SEARCH_LIBS([luaopen_utf8], [lua-5.3 lua5.3 lua],
+AC_SEARCH_LIBS([luaopen_utf8], [lua-5.4 lua5.4 lua-5.3 lua5.3 lua],
                [AS_IF([test -n "$ac_lib"], [LIBLUA=-l$ac_lib])])
 AC_SEARCH_LIBS([libusb_init], [usb-1.0 usb],
                [AS_IF([test -n "$ac_lib"], [LIBUSB=-l$ac_lib])],
@@ -92,7 +92,7 @@ AC_SEARCH_LIBS([gai_strerrorA], [Ws2_32],
                [AS_IF([test -n "$ac_lib"], [LIBWS2_32=-l$ac_lib])])
 
 # Checks for header files.
-AC_CHECK_HEADERS([lua5.3/lua.h lua53/lua.h lua.h])
+AC_CHECK_HEADERS([lua5.4/lua.h lua54/lua.h lua5.3/lua.h lua53/lua.h lua.h])
 AC_CHECK_HEADERS([libusb-1.0/libusb.h libusb.h])
 AC_CHECK_HEADERS([pty.h util.h libutil.h])
 
