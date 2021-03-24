@@ -51,16 +51,20 @@ struct OSThread_s
                                               /* 0x01F4 */
 };
 
-typedef void      (*osCreateThread_t)         (OSThread*, OSId, void(*)(void*),
-                                               void*, void*, OSPri);
-typedef void      (*osDestroyThread_t)        (OSThread*);
-typedef void      (*osYieldThread_t)          (void);
-typedef void      (*osStartThread_t)          (OSThread*);
-typedef void      (*osStopThread_t)           (OSThread*);
-typedef OSId      (*osGetThreadId_t)          (OSThread*);
-typedef void      (*osSetThreadPri_t)         (OSThread*, OSPri);
-typedef OSPri     (*osGetThreadPri_t)         (OSThread*);
-typedef OSThread *(*osGetCurrFaultedThread_t) (void);
-typedef OSThread *(*osGetNextFaultedThread_t) (OSThread*);
+void      osCreateThread(OSThread*, OSId, void(*)(void*), void*, void*, OSPri);
+void      osDestroyThread(OSThread*);
+void      osYieldThread(void);
+void      osStartThread(OSThread*);
+void      osStopThread(OSThread*);
+OSId      osGetThreadId(OSThread*);
+void      osSetThreadPri(OSThread*, OSPri);
+OSPri     osGetThreadPri(OSThread*);
+OSThread *osGetCurrFaultedThread(void);
+OSThread *osGetNextFaultedThread(OSThread*);
+
+__attribute__((section(".bss")))
+extern OSThread       viThread;
+__attribute__((section(".bss")))
+extern OSThread       piThread;
 
 #endif

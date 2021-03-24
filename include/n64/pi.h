@@ -40,7 +40,15 @@ typedef struct
   uint32_t          rd_len;                   /* 0x0008 */
   uint32_t          wr_len;                   /* 0x000C */
   uint32_t          status;                   /* 0x0010 */
-                                              /* 0x0014 */
+  uint32_t          dom1_lat;                 /* 0x0014 */
+  uint32_t          dom1_pwd;                 /* 0x0018 */
+  uint32_t          dom1_pgs;                 /* 0x001C */
+  uint32_t          dom1_rls;                 /* 0x0020 */
+  uint32_t          dom2_lat;                 /* 0x0024 */
+  uint32_t          dom2_pwd;                 /* 0x0028 */
+  uint32_t          dom2_pgs;                 /* 0x002C */
+  uint32_t          dom2_rls;                 /* 0x0030 */
+                                              /* 0x0034 */
 } pi_regs_t;
 
 typedef struct
@@ -102,7 +110,10 @@ typedef struct
                                               /* 0x0018 */
 } OSIoMesg;
 
-typedef int32_t   (*osEPiStartDma_t)(OSPiHandle*, OSIoMesg*, int32_t);
+int32_t osEPiStartDma_t(OSPiHandle*, OSIoMesg*, int32_t);
+
+void __osPiGetAccess(void);
+void __osPiRelAccess(void);
 
 #define pi_regs                   (*(volatile pi_regs_t*)0xA4600000)
 
