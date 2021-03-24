@@ -1,5 +1,5 @@
 /**
- * gbi.h version 0.2rev2
+ * gbi.h version 0.2rev3
  * n64 graphics microcode interface library
  * compatible with fast3d, f3dex, f3dex2, s2dex, and s2dex2
  *
@@ -605,11 +605,11 @@
 
 #define G_RM_ZB_OVL_SURF              (Z_CMP|IM_RD|CVG_DST_SAVE|ZMODE_DEC|    \
                                        FORCE_BL|                              \
-                                        GBL_c1(G_BL_CLR_IN,G_BL_A_IN,         \
+                                       GBL_c1(G_BL_CLR_IN,G_BL_A_IN,          \
                                                G_BL_CLR_MEM,G_BL_1MA))
 #define G_RM_ZB_OVL_SURF2             (Z_CMP|IM_RD|CVG_DST_SAVE|ZMODE_DEC|    \
                                        FORCE_BL|                              \
-                                        GBL_c2(G_BL_CLR_IN,G_BL_A_IN,         \
+                                       GBL_c2(G_BL_CLR_IN,G_BL_A_IN,          \
                                                G_BL_CLR_MEM,G_BL_1MA))
 
 #define G_RM_ADD                      (IM_RD|CVG_DST_SAVE|ZMODE_OPA|          \
@@ -1096,38 +1096,38 @@
                    yx,yy,yz,yw,     \
                    zx,zy,zz,zw,     \
                    wx,wy,wz,ww)       ((Mtx)                                  \
-                                       {.i={(qs1516(xx)>>16)&0x00007FFF,      \
-                                            (qs1516(xy)>>16)&0x00007FFF,      \
-                                            (qs1516(xz)>>16)&0x00007FFF,      \
-                                            (qs1516(xw)>>16)&0x00007FFF,      \
-                                            (qs1516(yx)>>16)&0x00007FFF,      \
-                                            (qs1516(yy)>>16)&0x00007FFF,      \
-                                            (qs1516(yz)>>16)&0x00007FFF,      \
-                                            (qs1516(yw)>>16)&0x00007FFF,      \
-                                            (qs1516(zx)>>16)&0x00007FFF,      \
-                                            (qs1516(zy)>>16)&0x00007FFF,      \
-                                            (qs1516(zz)>>16)&0x00007FFF,      \
-                                            (qs1516(zw)>>16)&0x00007FFF,      \
-                                            (qs1516(wx)>>16)&0x00007FFF,      \
-                                            (qs1516(wy)>>16)&0x00007FFF,      \
-                                            (qs1516(wz)>>16)&0x00007FFF,      \
-                                            (qs1516(ww)>>16)&0x00007FFF},     \
-                                        .f={qs1516(xx)&0x0000FFFF,            \
-                                            qs1516(xy)&0x0000FFFF,            \
-                                            qs1516(xz)&0x0000FFFF,            \
-                                            qs1516(xw)&0x0000FFFF,            \
-                                            qs1516(yx)&0x0000FFFF,            \
-                                            qs1516(yy)&0x0000FFFF,            \
-                                            qs1516(yz)&0x0000FFFF,            \
-                                            qs1516(yw)&0x0000FFFF,            \
-                                            qs1516(zx)&0x0000FFFF,            \
-                                            qs1516(zy)&0x0000FFFF,            \
-                                            qs1516(zz)&0x0000FFFF,            \
-                                            qs1516(zw)&0x0000FFFF,            \
-                                            qs1516(wx)&0x0000FFFF,            \
-                                            qs1516(wy)&0x0000FFFF,            \
-                                            qs1516(wz)&0x0000FFFF,            \
-                                            qs1516(ww)&0x0000FFFF}})
+                                       {.i={(qs1616(xx)>>16)&0x0000FFFF,      \
+                                            (qs1616(xy)>>16)&0x0000FFFF,      \
+                                            (qs1616(xz)>>16)&0x0000FFFF,      \
+                                            (qs1616(xw)>>16)&0x0000FFFF,      \
+                                            (qs1616(yx)>>16)&0x0000FFFF,      \
+                                            (qs1616(yy)>>16)&0x0000FFFF,      \
+                                            (qs1616(yz)>>16)&0x0000FFFF,      \
+                                            (qs1616(yw)>>16)&0x0000FFFF,      \
+                                            (qs1616(zx)>>16)&0x0000FFFF,      \
+                                            (qs1616(zy)>>16)&0x0000FFFF,      \
+                                            (qs1616(zz)>>16)&0x0000FFFF,      \
+                                            (qs1616(zw)>>16)&0x0000FFFF,      \
+                                            (qs1616(wx)>>16)&0x0000FFFF,      \
+                                            (qs1616(wy)>>16)&0x0000FFFF,      \
+                                            (qs1616(wz)>>16)&0x0000FFFF,      \
+                                            (qs1616(ww)>>16)&0x0000FFFF},     \
+                                        .f={qs1616(xx)&0x0000FFFF,            \
+                                            qs1616(xy)&0x0000FFFF,            \
+                                            qs1616(xz)&0x0000FFFF,            \
+                                            qs1616(xw)&0x0000FFFF,            \
+                                            qs1616(yx)&0x0000FFFF,            \
+                                            qs1616(yy)&0x0000FFFF,            \
+                                            qs1616(yz)&0x0000FFFF,            \
+                                            qs1616(yw)&0x0000FFFF,            \
+                                            qs1616(zx)&0x0000FFFF,            \
+                                            qs1616(zy)&0x0000FFFF,            \
+                                            qs1616(zz)&0x0000FFFF,            \
+                                            qs1616(zw)&0x0000FFFF,            \
+                                            qs1616(wx)&0x0000FFFF,            \
+                                            qs1616(wy)&0x0000FFFF,            \
+                                            qs1616(wz)&0x0000FFFF,            \
+                                            qs1616(ww)&0x0000FFFF}})
 #define gdSPDefLookAt(rx,ry,rz,     \
                       ux,uy,uz)       ((LookAt)                               \
                                        {{{{{0,0,0},0,{0,0,0},0,               \
