@@ -3899,7 +3899,7 @@ return luaopen_utf8 ();
   return 0;
 }
 _ACEOF
-for ac_lib in '' lua-5.3 lua5.3 lua; do
+for ac_lib in '' lua-5.4 lua5.4 lua-5.3 lua5.3 lua; do
   if test -z "$ac_lib"; then
     ac_res="none required"
   else
@@ -4228,7 +4228,7 @@ fi
 
 
 # Checks for header files.
-for ac_header in lua5.3/lua.h lua53/lua.h lua.h
+for ac_header in lua5.4/lua.h lua54/lua.h lua5.3/lua.h lua53/lua.h lua.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"

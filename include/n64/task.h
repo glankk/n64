@@ -40,4 +40,9 @@ struct OSScTask_s
                                               /* 0x0058 */
 };
 
+__attribute__((section(".data")))
+extern char           gspF3DEX2_NoN_fifoTextStart[];
+__attribute__((section(".data")))
+extern char           gspF3DEX2_NoN_fifoDataStart[];
+
 #endif

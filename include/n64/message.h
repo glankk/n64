@@ -43,10 +43,22 @@ typedef struct
                                               /* 0x0018 */
 } OSMesgQueue;
 
-typedef void      (*osCreateMesgQueue_t)(OSMesgQueue*, OSMesg*, int32_t);
-typedef int32_t   (*osSendMesg_t)       (OSMesgQueue*, OSMesg, int32_t);
-typedef int32_t   (*osJamMesg_t)        (OSMesgQueue*, OSMesg, int32_t);
-typedef int32_t   (*osRecvMesg_t)       (OSMesgQueue*, OSMesg*, int32_t);
-typedef void      (*osSetEventMesg_t)   (OSEvent, OSMesgQueue*, OSMesg);
+typedef struct
+{
+  OSMesgQueue      *messageQueue;             /* 0x0000 */
+  OSMesg            message;                  /* 0x0004 */
+} __OSEventState;
+
+void    osCreateMesgQueue(OSMesgQueue*, OSMesg*, int32_t);
+int32_t osSendMesg(OSMesgQueue*, OSMesg, int32_t);
+int32_t osJamMesg(OSMesgQueue*, OSMesg, int32_t);
+int32_t osRecvMesg(OSMesgQueue*, OSMesg*, int32_t);
+void    osSetEventMesg(OSEvent, OSMesgQueue*, OSMesg);
+
+__attribute__((section(".bss")))
+extern __OSEventState __osEventStateTab[OS_NUM_EVENTS];
+
+__attribute__((section(".bss")))
+extern uint32_t       __osViIntrCount;
 
 #endif
