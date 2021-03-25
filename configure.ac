@@ -18,8 +18,8 @@ AC_ARG_ENABLE([gcc-in-tree-deps],
 GCC_IN_TREE_DEPS="$enable_gcc_in_tree_deps"
 AC_SUBST([CFLAGS_FOR_TARGET])
 AC_SUBST([CXXFLAGS_FOR_TARGET])
-CFLAGS_FOR_TARGET="-Os -g -ffunction-sections -fdata-sections -mno-check-zero-division $CFLAGS_FOR_TARGET"
-CXXFLAGS_FOR_TARGET="-Os -g -ffunction-sections -fdata-sections -mno-check-zero-division $CXXFLAGS_FOR_TARGET"
+CFLAGS_FOR_TARGET="-Os -g -ffunction-sections -fdata-sections $CFLAGS_FOR_TARGET"
+CXXFLAGS_FOR_TARGET="-Os -g -ffunction-sections -fdata-sections $CXXFLAGS_FOR_TARGET"
 AC_SUBST([CONFIG_BINUTILS])
 AC_SUBST([CONFIG_GCC])
 AC_SUBST([CONFIG_NEWLIB])

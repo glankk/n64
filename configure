@@ -2483,8 +2483,8 @@ fi
 GCC_IN_TREE_DEPS="$enable_gcc_in_tree_deps"
 
 
-CFLAGS_FOR_TARGET="-Os -g -ffunction-sections -fdata-sections -mno-check-zero-division $CFLAGS_FOR_TARGET"
-CXXFLAGS_FOR_TARGET="-Os -g -ffunction-sections -fdata-sections -mno-check-zero-division $CXXFLAGS_FOR_TARGET"
+CFLAGS_FOR_TARGET="-Os -g -ffunction-sections -fdata-sections $CFLAGS_FOR_TARGET"
+CXXFLAGS_FOR_TARGET="-Os -g -ffunction-sections -fdata-sections $CXXFLAGS_FOR_TARGET"
 
 
 
