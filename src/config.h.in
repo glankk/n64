@@ -22,20 +22,26 @@
 /* Define to 1 if you have the <lua53/lua.h> header file. */
 #undef HAVE_LUA53_LUA_H
 
+/* Define to 1 if you have the <lua54/lua.h> header file. */
+#undef HAVE_LUA54_LUA_H
+
 /* Define to 1 if you have the <lua5.3/lua.h> header file. */
 #undef HAVE_LUA5_3_LUA_H
 
+/* Define to 1 if you have the <lua5.4/lua.h> header file. */
+#undef HAVE_LUA5_4_LUA_H
+
 /* Define to 1 if you have the <lua.h> header file. */
 #undef HAVE_LUA_H
-
-/* Define to 1 if you have the <memory.h> header file. */
-#undef HAVE_MEMORY_H
 
 /* Define to 1 if you have the <pty.h> header file. */
 #undef HAVE_PTY_H
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdio.h> header file. */
+#undef HAVE_STDIO_H
 
 /* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
@@ -76,7 +82,9 @@
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
-/* Define to 1 if you have the ANSI C header files. */
+/* Define to 1 if all of the C90 standard headers exist (not just the ones
+   required in a freestanding environment). This macro is provided for
+   backward compatibility; new code need not use it. */
 #undef STDC_HEADERS
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
