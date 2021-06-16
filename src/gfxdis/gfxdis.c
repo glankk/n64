@@ -2446,7 +2446,34 @@ int gfx_dis_sp1Triangle(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
   }
   return err;
 }
-#elif defined(F3DEX_GBI) || defined(F3DEX_GBI_2)
+#elif defined(F3DEX_GBI)
+int gfx_dis_sp1Triangle(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
+{
+  insn->def = GFX_ID_SP1TRIANGLE;
+  insn->n_gfx = 1;
+  int n0 = getfield(lo, 8, 16);
+  int n1 = getfield(lo, 8, 8);
+  int n2 = getfield(lo, 8, 0);
+  insn->arg[0] = n0 / 2;
+  insn->arg[1] = n1 / 2;
+  insn->arg[2] = n2 / 2;
+  insn->arg[3] = 0;
+  _Bool err = 0;
+  if (n0 % 2 != 0) {
+    insn->strarg[0] = strarg_invd;
+    err = 1;
+  }
+  if (n1 % 2 != 0) {
+    insn->strarg[1] = strarg_invd;
+    err = 1;
+  }
+  if (n2 % 2 != 0) {
+    insn->strarg[2] = strarg_invd;
+    err = 1;
+  }
+  return err;
+}
+#elif defined(F3DEX_GBI_2)
 int gfx_dis_sp1Triangle(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
 {
   insn->def = GFX_ID_SP1TRIANGLE;
@@ -2473,7 +2500,9 @@ int gfx_dis_sp1Triangle(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
   }
   return err;
 }
+#endif
 
+#if defined(F3DEX_GBI) || defined(F3DEX_GBI_2)
 int gfx_dis_sp2Triangles(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
 {
   int n00 = getfield(hi, 8, 16);
