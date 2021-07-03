@@ -56,6 +56,7 @@ SECTIONS
   .data             : { __RESOURCE_LIST__ = . ;
                         KEEP(*(.data.resource_table))
                         __RESOURCE_END__ = . ;
+                        . = ALIGN(8) ;
                         KEEP(*(.data.resource_data))
                         *(.data .data.*)
                         *(.gnu.linkonce.d.*) }
