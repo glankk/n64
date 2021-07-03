@@ -1,0 +1,25 @@
+diff --git a/newlib/libc/include/sys/reent.h b/newlib/libc/include/sys/reent.h
+index 74b70e9..f4e7767 100644
+--- a/newlib/libc/include/sys/reent.h
++++ b/newlib/libc/include/sys/reent.h
+@@ -501,7 +501,7 @@ extern const struct __sFILE_fake __sf_fake_stderr;
+ /* Specify how to handle reent_check malloc failures. */
+ #ifdef _REENT_CHECK_VERIFY
+ #include <assert.h>
+-#define __reent_assert(x) ((x) ? (void)0 : __assert_func(__FILE__, __LINE__, (char *)0, "REENT malloc succeeded"))
++#define __reent_assert(x) ((x) ? (void)0 : assert("REENT malloc succeeded"))
+ #else
+ #define __reent_assert(x) ((void)0)
+ #endif
+diff --git a/newlib/libc/stdlib/mprec.h b/newlib/libc/stdlib/mprec.h
+index a1492aa..595f485 100755
+--- a/newlib/libc/stdlib/mprec.h
++++ b/newlib/libc/stdlib/mprec.h
+@@ -344,7 +344,7 @@ typedef struct _Bigint _Bigint;
+ #define eBalloc(__reent_ptr, __len) ({ \
+    void *__ptr = Balloc(__reent_ptr, __len); \
+    if (__ptr == NULL) \
+-     __assert_func(__FILE__, __LINE__, (char *)0, "Balloc succeeded"); \
++     assert("Balloc succeeded"); \
+    __ptr; \
+    })
