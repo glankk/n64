@@ -37,6 +37,10 @@ WGET                          = @WGET@
 .PHONY                        : all-progs $(ALLPROGS) install-progs $(INSTALLPROGS) install-strip-progs $(INSTALLSTRIPPROGS) clean-progs $(CLEANPROGS) distclean-progs $(DISTCLEANPROGS)
 .PHONY                        : binutils-nospc configure-binutils clean-binutils gcc-nospc configure-gcc clean-gcc newlib-nospc configure-newlib clean-newlib gdb-nospc configure-gdb clean-gdb
 .PHONY                        : clean-local-exec uninstall-local-exec clean-compat-exec uninstall-compat-exec clean-sys uninstall-sys install-toolchain
+.SECONDARY                    : binutils.tar.gz binutils build-binutils/config.status all-binutils install-binutils
+.SECONDARY                    : gcc.tar.gz gcc build-gcc/config.status all-gcc-executables install-gcc-executables all-gcc install-gcc
+.SECONDARY                    : newlib.tar.gz newlib build-newlib/config.status all-newlib install-newlib
+.SECONDARY                    : gdb.tar.gz gdb build-gdb/config.status all-gdb install-gdb
 
 all                           : all-progs
 install                       : install-progs
@@ -48,6 +52,7 @@ quickclean                    : clean-progs quickclean-binutils quickclean-gcc q
 
 install-full                  :
 	$(MAKE) install-toolchain
+	$(MAKE) all-progs
 	$(MAKE) install-progs
 	$(MAKE) install-compat-exec
 	$(MAKE) install-sys
@@ -65,6 +70,7 @@ install-full-nospc            :
 	$(MAKE) gdb-nospc
 	$(MAKE) install-gdb
 	$(MAKE) clean-gdb
+	$(MAKE) all-progs
 	$(MAKE) install-progs
 	$(MAKE) clean-progs
 	$(MAKE) install-compat-exec
@@ -102,7 +108,6 @@ binutils-nospc                :
 	cp "$(srcdir)/config/ld/emulparams/"* binutils/ld/emulparams
 	cp "$(srcdir)/config/ld/emultempl/"* binutils/ld/emultempl
 	cat "$(srcdir)/config/ld/configure.tgt.ultra" >> binutils/ld/configure.tgt
-	touch binutils.tar.gz
 build-binutils/config.status  : | binutils
 	if test ! -d build-binutils; then mkdir build-binutils; fi
 	cd build-binutils && ../binutils/configure \
@@ -115,7 +120,7 @@ build-binutils/config.status  : | binutils
 		CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)" \
 		$(CONFIG_BINUTILS)
 configure-binutils            : build-binutils/config.status
-all-binutils                  : | configure-binutils
+all-binutils                  : | build-binutils/config.status
 	cd build-binutils && $(MAKE) all
 	touch $@
 install-binutils              : | all-binutils
@@ -146,7 +151,6 @@ gcc-nospc                     :
 	fi
 	cp "$(srcdir)/config/gcc/mips/"* gcc/gcc/config/mips
 	cat "$(srcdir)/config/gcc/config.gcc.ultra" >> gcc/gcc/config.gcc
-	touch gcc.tar.gz
 build-gcc/config.status       : | gcc
 	if test ! -d build-gcc; then mkdir build-gcc; fi
 	cd build-gcc && ../gcc/configure \
@@ -166,13 +170,13 @@ build-gcc/config.status       : | gcc
 		CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)" \
 		$(CONFIG_GCC)
 configure-gcc                 : build-gcc/config.status
-all-gcc-executables           : | configure-gcc
+all-gcc-executables           : | build-gcc/config.status
 	cd build-gcc && $(MAKE) all-gcc
 	touch $@
 install-gcc-executables       : | all-gcc-executables
 	cd build-gcc && $(MAKE) install-gcc
 	touch $@
-all-gcc                       : | configure-gcc install-binutils install-newlib
+all-gcc                       : | build-gcc/config.status install-binutils install-newlib
 	cd build-gcc && $(MAKE) all
 	touch $@
 install-gcc                   : | all-gcc
@@ -195,7 +199,6 @@ newlib-nospc                  :
 	if test ! -d newlib; then mkdir newlib; fi
 	$(WGET) - "$(NEWLIB_URL)" | tar xzv --strip-components=1 -C newlib
 	patch -d newlib -p 1 < "$(srcdir)/config/newlib/newlib.diff"
-	touch newlib.tar.gz
 build-newlib/config.status    : | newlib install-binutils install-gcc-executables
 	if test ! -d build-newlib; then mkdir build-newlib; fi
 	cd build-newlib && ../newlib/configure \
@@ -213,7 +216,7 @@ build-newlib/config.status    : | newlib install-binutils install-gcc-executable
 		CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)" \
 		$(CONFIG_NEWLIB)
 configure-newlib              : build-newlib/config.status
-all-newlib                    : | configure-newlib install-binutils install-gcc-executables
+all-newlib                    : | build-newlib/config.status install-binutils install-gcc-executables
 	cd build-newlib && $(MAKE) all
 	touch $@
 install-newlib                : | all-newlib
@@ -234,7 +237,6 @@ gdb                           : | gdb.tar.gz
 gdb-nospc                     :
 	if test ! -d gdb; then mkdir gdb; fi
 	$(WGET) - "$(GDB_URL)" | tar xzv --strip-components=1 -C gdb
-	touch gdb.tar.gz
 build-gdb/config.status       : | gdb
 	if test ! -d build-gdb; then mkdir build-gdb; fi
 	cd build-gdb && ../gdb/configure \
@@ -247,7 +249,7 @@ build-gdb/config.status       : | gdb
 		CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)" \
 		$(CONFIG_GDB)
 configure-gdb                 : build-gdb/config.status
-all-gdb                       : | configure-gdb
+all-gdb                       : | build-gdb/config.status
 	cd build-gdb && $(MAKE) all
 	touch $@
 install-gdb                   : | all-gdb
@@ -293,7 +295,7 @@ install-compat-exec           :
 clean-compat-exec             :
 distclean-compat-exec         :
 	rm -f install-compat-exec
-uninstall-compat-exec         : clean-compat-exec
+uninstall-compat-exec         :
 	for f in "$(DESTDIR)$(bindir)/$(target)-"*; do \
 		if test -f "$$f"; then \
 			f="$${f##*/}"; \
@@ -309,7 +311,7 @@ install-sys                   :
 clean-sys                     :
 distclean-sys                 :
 	rm -f install-sys
-uninstall-sys                 : clean-sys
+uninstall-sys                 :
 	(cd "$(srcdir)/include" && find . -depth -exec rm -df "$(DESTDIR)$(sysroot)/usr/include/"\{\} \;)
 	(cd "$(srcdir)/lib" && find . -depth -exec rm -df "$(DESTDIR)$(sysroot)/usr/lib/"\{\} \;)
 	-rm -df "$(DESTDIR)$(sysroot)/usr"
