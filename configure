@@ -3682,7 +3682,7 @@ else
 printf "%s\n" "no, using $LN_S" >&6; }
 fi
 
-for ac_prog in wget curl
+for ac_prog in curl wget
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
@@ -3729,12 +3729,12 @@ fi
   test -n "$WGET" && break
 done
 
-if test "x$WGET" = xwget
-then :
-  WGET="wget -O"; WGET_Q="wget -q -O";
-elif test "x$WGET" = xcurl
+if test "x$WGET" = xcurl
 then :
   WGET="curl -o"; WGET_Q="curl -s -o";
+elif test "x$WGET" = xwget
+then :
+  WGET="wget -O"; WGET_Q="wget -q -O";
 fi
 
 # Checks for C compiler characteristics.
