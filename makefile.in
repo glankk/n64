@@ -33,33 +33,66 @@ MKDIR_P                       = @MKDIR_P@
 LN_S                          = @LN_S@
 WGET                          = @WGET@
 
-.PHONY                        : all install install-strip clean distclean $(ALLPROGS) $(INSTALLPROGS) $(INSTALLSTRIPPROGS) $(CLEANPROGS) $(DISTCLEANPROGS)
-.PHONY                        : configure-binutils configure-gcc configure-newlib configure-gdb clean-binutils clean-gcc clean-newlib clean-gdb
+.PHONY                        : all install install-full install-full-nospc clean distclean quickclean
+.PHONY                        : all-progs $(ALLPROGS) install-progs $(INSTALLPROGS) install-strip-progs $(INSTALLSTRIPPROGS) clean-progs $(CLEANPROGS) distclean-progs $(DISTCLEANPROGS)
+.PHONY                        : binutils-nospc configure-binutils clean-binutils gcc-nospc configure-gcc clean-gcc newlib-nospc configure-newlib clean-newlib gdb-nospc configure-gdb clean-gdb
 .PHONY                        : clean-local-exec uninstall-local-exec clean-sys uninstall-sys install-toolchain
 
-all                           : $(ALLPROGS)
-install                       : $(INSTALLPROGS)
-install-strip                 : $(INSTALLSTRIPPROGS)
-clean                         : $(CLEANPROGS) clean-binutils clean-gcc clean-newlib clean-gdb clean-local-exec clean-sys
-distclean                     : $(DISTCLEANPROGS)
+all                           : all-progs
+install                       : install-progs
+install-strip                 : install-strip-progs
+clean                         : clean-progs clean-binutils clean-gcc clean-newlib clean-gdb clean-local-exec clean-sys
+distclean                     : distclean-progs distclean-binutils distclean-gcc distclean-newlib distclean-gdb distclean-local-exec distclean-sys
 	rm -f config.log config.status src/config.h makefile
-quickclean                    : $(CLEANPROGS) quickclean-binutils quickclean-gcc quickclean-newlib quickclean-gdb clean-local-exec clean-sys
+quickclean                    : clean-progs quickclean-binutils quickclean-gcc quickclean-newlib quickclean-gdb clean-local-exec clean-sys
+
+install-full                  :
+	$(MAKE) install-toolchain
+	$(MAKE) install-progs
+	$(MAKE) install-sys
+install-full-nospc            :
+	$(MAKE) binutils-nospc
+	$(MAKE) install-binutils
+	$(MAKE) clean-binutils
+	$(MAKE) gcc-nospc
+	$(MAKE) install-gcc-executables
+	$(MAKE) newlib-nospc
+	$(MAKE) install-newlib
+	$(MAKE) clean-newlib
+	$(MAKE) install-gcc
+	$(MAKE) clean-gcc
+	$(MAKE) gdb-nospc
+	$(MAKE) install-gdb
+	$(MAKE) clean-gdb
+	$(MAKE) install-progs
+	$(MAKE) clean-progs
+	$(MAKE) install-sys
+
+all-progs                     : $(ALLPROGS)
 $(ALLPROGS)                   :
 	cd src/$(patsubst all-%,%,$@) && $(MAKE) all
+install-progs                 : $(INSTALLPROGS)
 $(INSTALLPROGS)               :
 	cd src/$(patsubst install-%,%,$@) && $(MAKE) install
+install-strip-progs           : $(INSTALLSTRIPPROGS)
 $(INSTALLSTRIPPROGS)          :
 	cd src/$(patsubst install-strip-%,%,$@) && $(MAKE) install-strip
+clean-progs                   : $(CLEANPROGS)
 $(CLEANPROGS)                 :
 	cd src/$(patsubst clean-%,%,$@) && $(MAKE) clean
+distclean-progs               : $(DISTCLEANPROGS)
 $(DISTCLEANPROGS)             :
 	cd src/$(patsubst distclean-%,%,$@) && $(MAKE) distclean
 
 binutils.tar.gz               :
 	$(WGET) binutils.tar.gz "$(BINUTILS_URL)"
 binutils                      : | binutils.tar.gz
-	mkdir binutils
+	if test ! -d binutils; then mkdir binutils; fi
 	tar xfv binutils.tar.gz --strip-components=1 -C binutils
+binutils-nospc                :
+	if test ! -d binutils; then mkdir binutils; fi
+	$(WGET) - "$(BINUTILS_URL)" | tar xzv --strip-components=1 -C binutils
+	touch binutils.tar.gz
 build-binutils/config.status  : | binutils
 	if test ! -d build-binutils; then mkdir build-binutils; fi
 	cd build-binutils && ../binutils/configure \
@@ -79,18 +112,27 @@ install-binutils              : | all-binutils
 	cd build-binutils && $(MAKE) install
 	touch $@
 clean-binutils                :
-	rm -rf binutils.tar.gz binutils build-binutils all-binutils install-binutils
+	rm -rf binutils.tar.gz binutils build-binutils all-binutils
+distclean-binutils            :
+	rm -f install-binutils
 quickclean-binutils           :
-	rm -rf build-binutils all-binutils install-binutils
+	rm -rf build-binutils all-binutils
 
 gcc.tar.gz                    :
 	$(WGET) gcc.tar.gz "$(GCC_URL)"
 gcc                           : | gcc.tar.gz
-	mkdir gcc
+	if test ! -d gcc; then mkdir gcc; fi
 	tar xfv gcc.tar.gz --strip-components=1 -C gcc
 	if [ x"$(GCC_IN_TREE_DEPS)" = x"yes" ]; then \
 		cd gcc && ./contrib/download_prerequisites; \
 	fi
+gcc-nospc                     :
+	if test ! -d gcc; then mkdir gcc; fi
+	$(WGET) - "$(GCC_URL)" | tar xzv --strip-components=1 -C gcc
+	if [ x"$(GCC_IN_TREE_DEPS)" = x"yes" ]; then \
+		cd gcc && ./contrib/download_prerequisites; \
+	fi
+	touch gcc.tar.gz
 build-gcc/config.status       : | gcc
 	if test ! -d build-gcc; then mkdir build-gcc; fi
 	cd build-gcc && ../gcc/configure \
@@ -124,15 +166,21 @@ install-gcc                   : | all-gcc
 	cd build-gcc && $(MAKE) install
 	touch $@
 clean-gcc                     :
-	rm -rf gcc.tar.gz gcc build-gcc all-gcc-executables install-gcc-executables all-gcc install-gcc
+	rm -rf gcc.tar.gz gcc build-gcc all-gcc-executables all-gcc
+distclean-gcc                 :
+	rm -f install-gcc-executables install-gcc
 quickclean-gcc                :
-	rm -rf build-gcc all-gcc-executables install-gcc-executables all-gcc install-gcc
+	rm -rf build-gcc all-gcc-executables all-gcc
 
 newlib.tar.gz                 :
 	$(WGET) newlib.tar.gz "$(NEWLIB_URL)"
 newlib                        : | newlib.tar.gz
-	mkdir newlib
+	if test ! -d newlib; then mkdir newlib; fi
 	tar xfv newlib.tar.gz --strip-components=1 -C newlib
+newlib-nospc                  :
+	if test ! -d newlib; then mkdir newlib; fi
+	$(WGET) - "$(NEWLIB_URL)" | tar xzv --strip-components=1 -C newlib
+	touch newlib.tar.gz
 build-newlib/config.status    : | newlib install-binutils install-gcc-executables
 	if test ! -d build-newlib; then mkdir build-newlib; fi
 	cd build-newlib && ../newlib/configure \
@@ -157,15 +205,21 @@ install-newlib                : | all-newlib
 	cd build-newlib && $(MAKE) install
 	touch $@
 clean-newlib                  :
-	rm -rf newlib.tar.gz newlib build-newlib all-newlib install-newlib
+	rm -rf newlib.tar.gz newlib build-newlib all-newlib
+distclean-newlib              :
+	rm -f install-newlib
 quickclean-newlib             :
-	rm -rf build-newlib all-newlib install-newlib
+	rm -rf build-newlib all-newlib
 
 gdb.tar.gz                    :
 	$(WGET) gdb.tar.gz "$(GDB_URL)"
 gdb                           : | gdb.tar.gz
-	mkdir gdb
+	if test ! -d gdb; then mkdir gdb; fi
 	tar xfv gdb.tar.gz --strip-components=1 -C gdb
+gdb-nospc                     :
+	if test ! -d gdb; then mkdir gdb; fi
+	$(WGET) - "$(GDB_URL)" | tar xzv --strip-components=1 -C gdb
+	touch gdb.tar.gz
 build-gdb/config.status       : | gdb
 	if test ! -d build-gdb; then mkdir build-gdb; fi
 	cd build-gdb && ../gdb/configure \
@@ -185,9 +239,11 @@ install-gdb                   : | all-gdb
 	cd build-gdb && $(MAKE) install
 	touch $@
 clean-gdb                     :
-	rm -rf gdb.tar.gz gdb build-gdb all-gdb install-gdb
+	rm -rf gdb.tar.gz gdb build-gdb all-gdb
+distclean-gdb                 :
+	rm -f install-gdb
 quickclean-gdb                :
-	rm -rf build-gdb all-gdb install-gdb
+	rm -rf build-gdb all-gdb
 
 install-local-exec            :
 	$(MKDIR_P) "$(DESTDIR)$(tooldir)/bin"
@@ -199,8 +255,9 @@ install-local-exec            :
 	done
 	touch $@
 clean-local-exec              :
+distclean-local-exec          :
 	rm -f install-local-exec
-uninstall-local-exec          : clean-local-exec
+uninstall-local-exec          :
 	for f in "$(DESTDIR)$(bindir)/"*; do \
 		if test -f "$$f"; then \
 			f="$${f##*/}"; \
@@ -208,16 +265,19 @@ uninstall-local-exec          : clean-local-exec
 		fi \
 	done
 	-rm -df "$(DESTDIR)$(tooldir)/bin"
+	rm -f install-local-exec
 
 install-sys                   :
 	$(MKDIR_P) "$(DESTDIR)$(sysroot)/usr"
 	cp -R -p "$(srcdir)/include" "$(srcdir)/lib" "$(DESTDIR)$(sysroot)/usr"
 	touch $@
 clean-sys                     :
+distclean-sys                 :
 	rm -f install-sys
 uninstall-sys                 : clean-sys
 	(cd "$(srcdir)/include" && find . -depth -exec rm -df "$(DESTDIR)$(sysroot)/usr/include/"\{\} \;)
 	(cd "$(srcdir)/lib" && find . -depth -exec rm -df "$(DESTDIR)$(sysroot)/usr/lib/"\{\} \;)
 	-rm -df "$(DESTDIR)$(sysroot)/usr"
+	rm -f install-sys
 
 install-toolchain             : install-binutils install-gcc install-newlib install-gdb
