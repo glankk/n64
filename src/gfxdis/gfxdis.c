@@ -2942,7 +2942,28 @@ int gfx_dis_spLine3D(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
   }
   return err;
 }
-#elif defined(F3DEX_GBI) || defined(F3DEX_GBI_2)
+#elif defined(F3DEX_GBI)
+int gfx_dis_spLine3D(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
+{
+  insn->def = GFX_ID_SPLINE3D;
+  insn->n_gfx = 1;
+  int v0 = getfield(lo, 8, 16);
+  int v1 = getfield(lo, 8, 8);
+  insn->arg[0] = v0 / 2;
+  insn->arg[1] = v1 / 2;
+  insn->arg[2] = 0;
+  _Bool err = 0;
+  if (v0 % 2 != 0) {
+    insn->strarg[0] = strarg_invd;
+    err = 1;
+  }
+  if (v1 % 2 != 0) {
+    insn->strarg[1] = strarg_invd;
+    err = 1;
+  }
+  return err;
+}
+#elif defined(F3DEX_GBI_2)
 int gfx_dis_spLine3D(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
 {
   insn->def = GFX_ID_SPLINE3D;

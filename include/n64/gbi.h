@@ -1,5 +1,5 @@
 /**
- * gbi.h version 0.2rev4
+ * gbi.h version 0.2rev5
  * n64 graphics microcode interface library
  * compatible with fast3d, f3dex, f3dex2, s2dex, and s2dex2
  *
@@ -2119,6 +2119,12 @@ gsSP1Quadrangle(v0,v1,v2,v3,flag)     gO_(G_TRI2,                             \
                                                (flag)==1?gI_(v0):             \
                                                (flag)==2?gI_(v1):             \
                                                gI_(v2))*2,8,0))
+# define gsSPLineW3D(v0,v1,wd,flag)   gO_(G_LINE3D,0,                         \
+                                          gF_(((flag)==0?gI_(v0):             \
+                                               gI_(v1))*2,8,16)|              \
+                                          gF_(((flag)==0?gI_(v1):             \
+                                               gI_(v0))*2,8,8)|               \
+                                          gF_(wd,8,0))
 # define gsSPVertex(v,n,v0)           gO_(G_VTX,gF_((v0)*2,8,16)|gF_(n,6,10)| \
                                           gF_(sizeof(Vtx)*(n)-1,10,0),v)
 #endif
@@ -2158,12 +2164,6 @@ gsSPBranchLessZrg(branchdl,vtx,     \
                                                 zmin,zmax)
 # define gsSPCullDisplayList(v0,vn)   gO_(G_CULLDL,gF_((v0)*2,16,0),          \
                                           gF_((vn)*2,16,0))
-# define gsSPLineW3D(v0,v1,wd,flag)   gO_(G_LINE3D,                           \
-                                          gF_(((flag)==0?gI_(v0):             \
-                                               gI_(v1))*2,8,16)|              \
-                                          gF_(((flag)==0?gI_(v1):             \
-                                               gI_(v0))*2,8,8)|               \
-                                          gF_(wd,8,0),0)
 # define gsSPLoadUcode(uc_start,    \
                        uc_dstart)     gsSPLoadUcodeEx(uc_start,uc_dstart,0x800)
 # define gsSPModifyVertex(vtx,where,\
@@ -2237,6 +2237,12 @@ gsSP1Quadrangle(v0,v1,v2,v3,flag)     gO_(G_QUAD,                             \
 # define gsSPSetGeometryMode(mode)    gsSPGeometryMode(0,mode)
 # define gsSPClearGeometryMode(mode)  gsSPGeometryMode(mode,0)
 # define gsSPLoadGeometryMode(mode)   gsSPGeometryMode(~gI_(0),mode)
+# define gsSPLineW3D(v0,v1,wd,flag)   gO_(G_LINE3D,                           \
+                                          gF_(((flag)==0?gI_(v0):             \
+                                               gI_(v1))*2,8,16)|              \
+                                          gF_(((flag)==0?gI_(v1):             \
+                                               gI_(v0))*2,8,8)|               \
+                                          gF_(wd,8,0),0)
 # define gsSPLookAtX(l)               gsMoveMem(sizeof(Light),G_MV_LIGHT,     \
                                                 G_MVO_LOOKATX,l)
 # define gsSPLookAtY(l)               gsMoveMem(sizeof(Light),G_MV_LIGHT,     \
