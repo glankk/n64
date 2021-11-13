@@ -98,7 +98,9 @@ enum gfx_insn_def
   GFX_ID_SPFORCEMATRIX,
   GFX_ID_SPSETGEOMETRYMODE,
   GFX_ID_SPCLEARGEOMETRYMODE,
+#if defined(F3DEX_GBI_2)
   GFX_ID_SPLOADGEOMETRYMODE,
+#endif
 #if defined(F3D_GBI) || defined(F3DB_GBI) || defined(F3DEX_GBI)
   GFX_ID_SPINSERTMATRIX,
 #endif
