@@ -2876,27 +2876,7 @@ int gfx_dis_spClearGeometryMode(struct gfx_insn *insn,
   return 0;
 }
 
-#if defined(F3D_GBI) || defined(F3DEX_GBI)
-int gfx_col_spLoadGeometryMode(struct gfx_insn *insn, int n_insn)
-{
-  if (n_insn < 2)
-    return 0;
-  if (insn[0].def != GFX_ID_SPCLEARGEOMETRYMODE ||
-      insn[0].arg[0] != 0xFFFFFFFF ||
-      insn[1].def != GFX_ID_SPSETGEOMETRYMODE)
-  {
-    return 0;
-  }
-  uint32_t mode = insn[1].arg[0];
-  memmove(&insn[1], &insn[2], sizeof(*insn) * (n_insn - 2));
-  memset(insn, 0, sizeof(*insn));
-  insn->def = GFX_ID_SPLOADGEOMETRYMODE;
-  insn->n_gfx = 2;
-  insn->arg[0] = mode;
-  insn->strarg[0] = strarg_gm;
-  return 1;
-}
-#elif defined(F3DEX_GBI_2)
+#if defined(F3DEX_GBI_2)
 int gfx_dis_spLoadGeometryMode(struct gfx_insn *insn,
                                uint32_t hi, uint32_t lo)
 {
@@ -4610,12 +4590,6 @@ struct gfx_insn_info gfx_insn_info[] =
     GFX_ID_SPCLEARGEOMETRYMODE,
     GFX_IT_OP, G_CLEARGEOMETRYMODE,
     1, gfx_dis_spClearGeometryMode,
-  },
-  {
-    "gsSPLoadGeometryMode",
-    GFX_ID_SPLOADGEOMETRYMODE,
-    GFX_IT_MULTIMACRO, G_CLEARGEOMETRYMODE,
-    1, gfx_col_spLoadGeometryMode,
   },
 #elif defined(F3DEX_GBI_2)
   {
