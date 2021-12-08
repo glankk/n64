@@ -2772,19 +2772,23 @@ int gfx_dis_spEndDisplayList(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
   return 0;
 }
 
+int gfx_dis_spFogFactor(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
+{
+  insn->def = GFX_ID_SPFOGFACTOR;
+  insn->n_gfx = 1;
+  insn->arg[0] = sx(getfield(lo, 16, 16), 16);
+  insn->arg[1] = sx(getfield(lo, 16, 0), 16);
+  return 0;
+}
+
 int gfx_dis_spFogPosition(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
 {
   insn->def = GFX_ID_SPFOGPOSITION;
   insn->n_gfx = 1;
   int x = sx(getfield(lo, 16, 16), 16);
   int y = sx(getfield(lo, 16, 0), 16);
-  if (x == 0) {
-    insn->arg[0] = 0;
-    insn->arg[1] = 0;
-    insn->strarg[0] = strarg_invd;
-    insn->strarg[1] = strarg_invd;
-    return 1;
-  }
+  if (x == 0)
+    return gfx_dis_spFogFactor(insn, hi, lo);
   else {
     x = 128000 / x;
     int yx = y * x;
@@ -2794,9 +2798,13 @@ int gfx_dis_spFogPosition(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
       yx -= 255;
     int min = 500 - yx / 256;
     int max = x + min;
-    insn->arg[0] = min;
-    insn->arg[1] = max;
-    return 0;
+    if (min >= 0 && min <= 1000 && max >= 0 && max <= 1000) {
+      insn->arg[0] = min;
+      insn->arg[1] = max;
+      return 0;
+    }
+    else
+      return gfx_dis_spFogFactor(insn, hi, lo);
   }
 }
 
@@ -4565,6 +4573,12 @@ struct gfx_insn_info gfx_insn_info[] =
     GFX_ID_SPENDDISPLAYLIST,
     GFX_IT_OP, G_ENDDL,
     0, gfx_dis_spEndDisplayList,
+  },
+  {
+    "gsSPFogFactor",
+    GFX_ID_SPFOGFACTOR,
+    GFX_IT_MACRO, G_MOVEWORD,
+    2, gfx_dis_spFogFactor,
   },
   {
     "gsSPFogPosition",
