@@ -39,6 +39,15 @@ use the included `luapatch` program with BizHawk, you should set the `EMUDIR`
 environment variable to the path to your BizHawk installation.
 
 ## Installation
+### Prebuilt Package (WSL or Debian-based Linux systems)
+1.  From the command line run the following to fetch the package:  
+    ```
+    sudo sh -c '(curl https://practicerom.com/public/packages/debian/pgp.pub || wget -O - https://practicerom.com/public/packages/debian/pgp.pub) | apt-key add - && echo deb http://practicerom.com/public/packages/debian staging main >/etc/apt/sources.list.d/practicerom.list && apt update'
+    ```
+
+2.  Install the package by running `sudo apt install practicerom-dev`  
+
+### Building From Source
 1.  Download and unpack the
     [n64 repository](https://github.com/glankk/n64/archive/master.zip).
 2.  If you're on Windows, download and install MSYS2 from
