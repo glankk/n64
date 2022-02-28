@@ -1,3 +1,17 @@
+## n64-ultra
+This is the experimental branch of the n64 toolchain repository. It targets
+`mips64-ultra-elf` and includes some patches to Newlib, GCC, LD, and GDB;
+-   Newlib, GCC, and LD: Multilib configuration for targeting Wii VC, which
+    requires lower optimization settings, with `-n64-wiivc`, and for disabling
+    small-data sections and `$gp` accesses with
+    `-n64-dynamic`.
+-   LD: `--force-dynamic` option, used for experimenting with shared libraries.
+-   GDB: Remote protocol extension to the `T` stop reply which allows the
+    `library` stop reason to directly include information about which library
+    was loaded or unloaded, and where, to reduce the amount of data and the
+    number of round trips required for the stub to notify gdb about library
+    changes.
+
 ## About
 This is a collection of files and tools used to compile and test code for the
 n64.
