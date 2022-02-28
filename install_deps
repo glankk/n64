@@ -2,17 +2,17 @@
 set -e
 
 DEPS="wget tar make diffutils texinfo"
-RCDEPS="$DEPS gcc g++ lua5.3 jansson libusb-1.0"
+RCDEPS="$DEPS gcc g++ lua5.3 jansson libusb-1.0 libgmp"
 PKM=""
 
 echo Checking platform...
 if type yum >/dev/null 2>&1; then
   echo Found yum, assuming Red Hat.
-  DEPS="$DEPS gcc gcc-c++ lua-devel jansson-devel libusb-devel"
+  DEPS="$DEPS gcc gcc-c++ lua-devel jansson-devel libusb-devel gmp-devel"
   PKM="yum"
 elif type zypper >/dev/null 2>&1; then
   echo Found zypper, assuming openSUSE.
-  DEPS="$DEPS gcc gcc-c++ lua53 libjansson-devel libusb-1_0-devel"
+  DEPS="$DEPS gcc gcc-c++ lua53 libjansson-devel libusb-1_0-devel gmp-devel"
   PKM="zypper"
 elif type emerge >/dev/null 2>&1; then
   echo Found emerge, assuming Gentoo.
@@ -20,28 +20,28 @@ elif type emerge >/dev/null 2>&1; then
     read -p "Warning: Also found equo. If you're running Sabayon, then this will probably not work. Continue? (y/n) " yn
     case "$yn" in [Yy]*) ;; *) exit;; esac
   fi
-  DEPS="$DEPS gcc lua:5.3 jansson libusb"
+  DEPS="$DEPS gcc lua:5.3 jansson libusb gmp"
   PKM="emerge"
 elif type pkg >/dev/null 2>&1; then
   echo Found pkg, assuming FreeBSD.
   echo Note: Configure with 'CPPFLAGS=-I/usr/local/include LDFLAGS=-L/usr/local/lib'.
   echo Note: gsed needs to be in your PATH as 'sed'.
   echo Note: Make with gmake.
-  DEPS="texinfo lua53 jansson gmake gsed"
+  DEPS="texinfo lua53 jansson gmake gsed gmp"
   PKM="pkg"
 elif type brew >/dev/null 2>&1; then
   echo Found brew, assuming macOS.
   echo Note: gsed needs to be in your PATH as 'sed'.
-  DEPS="lua jansson libusb gnu-sed"
+  DEPS="lua jansson libusb gnu-sed gmp"
   PKM="brew"
 elif type apt >/dev/null 2>&1; then
   echo Found apt, assuming Debian.
-  DEPS="$DEPS gcc g++ liblua5.3-dev libjansson-dev libusb-1.0-0-dev"
+  DEPS="$DEPS gcc g++ liblua5.3-dev libjansson-dev libusb-1.0-0-dev libgmp-dev"
   PKM="apt"
 elif type pacman >/dev/null 2>&1; then
   if test "x`uname -o`" = xMsys; then
     echo Found pacman with \`uname -o\` = "Msys", assuming MSYS2.
-    DEPS="$DEPS mingw-w64-i686-gcc mingw-w64-i686-lua mingw-w64-i686-jansson mingw-w64-i686-libusb"
+    DEPS="$DEPS mingw-w64-i686-gcc mingw-w64-i686-lua mingw-w64-i686-jansson mingw-w64-i686-libusb mingw-w64-i686-gmp"
     PKM="pacman"
   else
     echo Found pacman, assuming Arch.

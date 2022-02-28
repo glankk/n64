@@ -34,9 +34,9 @@ mips64, with `-march=vr4300` and `-mabi=32` as defaults for `gcc`.
 
 ## Prerequisites
 You'll need to have these packages installed: `wget tar make diffutils texinfo
-gcc g++ lua5.3 jansson libusb-1.0`. See Installation, step 4. If you want to
-use the included `luapatch` program with BizHawk, you should set the `EMUDIR`
-environment variable to the path to your BizHawk installation.
+gcc g++ lua5.3 jansson libusb-1.0 libgmp`. See Installation, step 4. If you
+want to use the included `luapatch` program with BizHawk, you should set the
+`EMUDIR` environment variable to the path to your BizHawk installation.
 
 ## Installation
 ### Prebuilt Package (WSL or Debian-based Linux systems)
@@ -48,15 +48,14 @@ environment variable to the path to your BizHawk installation.
 2.  Install the package by running `sudo apt install practicerom-dev`  
 
 ### Building From Source
-1.  Download and unpack the
-    [n64 repository](https://github.com/glankk/n64/archive/master.zip).
-2.  If you're on Windows, download and install MSYS2 from
-    [here](https://msys2.github.io/).
-3.  Open a GNU/Linux or MSYS2 MinGW 32-bit shell and navigate to `n64-master`.
-4.  Optionally, have the included script try to install the prerequisite
+1.  If you're on Windows, download and install MSYS2 from
+    [here](https://msys2.github.io/). Open a `MSYS2 MinGW 32-bit` shell.
+2.  Clone the repository and navigate into it by running
+    `git clone https://github.com/glankk/n64 && cd n64`.
+3.  Optionally, have the included script try to install the prerequisite
     packages automatically by running `./install_deps`. You'll need root
     privileges for this.
-5.  Configure the package with `./configure --prefix=/opt/n64`. You may use
+4.  Configure the package with `./configure --prefix=/opt/n64`. You may use
     another installation prefix if you wish. To enable Wii VC compatibility,
     append ` --enable-vc` to the configure command. To produce portable Windows
     executables (that don't need additional dynamic libraries) under MSYS2,
