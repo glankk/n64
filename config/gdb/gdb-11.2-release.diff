@@ -1,0 +1,725 @@
+diff --git a/gdb/breakpoint.c b/gdb/breakpoint.c
+index 0d7e5794e21..bf882f9a972 100644
+--- a/gdb/breakpoint.c
++++ b/gdb/breakpoint.c
+@@ -5467,7 +5467,7 @@ bpstat_stop_status (const address_space *aspace,
+     {
+       if (bs->breakpoint_at && bs->breakpoint_at->type == bp_shlib_event)
+ 	{
+-	  handle_solib_event ();
++	  handle_solib_event (ws->value.so_event.get ());
+ 	  break;
+ 	}
+     }
+diff --git a/gdb/infcmd.c b/gdb/infcmd.c
+index c4b7ad0b7b9..2226b4b4e84 100644
+--- a/gdb/infcmd.c
++++ b/gdb/infcmd.c
+@@ -337,7 +337,7 @@ post_create_inferior (int from_tty)
+ 	  /* If the solist is global across processes, there's no need to
+ 	     refetch it here.  */
+ 	  if (!gdbarch_has_global_solist (target_gdbarch ()))
+-	    solib_add (NULL, 0, auto_solib_add);
++	    solib_add (NULL, 0, auto_solib_add, NULL);
+ 	}
+     }
+ 
+diff --git a/gdb/infrun.c b/gdb/infrun.c
+index 474c0c92770..9c1667981bc 100644
+--- a/gdb/infrun.c
++++ b/gdb/infrun.c
+@@ -1820,12 +1820,28 @@ struct execution_control_state
+   int hit_singlestep_breakpoint;
+ };
+ 
++static void
++clear_ecs (struct execution_control_state *ecs)
++{
++  ecs->target = NULL;
++  ecs->ptid = ptid_t (0);
++  ecs->event_thread = NULL;
++  ecs->ws.kind = (enum target_waitkind) 0;
++  ecs->ws.value.integer = 0;
++  ecs->stop_func_filled_in = 0;
++  ecs->stop_func_start = 0;
++  ecs->stop_func_end = 0;
++  ecs->stop_func_name = NULL;
++  ecs->wait_some_more = 0;
++  ecs->hit_singlestep_breakpoint = 0;
++}
++
+ /* Clear ECS and set it to point at TP.  */
+ 
+ static void
+ reset_ecs (struct execution_control_state *ecs, struct thread_info *tp)
+ {
+-  memset (ecs, 0, sizeof (*ecs));
++  clear_ecs (ecs);
+   ecs->event_thread = tp;
+   ecs->ptid = tp->ptid;
+ }
+@@ -3886,7 +3902,7 @@ wait_for_inferior (inferior *inf)
+       struct execution_control_state ecss;
+       struct execution_control_state *ecs = &ecss;
+ 
+-      memset (ecs, 0, sizeof (*ecs));
++      clear_ecs (ecs);
+ 
+       overlay_cache_invalid = 1;
+ 
+@@ -4029,7 +4045,7 @@ fetch_inferior_event ()
+   struct execution_control_state *ecs = &ecss;
+   int cmd_done = 0;
+ 
+-  memset (ecs, 0, sizeof (*ecs));
++  clear_ecs (ecs);
+ 
+   /* Events are always processed with the main UI as current UI.  This
+      way, warnings, debug output, etc. are always consistently sent to
+@@ -5338,7 +5354,7 @@ handle_inferior_event (struct execution_control_state *ecs)
+ 
+ 	    regcache = get_thread_regcache (ecs->event_thread);
+ 
+-	    handle_solib_event ();
++	    handle_solib_event (ecs->ws.value.so_event.get ());
+ 
+ 	    ecs->event_thread->control.stop_bpstat
+ 	      = bpstat_stop_status (regcache->aspace (),
+diff --git a/gdb/remote.c b/gdb/remote.c
+index aff52167ede..13b5765052b 100644
+--- a/gdb/remote.c
++++ b/gdb/remote.c
+@@ -4525,7 +4525,8 @@ remote_target::process_initial_stop_replies (int from_tty)
+       struct target_waitstatus ws;
+       int ignore_event = 0;
+ 
+-      memset (&ws, 0, sizeof (ws));
++      ws.kind = (enum target_waitkind) 0;
++      ws.value.integer = 0;
+       event_ptid = target_wait (waiton_ptid, &ws, TARGET_WNOHANG);
+       if (remote_debug)
+ 	print_target_wait_results (waiton_ptid, event_ptid, &ws);
+@@ -4753,7 +4754,7 @@ remote_target::start_remote (int from_tty, int extended_p)
+   /* On OSs where the list of libraries is global to all
+      processes, we fetch them early.  */
+   if (gdbarch_has_global_solist (target_gdbarch ()))
+-    solib_add (NULL, from_tty, auto_solib_add);
++    solib_add (NULL, from_tty, auto_solib_add, NULL);
+ 
+   if (target_is_non_stop_p ())
+     {
+@@ -7576,6 +7577,7 @@ Packet: '%s'\n"),
+ 	    }
+ 	  else if (strprefix (p, p1, "library"))
+ 	    {
++	      event->ws.value.so_event.reset (solib_parse_event (p1 + 1));
+ 	      event->ws.kind = TARGET_WAITKIND_LOADED;
+ 	      p = strchrnul (p1 + 1, ';');
+ 	    }
+diff --git a/gdb/solib-svr4.c b/gdb/solib-svr4.c
+index 4fa0e255eac..8aa43e42bd1 100644
+--- a/gdb/solib-svr4.c
++++ b/gdb/solib-svr4.c
+@@ -1547,7 +1547,7 @@ svr4_fetch_objfile_link_map (struct objfile *objfile)
+ 
+   /* Cause svr4_current_sos() to be run if it hasn't been already.  */
+   if (info->main_lm_addr == 0)
+-    solib_add (NULL, 0, auto_solib_add);
++    solib_add (NULL, 0, auto_solib_add, NULL);
+ 
+   /* svr4_current_sos() will set main_lm_addr for the main executable.  */
+   if (objfile == current_program_space->symfile_object_file)
+@@ -1878,7 +1878,7 @@ disable_probes_interface (svr4_info *info)
+    standard interface.  */
+ 
+ static void
+-svr4_handle_solib_event (void)
++svr4_handle_solib_event (target_so_event *so_event)
+ {
+   struct svr4_info *info = get_svr4_info (current_program_space);
+   struct probe_and_action *pa;
+@@ -2234,7 +2234,7 @@ enable_break (struct svr4_info *info, int from_tty)
+      mean r_brk has already been relocated.  Assume the dynamic linker
+      is the object containing r_brk.  */
+ 
+-  solib_add (NULL, from_tty, auto_solib_add);
++  solib_add (NULL, from_tty, auto_solib_add, NULL);
+   sym_addr = 0;
+   if (info->debug_base && solib_svr4_r_map (info) != 0)
+     sym_addr = solib_svr4_r_brk (info);
+@@ -2406,7 +2406,7 @@ enable_break (struct svr4_info *info, int from_tty)
+ 	  info->debug_loader_name = xstrdup (interp_name);
+ 	  info->debug_loader_offset_p = 1;
+ 	  info->debug_loader_offset = load_addr;
+-	  solib_add (NULL, from_tty, auto_solib_add);
++	  solib_add (NULL, from_tty, auto_solib_add, NULL);
+ 	}
+ 
+       /* Record the relocated start and end address of the dynamic linker
+diff --git a/gdb/solib-target.c b/gdb/solib-target.c
+index 54b98243e51..f74509c9423 100644
+--- a/gdb/solib-target.c
++++ b/gdb/solib-target.c
+@@ -25,7 +25,9 @@
+ #include "target.h"
+ #include "solib-target.h"
+ #include <vector>
++#include <memory>
+ #include "inferior.h"
++#include "gdbsupport/rsp-low.h"
+ 
+ /* Private data for each loaded library.  */
+ struct lm_info_target : public lm_info_base
+@@ -275,6 +277,80 @@ solib_target_current_sos (void)
+   return start;
+ }
+ 
++static target_so_event *
++solib_target_parse_so_event (const char *p)
++{
++  if (*p != '+' && *p != '-')
++    return NULL;
++
++  std::unique_ptr<target_so_event> so_event (new target_so_event ());
++
++  while (*p == '+' || *p == '-')
++    {
++      struct so_list **so_link;
++
++      if (*p++ == '+')
++        so_link = &so_event->loaded_sos;
++      else
++        so_link = &so_event->unloaded_sos;
++
++      const char *name = p;
++      size_t name_length = 0;
++      while (*p != '\0' && *p != ',' && *p != ';')
++	{
++	  p++;
++	  name_length++;
++	}
++
++      if (name_length == 0)
++        return NULL;
++
++      if (name_length > SO_NAME_MAX_PATH_SIZE - 1)
++        continue;
++
++      std::unique_ptr<so_list, so_deleter> so (XCNEW (so_list));
++
++      memcpy (so->so_name, name, name_length);
++      so->so_name[name_length] = '\0';
++
++      memcpy (so->so_original_name, name, name_length);
++      so->so_original_name[name_length] = '\0';
++
++      lm_info_target *info = new lm_info_target ();
++      so->lm_info = info;
++
++      if (*p == ',')
++	{
++	  p++;
++
++	  char offset_type = *p++;
++	  std::vector<CORE_ADDR> *offset_vec;
++
++	  if (offset_type == 'S')
++	    offset_vec = &info->segment_bases;
++	  else if (offset_type == 's')
++	    offset_vec = &info->section_bases;
++	  else
++	    return NULL;
++
++	  while (*p == ',')
++	    {
++	      ULONGEST address = 0;
++	      p = unpack_varlen_hex (++p, &address);
++	      offset_vec->push_back (address);
++	    }
++	}
++
++      so->next = *so_link;
++      *so_link = so.release ();
++    }
++
++  if (*p != ';')
++    return NULL;
++
++  return so_event.release ();
++}
++
+ static void
+ solib_target_solib_create_inferior_hook (int from_tty)
+ {
+@@ -448,6 +524,7 @@ _initialize_solib_target ()
+   solib_target_so_ops.solib_create_inferior_hook
+     = solib_target_solib_create_inferior_hook;
+   solib_target_so_ops.current_sos = solib_target_current_sos;
++  solib_target_so_ops.parse_so_event = solib_target_parse_so_event;
+   solib_target_so_ops.open_symbol_file_object
+     = solib_target_open_symbol_file_object;
+   solib_target_so_ops.in_dynsym_resolve_code
+diff --git a/gdb/solib.c b/gdb/solib.c
+index ca905cc7a60..72b293a8212 100644
+--- a/gdb/solib.c
++++ b/gdb/solib.c
+@@ -895,6 +895,190 @@ Do you need \"set solib-search-path\" or \"set sysroot\"?"),
+     }
+ }
+ 
++void
++update_solib_list_from_event (target_so_event *so_event, int from_tty)
++{
++  const struct target_so_ops *ops = solib_ops (target_gdbarch ());
++  struct so_list *gdb, **gdb_link;
++
++  /* We can reach here due to changing solib-search-path or the
++     sysroot, before having any inferior.  */
++  if (target_has_execution () && inferior_ptid != null_ptid)
++    {
++      struct inferior *inf = current_inferior ();
++
++      /* If we are attaching to a running process for which we
++	 have not opened a symbol file, we may be able to get its
++	 symbols now!  */
++      if (inf->attach_flag
++	  && current_program_space->symfile_object_file == NULL)
++	{
++	  try
++	    {
++	      ops->open_symbol_file_object (from_tty);
++	    }
++	  catch (const gdb_exception &ex)
++	    {
++	      exception_fprintf (gdb_stderr, ex,
++				 "Error reading attached "
++				 "process's symbol file.\n");
++	    }
++	}
++    }
++
++  gdb = current_program_space->so_list;
++  gdb_link = &current_program_space->so_list;
++  while (gdb)
++    {
++      struct so_list *l = so_event->loaded_sos;
++      struct so_list **l_link = &so_event->loaded_sos;
++
++      struct so_list *u = so_event->unloaded_sos;
++      struct so_list **u_link = &so_event->unloaded_sos;
++
++      /* Check to see whether the shared object *gdb also appears in
++	 the events's lists.  */
++      while (l)
++	{
++	  if (ops->same)
++	    {
++	      if (ops->same (gdb, l))
++		break;
++	    }
++	  else
++	    {
++	      if (! filename_cmp (gdb->so_original_name, l->so_original_name))
++		break;
++	    }
++
++	  l_link = &l->next;
++	  l = *l_link;
++	}
++
++      while (u)
++	{
++	  if (ops->same)
++	    {
++	      if (ops->same (gdb, u))
++		break;
++	    }
++	  else
++	    {
++	      if (! filename_cmp (gdb->so_original_name, u->so_original_name))
++		break;
++	    }
++
++	  u_link = &u->next;
++	  u = *u_link;
++	}
++
++      /* If the shared object appears on both the event's loaded list
++	 and GDB's list, we don't need to do anything.  Delete it from
++	 the event's list and leave it on GDB's list.  */
++      if (l)
++	{
++	  *l_link = l->next;
++	  free_so (l);
++	}
++
++      /* If the shared object appears on both the event's unloaded list
++	 and GDB's list, delete it from both lists.  */
++      if (u)
++	{
++	  *u_link = u->next;
++	  free_so (u);
++
++	  /* Notify any observer that the shared object has been
++	     unloaded before we remove it from GDB's tables.  */
++	  gdb::observers::solib_unloaded.notify (gdb);
++
++	  current_program_space->deleted_solibs.push_back (gdb->so_name);
++
++	  *gdb_link = gdb->next;
++
++	  /* Unless the user loaded it explicitly, free SO's objfile.  */
++	  if (gdb->objfile && ! (gdb->objfile->flags & OBJF_USERLOADED)
++	      && !solib_used (gdb))
++	    gdb->objfile->unlink ();
++
++	  /* Some targets' section tables might be referring to
++	     sections from so->abfd; remove them.  */
++	  current_program_space->remove_target_sections (gdb);
++
++	  free_so (gdb);
++	  gdb = *gdb_link;
++	}
++      else
++	{
++	  gdb_link = &gdb->next;
++	  gdb = *gdb_link;
++	}
++    }
++
++  /* Now the event's loaded list contains only shared objects that don't
++     appear in GDB's list --- those that are newly loaded.  Add them
++     to GDB's shared object list.  */
++  if (so_event->loaded_sos)
++    {
++      int not_found = 0;
++      const char *not_found_filename = NULL;
++
++      struct so_list *i;
++
++      /* Move the new shared objects to GDB's list.  */
++      *gdb_link = so_event->loaded_sos;
++      so_event->loaded_sos = NULL;
++
++      /* Fill in the rest of each of the `struct so_list' nodes.  */
++      for (i = *gdb_link; i; i = i->next)
++	{
++
++	  i->pspace = current_program_space;
++	  current_program_space->added_solibs.push_back (i);
++
++	  try
++	    {
++	      /* Fill in the rest of the `struct so_list' node.  */
++	      if (!solib_map_sections (i))
++		{
++		  not_found++;
++		  if (not_found_filename == NULL)
++		    not_found_filename = i->so_original_name;
++		}
++	    }
++
++	  catch (const gdb_exception_error &e)
++	    {
++	      exception_fprintf (gdb_stderr, e,
++				 _("Error while mapping shared "
++				   "library sections:\n"));
++	    }
++
++	  /* Notify any observer that the shared object has been
++	     loaded now that we've added it to GDB's tables.  */
++	  gdb::observers::solib_loaded.notify (i);
++	}
++
++      /* If a library was not found, issue an appropriate warning
++	 message.  We have to use a single call to warning in case the
++	 front end does something special with warnings, e.g., pop up
++	 a dialog box.  It Would Be Nice if we could get a "warning: "
++	 prefix on each line in the CLI front end, though - it doesn't
++	 stand out well.  */
++
++      if (not_found == 1)
++	warning (_("Could not load shared library symbols for %s.\n"
++		   "Do you need \"set solib-search-path\" "
++		   "or \"set sysroot\"?"),
++		 not_found_filename);
++      else if (not_found > 1)
++	warning (_("\
++Could not load shared library symbols for %d libraries, e.g. %s.\n\
++Use the \"info sharedlibrary\" command to see the complete listing.\n\
++Do you need \"set solib-search-path\" or \"set sysroot\"?"),
++		 not_found, not_found_filename);
++    }
++}
+ 
+ /* Return non-zero if NAME is the libpthread shared library.
+ 
+@@ -931,7 +1115,8 @@ libpthread_solib_p (struct so_list *so)
+    FROM_TTY is described for update_solib_list, above.  */
+ 
+ void
+-solib_add (const char *pattern, int from_tty, int readsyms)
++solib_add (const char *pattern, int from_tty, int readsyms,
++	   target_so_event *so_event)
+ {
+   if (print_symbol_loading_p (from_tty, 0, 0))
+     {
+@@ -954,7 +1139,10 @@ solib_add (const char *pattern, int from_tty, int readsyms)
+ 	error (_("Invalid regexp: %s"), re_err);
+     }
+ 
+-  update_solib_list (from_tty);
++  if (so_event)
++    update_solib_list_from_event (so_event, from_tty);
++  else
++    update_solib_list (from_tty);
+ 
+   /* Walk the list of currently loaded shared libraries, and read
+      symbols for any that match the pattern --- or any whose symbols
+@@ -1200,6 +1388,17 @@ solib_create_inferior_hook (int from_tty)
+   ops->solib_create_inferior_hook (from_tty);
+ }
+ 
++target_so_event *
++solib_parse_event (const char *p)
++{
++  const struct target_so_ops *ops = solib_ops (target_gdbarch ());
++
++  if (ops->parse_so_event)
++    return ops->parse_so_event (p);
++  else
++    return NULL;
++}
++
+ /* See solib.h.  */
+ 
+ bool
+@@ -1216,7 +1415,7 @@ static void
+ sharedlibrary_command (const char *args, int from_tty)
+ {
+   dont_repeat ();
+-  solib_add (args, from_tty, 1);
++  solib_add (args, from_tty, 1, NULL);
+ }
+ 
+ /* Implements the command "nosharedlibrary", which discards symbols
+@@ -1250,12 +1449,12 @@ update_solib_breakpoints (void)
+ /* See solib.h.  */
+ 
+ void
+-handle_solib_event (void)
++handle_solib_event (target_so_event *so_event)
+ {
+   const struct target_so_ops *ops = solib_ops (target_gdbarch ());
+ 
+   if (ops->handle_event != NULL)
+-    ops->handle_event ();
++    ops->handle_event (so_event);
+ 
+   current_inferior ()->pspace->clear_solib_cache ();
+ 
+@@ -1263,7 +1462,7 @@ handle_solib_event (void)
+      be adding them automatically.  Switch terminal for any messages
+      produced by breakpoint_re_set.  */
+   target_terminal::ours_for_output ();
+-  solib_add (NULL, 0, auto_solib_add);
++  solib_add (NULL, 0, auto_solib_add, so_event);
+   target_terminal::inferior ();
+ }
+ 
+@@ -1372,7 +1571,7 @@ reload_shared_libraries (const char *ignored, int from_tty,
+      removed.  Call it only after the solib target has been initialized by
+      solib_create_inferior_hook.  */
+ 
+-  solib_add (NULL, 0, auto_solib_add);
++  solib_add (NULL, 0, auto_solib_add, NULL);
+ 
+   breakpoint_re_set ();
+ 
+diff --git a/gdb/solib.h b/gdb/solib.h
+index c04e6bb0fc0..6112d77c3f4 100644
+--- a/gdb/solib.h
++++ b/gdb/solib.h
+@@ -25,6 +25,7 @@ struct so_list;
+ struct target_ops;
+ struct target_so_ops;
+ struct program_space;
++struct target_so_event;
+ 
+ #include "symfile-add-flags.h"
+ 
+@@ -35,7 +36,7 @@ extern void clear_solib (void);
+ 
+ /* Called to add symbols from a shared library to gdb's symbol table.  */
+ 
+-extern void solib_add (const char *, int, int);
++extern void solib_add (const char *, int, int, target_so_event *so_event);
+ extern bool solib_read_symbols (struct so_list *, symfile_add_flags);
+ 
+ /* Function to be called when the inferior starts up, to discover the
+@@ -45,6 +46,8 @@ extern bool solib_read_symbols (struct so_list *, symfile_add_flags);
+ 
+ extern void solib_create_inferior_hook (int from_tty);
+ 
++extern target_so_event *solib_parse_event (const char *p);
++
+ /* If ADDR lies in a shared library, return its name.  */
+ 
+ extern char *solib_name_from_address (struct program_space *, CORE_ADDR);
+@@ -93,6 +96,9 @@ extern void set_solib_ops (struct gdbarch *gdbarch,
+ 
+ extern void update_solib_list (int from_tty);
+ 
++extern void update_solib_list_from_event (target_so_event *so_event,
++					  int from_tty);
++
+ /* Return true if NAME is the libpthread shared library.  */
+ 
+ extern bool libpthread_name_p (const char *name);
+@@ -118,6 +124,6 @@ extern void update_solib_breakpoints (void);
+ 
+ /* Handle an solib event by calling solib_add.  */
+ 
+-extern void handle_solib_event (void);
++extern void handle_solib_event (target_so_event *so_event);
+ 
+ #endif /* SOLIB_H */
+diff --git a/gdb/solist.h b/gdb/solist.h
+index 5ddfcde1b25..bc093bf57a5 100644
+--- a/gdb/solist.h
++++ b/gdb/solist.h
+@@ -31,6 +31,8 @@ struct lm_info_base
+ {
+ };
+ 
++struct target_so_event;
++
+ struct so_list
+ {
+   /* The following fields of the structure come directly from the
+@@ -115,6 +117,8 @@ struct target_so_ops
+      we provide values for.  */
+   struct so_list *(*current_sos) (void);
+ 
++  target_so_event *(*parse_so_event) (const char *p);
++
+   /* Find, open, and read the symbols for the main executable.  If
+      FROM_TTY is non-zero, allow messages to be printed.  */
+   int (*open_symbol_file_object) (int from_ttyp);
+@@ -160,7 +164,7 @@ struct target_so_ops
+      performed before solib_add is called.  This pointer can be
+      NULL, in which case no specific preprocessing is necessary
+      for this target.  */
+-  void (*handle_event) (void);
++  void (*handle_event) (target_so_event *so_event);
+ };
+ 
+ /* Free the memory associated with a (so_list *).  */
+diff --git a/gdb/target.c b/gdb/target.c
+index 49c2c07d643..75afffc6e2e 100644
+--- a/gdb/target.c
++++ b/gdb/target.c
+@@ -3837,7 +3837,8 @@ target_stop_and_wait (ptid_t ptid)
+   non_stop = true;
+   target_stop (ptid);
+ 
+-  memset (&status, 0, sizeof (status));
++  status.kind = (enum target_waitkind) 0;
++  status.value.integer = 0;
+   target_wait (ptid, &status, 0);
+ 
+   non_stop = was_non_stop;
+diff --git a/gdb/target/waitstatus.h b/gdb/target/waitstatus.h
+index 71731c40759..e189ed3d750 100644
+--- a/gdb/target/waitstatus.h
++++ b/gdb/target/waitstatus.h
+@@ -21,6 +21,8 @@
+ #define TARGET_WAITSTATUS_H
+ 
+ #include "gdbsupport/gdb_signals.h"
++#include <memory>
++#include "solist.h"
+ 
+ /* Stuff for target_wait.  */
+ 
+@@ -101,23 +103,55 @@ enum target_waitkind
+   TARGET_WAITKIND_THREAD_EXITED,
+ };
+ 
++struct target_so_event
++{
++  target_so_event () = default;
++
++  ~target_so_event ()
++  {
++    while (loaded_sos)
++      {
++	struct so_list *so = loaded_sos;
++	loaded_sos = so->next;
++
++	free_so (so);
++      }
++
++    while (unloaded_sos)
++      {
++	struct so_list *so = unloaded_sos;
++	unloaded_sos = so->next;
++
++	free_so (so);
++      }
++  }
++
++  struct so_list *loaded_sos = nullptr;
++  struct so_list *unloaded_sos = nullptr;
++};
++
+ struct target_waitstatus
+ {
+   enum target_waitkind kind;
+ 
+   /* Additional information about the event.  */
+-  union
++  struct
+     {
+-      /* Exit status */
+-      int integer;
+-      /* Signal number */
+-      enum gdb_signal sig;
+-      /* Forked child pid */
+-      ptid_t related_pid;
+-      /* execd pathname */
+-      char *execd_pathname;
+-      /* Syscall number */
+-      int syscall_number;
++      union
++	{
++	  /* Exit status */
++	  int integer;
++	  /* Signal number */
++	  enum gdb_signal sig;
++	  /* Forked child pid */
++	  ptid_t related_pid;
++	  /* execd pathname */
++	  char *execd_pathname;
++	  /* Syscall number */
++	  int syscall_number;
++	};
++      /* Solib event information */
++      std::shared_ptr<target_so_event> so_event;
+     } value;
+ };
+ 
+diff --git a/gdb/thread.c b/gdb/thread.c
+index 343fb23c5d1..27347ade00f 100644
+--- a/gdb/thread.c
++++ b/gdb/thread.c
+@@ -296,8 +296,8 @@ thread_info::thread_info (struct inferior *inf_, ptid_t ptid_)
+   this->per_inf_num = ++inf_->highest_thread_num;
+ 
+   /* Nothing to follow yet.  */
+-  memset (&this->pending_follow, 0, sizeof (this->pending_follow));
+   this->pending_follow.kind = TARGET_WAITKIND_SPURIOUS;
++  this->pending_follow.value.integer = 0;
+   this->suspend.waitstatus.kind = TARGET_WAITKIND_IGNORE;
+ }
+ 

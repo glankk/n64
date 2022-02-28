@@ -234,6 +234,13 @@ gdb.tar.gz                    :
 gdb                           : | gdb.tar.gz
 	if test ! -d gdb; then mkdir gdb; fi
 	tar xfv gdb.tar.gz --strip-components=1 -C gdb
+	if patch --dry-run -d gdb -p 1 < "$(srcdir)/config/gdb/gdb-11.2-release.diff"; then \
+		patch -d gdb -p 1 < "$(srcdir)/config/gdb/gdb-11.2-release.diff"; \
+	elif patch --dry-run -d gdb -p 1 < "$(srcdir)/config/gdb/gdb-820ed8a.diff"; then \
+		patch -d gdb -p 1 < "$(srcdir)/config/gdb/gdb-820ed8a.diff"; \
+	else \
+		false; \
+	fi
 gdb-nospc                     :
 	if test ! -d gdb; then mkdir gdb; fi
 	$(WGET) - "$(GDB_URL)" | tar xzv --strip-components=1 -C gdb
