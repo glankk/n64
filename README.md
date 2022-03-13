@@ -45,9 +45,10 @@ want to use the included `luapatch` program with BizHawk, you should set the
     sudo sh -c '(curl https://practicerom.com/public/packages/debian/pgp.pub || wget -O - https://practicerom.com/public/packages/debian/pgp.pub) | apt-key add - && echo deb http://practicerom.com/public/packages/debian staging main >/etc/apt/sources.list.d/practicerom.list && apt update'
     ```
 
-2.  Install the package by running `sudo apt install practicerom-dev`. The
-    prebuilt packages are built from the `n64-ultra` branch and target
-    `mips64-ultra-elf`.
+2.  Install the package by running `sudo apt install n64-ultra`, or install all
+    practicerom development packages by running
+    `sudo apt install practicerom-dev`. The prebuilt packages are built from
+    the `n64-ultra` branch and target `mips64-ultra-elf`.
 
 ### Building From Source
 1.  If you're on Windows, download and install MSYS2 from
