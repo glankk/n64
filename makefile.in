@@ -242,6 +242,7 @@ gdb                           : | gdb.tar.gz
 	else \
 		false; \
 	fi
+	cat "$(srcdir)/config/bfd/config.bfd.ultra" >> gdb/bfd/config.bfd
 gdb-nospc                     :
 	if test ! -d gdb; then mkdir gdb; fi
 	$(WGET) - "$(GDB_URL)" | tar xzv --strip-components=1 -C gdb

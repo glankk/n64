@@ -1,6 +1,5 @@
 case "${target}" in
 mips*-ultra-elf*)
 	targ_emul=elf32ebmipultra
-	targ_extra_emuls="elf32bmip elf32bmipn32 elf32bsmip elf32btsmip elf32btsmipn32 elf32elmip elf32ebmip elf32lmip elf32lsmip elf32ltsmip elf32ltsmipn32 elf64bmip elf64btsmip elf64ltsmip"
 	;;
 esac
