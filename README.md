@@ -1,10 +1,9 @@
 ## n64-ultra
 This is the experimental branch of the n64 toolchain repository. It targets
-`mips64-ultra-elf` and includes some patches to Newlib, GCC, LD, and GDB;
--   Newlib, GCC, and LD: Multilib configuration for targeting Wii VC, which
-    requires lower optimization settings, with `-n64-wiivc`, and for disabling
-    small-data sections and `$gp` accesses with
-    `-n64-dynamic`.
+`mips64-ultra-elf` and includes some patches to GNU toolchain;
+-   GCC: Multilib configuration for targeting Wii VC, which requires lower
+    optimization settings, with `-n64-wiivc`, and for disabling small-data
+    sections and `$gp` accesses with `-n64-dynamic`.
 -   LD: `--force-dynamic` option, used for experimenting with shared libraries.
 -   GDB: Remote protocol extension to the `T` stop reply which allows the
     `library` stop reason to directly include information about which library
@@ -59,9 +58,10 @@ want to use the included `luapatch` program with BizHawk, you should set the
     sudo sh -c '(curl https://practicerom.com/public/packages/debian/pgp.pub || wget -O - https://practicerom.com/public/packages/debian/pgp.pub) | apt-key add - && echo deb http://practicerom.com/public/packages/debian staging main >/etc/apt/sources.list.d/practicerom.list && apt update'
     ```
 
-2.  Install the package by running `sudo apt install practicerom-dev`. The
-    prebuilt packages are built from the `n64-ultra` branch and target
-    `mips64-ultra-elf`.
+2.  Install the package by running `sudo apt install n64-ultra`, or install all
+    practicerom development packages by running
+    `sudo apt install practicerom-dev`. The prebuilt packages are built from
+    the `n64-ultra` branch and target `mips64-ultra-elf`.
 
 ### Building From Source
 1.  If you're on Windows, download and install MSYS2 from
