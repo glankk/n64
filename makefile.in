@@ -101,6 +101,7 @@ binutils                      : | binutils.tar.gz
 	cp "$(srcdir)/config/ld/emulparams/"* binutils/ld/emulparams
 	cp "$(srcdir)/config/ld/emultempl/"* binutils/ld/emultempl
 	cat "$(srcdir)/config/ld/configure.tgt.ultra" >> binutils/ld/configure.tgt
+	cat "$(srcdir)/config/bfd/config.bfd.ultra" >> binutils/bfd/config.bfd
 binutils-nospc                :
 	if test ! -d binutils; then mkdir binutils; fi
 	$(WGET) - "$(BINUTILS_URL)" | tar xzv --strip-components=1 -C binutils
