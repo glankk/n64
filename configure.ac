@@ -24,8 +24,8 @@ AC_ARG_ENABLE([vc],
               [AS_HELP_STRING([--enable-vc],
                               [compile libraries with wii vc compatibility])],
               [
-                CFLAGS_FOR_TARGET="-O1 -fno-reorder-blocks $CFLAGS_FOR_TARGET"
-                CXXFLAGS_FOR_TARGET="-O1 -fno-reorder-blocks $CXXFLAGS_FOR_TARGET"
+                CFLAGS_FOR_TARGET="-Os -fno-reorder-blocks -fno-optimize-sibling-calls $CFLAGS_FOR_TARGET"
+                CXXFLAGS_FOR_TARGET="-Os -fno-reorder-blocks -fno-optimize-sibling-calls $CXXFLAGS_FOR_TARGET"
               ],
               [
                 CFLAGS_FOR_TARGET="-Os $CFLAGS_FOR_TARGET"
