@@ -2491,8 +2491,8 @@ CXXFLAGS_FOR_TARGET="-g -ffunction-sections -fdata-sections -mno-check-zero-divi
 if test ${enable_vc+y}
 then :
   enableval=$enable_vc;
-                CFLAGS_FOR_TARGET="-O1 -fno-reorder-blocks $CFLAGS_FOR_TARGET"
-                CXXFLAGS_FOR_TARGET="-O1 -fno-reorder-blocks $CXXFLAGS_FOR_TARGET"
+                CFLAGS_FOR_TARGET="-Os -fno-reorder-blocks -fno-optimize-sibling-calls $CFLAGS_FOR_TARGET"
+                CXXFLAGS_FOR_TARGET="-Os -fno-reorder-blocks -fno-optimize-sibling-calls $CXXFLAGS_FOR_TARGET"
 
 else $as_nop
 
