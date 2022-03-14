@@ -157,6 +157,8 @@ build-gcc/config.status       : | gcc
 	cd build-gcc && ../gcc/configure \
 		--prefix="$(prefix)" \
 		--target=$(target) \
+		--with-gnu-as \
+		--with-gnu-ld \
 		--with-arch=vr4300 \
 		--with-abi=32 \
 		--with-newlib \
