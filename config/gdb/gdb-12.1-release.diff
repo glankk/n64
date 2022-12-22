@@ -28,7 +28,7 @@ diff --git a/gdb/infrun.c b/gdb/infrun.c
 index 5311822f..393c7a3a 100644
 --- a/gdb/infrun.c
 +++ b/gdb/infrun.c
-@@ -5293,7 +5293,7 @@ handle_inferior_event (struct execution_control_state *ecs)
+@@ -5284,7 +5284,7 @@ handle_inferior_event (struct execution_control_state *ecs)
  
  	    regcache = get_thread_regcache (ecs->event_thread);
  
@@ -41,7 +41,7 @@ diff --git a/gdb/remote.c b/gdb/remote.c
 index aa6a67a9..4b7d8a44 100644
 --- a/gdb/remote.c
 +++ b/gdb/remote.c
-@@ -4829,7 +4829,7 @@ remote_target::start_remote_1 (int from_tty, int extended_p)
+@@ -4831,7 +4831,7 @@ remote_target::start_remote_1 (int from_tty, int extended_p)
    /* On OSs where the list of libraries is global to all
       processes, we fetch them early.  */
    if (gdbarch_has_global_solist (target_gdbarch ()))
@@ -50,7 +50,7 @@ index aa6a67a9..4b7d8a44 100644
  
    if (target_is_non_stop_p ())
      {
-@@ -7599,7 +7599,9 @@ Packet: '%s'\n"),
+@@ -7601,7 +7601,9 @@ Packet: '%s'\n"),
  	    }
  	  else if (strprefix (p, p1, "library"))
  	    {
@@ -74,7 +74,7 @@ index 69f2991f..89471601 100644
  
    /* svr4_current_sos() will set main_lm_addr for the main executable.  */
    if (objfile == current_program_space->symfile_object_file)
-@@ -1778,7 +1778,7 @@ disable_probes_interface (svr4_info *info)
+@@ -1773,7 +1773,7 @@ disable_probes_interface (svr4_info *info)
     standard interface.  */
  
  static void
@@ -83,7 +83,7 @@ index 69f2991f..89471601 100644
  {
    struct svr4_info *info = get_svr4_info (current_program_space);
    struct probe_and_action *pa;
-@@ -2134,7 +2134,7 @@ enable_break (struct svr4_info *info, int from_tty)
+@@ -2129,7 +2129,7 @@ enable_break (struct svr4_info *info, int from_tty)
       mean r_brk has already been relocated.  Assume the dynamic linker
       is the object containing r_brk.  */
  
@@ -92,7 +92,7 @@ index 69f2991f..89471601 100644
    sym_addr = 0;
    if (info->debug_base && solib_svr4_r_map (info) != 0)
      sym_addr = solib_svr4_r_brk (info);
-@@ -2306,7 +2306,7 @@ enable_break (struct svr4_info *info, int from_tty)
+@@ -2301,7 +2301,7 @@ enable_break (struct svr4_info *info, int from_tty)
  	  info->debug_loader_name = xstrdup (interp_name);
  	  info->debug_loader_offset_p = 1;
  	  info->debug_loader_offset = load_addr;
@@ -677,7 +677,7 @@ index 7b5faed8..0a529985 100644
 @@ -419,6 +461,8 @@ struct target_waitstatus
        /* Syscall number */
        int syscall_number;
-     } m_value;
+     } m_value {};
 +    /* Solib event information */
 +    std::shared_ptr<target_so_event> m_so_event;
  };
