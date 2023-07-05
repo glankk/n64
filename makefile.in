@@ -197,11 +197,9 @@ newlib.tar.gz                 :
 newlib                        : | newlib.tar.gz
 	if test ! -d newlib; then mkdir newlib; fi
 	tar xfv newlib.tar.gz --strip-components=1 -C newlib
-	patch -d newlib -p 1 < "$(srcdir)/config/newlib/newlib.diff"
 newlib-nospc                  :
 	if test ! -d newlib; then mkdir newlib; fi
 	$(WGET) - "$(NEWLIB_URL)" | tar xzv --strip-components=1 -C newlib
-	patch -d newlib -p 1 < "$(srcdir)/config/newlib/newlib.diff"
 build-newlib/config.status    : | newlib install-binutils install-gcc-executables
 	if test ! -d build-newlib; then mkdir build-newlib; fi
 	cd build-newlib && ../newlib/configure \
