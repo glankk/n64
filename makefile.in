@@ -239,6 +239,8 @@ gdb                           : | gdb.tar.gz
 		patch -d gdb -p 1 < "$(srcdir)/config/gdb/gdb-11.2-release.diff"; \
 	elif patch --dry-run -d gdb -p 1 < "$(srcdir)/config/gdb/gdb-12.1-release.diff"; then \
 		patch -d gdb -p 1 < "$(srcdir)/config/gdb/gdb-12.1-release.diff"; \
+	elif patch --dry-run -d gdb -p 1 < "$(srcdir)/config/gdb/gdb-14.1-release.diff"; then \
+		patch -d gdb -p 1 < "$(srcdir)/config/gdb/gdb-14.1-release.diff"; \
 	else \
 		false; \
 	fi
