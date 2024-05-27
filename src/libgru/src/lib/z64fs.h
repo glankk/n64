@@ -17,12 +17,13 @@ struct gru_z64fs
   size_t        prom_size;
   gru_bool_t    vrom_volatile;
   gru_bool_t    prom_volatile;
+  int           compression;
 };
 
 enum gru_error gru_z64fs_init(struct gru_z64fs *z64fs);
 void gru_z64fs_destroy(struct gru_z64fs *z64fs);
 enum gru_error gru_z64fs_load(struct gru_z64fs *z64fs, struct gru_blob *blob,
-                              size_t *ftab_start_in);
+                              size_t *ftab_start_in, int *compression_in);
 enum gru_error gru_z64fs_assemble_blob(struct gru_z64fs *z64fs,
                                        struct gru_blob *blob);
 enum gru_error gru_z64fs_assemble_rom(struct gru_z64fs *z64fs,
@@ -142,6 +143,9 @@ enum gru_error gru_z64fs_compressed(struct gru_z64fs *z64fs,
 enum gru_error gru_z64fs_set_compressed(struct gru_z64fs *z64fs,
                                         size_t index,
                                         gru_bool_t compressed);
+int gru_z64fs_compression(struct gru_z64fs *z64fs);
+enum gru_error gru_z64fs_set_compression(struct gru_z64fs *z64fs,
+                                         int compression);
 enum gru_error gru_z64fs_null(struct gru_z64fs *z64fs,
                               size_t index,
                               gru_bool_t *null_out);
