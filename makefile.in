@@ -213,8 +213,8 @@ build-newlib/config.status    : | newlib install-binutils install-gcc-executable
 		--disable-newlib-supplied-syscalls \
 		--enable-lite-exit \
 		LDFLAGS="$(LDFLAGS)" \
-		CFLAGS_FOR_TARGET="$(CFLAGS_FOR_TARGET)" \
-		CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)" \
+		CFLAGS_FOR_TARGET="$(CFLAGS_FOR_TARGET) -fpermissive" \
+		CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET) -fpermissive" \
 		$(CONFIG_NEWLIB)
 configure-newlib              : build-newlib/config.status
 all-newlib                    : | build-newlib/config.status install-binutils install-gcc-executables
