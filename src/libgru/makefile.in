@@ -6,7 +6,7 @@ CC                            = @CC@
 CPPFLAGS                      = -I.. -I$(srcdir)/.. -I$(srcdir)/../../include @CPPFLAGS@
 CFLAGS                        = -std=gnu11 -Wall @CFLAGS@
 LDFLAGS                       = @LDFLAGS@
-LDLIBS                        = @LIBLUA@
+LDLIBS                        = @LIBLUA@ @ZLIB@
 SRC                           = $(srcdir)/src/lib/*.c $(srcdir)/src/exe/*.c $(srcdir)/../../include/vector/vector.c
 PROGNAME                      = gru
 INSTALL                       = @INSTALL@

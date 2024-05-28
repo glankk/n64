@@ -26,6 +26,9 @@ struct gru_yaz0
 enum gru_error gru_util_yaz0_encode(void **data_ptr, size_t *size_ptr);
 enum gru_error gru_util_yaz0_decode(void **data_ptr, size_t *size_ptr);
 
+enum gru_error gru_util_deflate_encode(void **data_ptr, size_t *size_ptr);
+enum gru_error gru_util_deflate_decode(void **data_ptr, size_t *size_ptr);
+
 uint32_t gru_util_crc32(void *data, size_t size);
 
 #endif

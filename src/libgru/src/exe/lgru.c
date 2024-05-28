@@ -155,9 +155,15 @@ static int lgru_gru_z64fs_load_file(lua_State *L)
   const char *filename = luaL_checkstring(L, 1);
   size_t ftab_start;
   size_t *ftab_start_ptr = NULL;
+  int compression;
+  int *compression_ptr = NULL;
   if (lua_isinteger(L, 2)) {
     ftab_start = luaL_checkinteger(L, 2);
     ftab_start_ptr = &ftab_start;
+  }
+  if (lua_isinteger(L, 3)) {
+    compression = luaL_checkinteger(L, 3);
+    compression_ptr = &compression;
   }
   struct gru_z64fs *z64fs = lgru_z64fs_create(L);
   if (!z64fs)
@@ -169,7 +175,7 @@ static int lgru_gru_z64fs_load_file(lua_State *L)
     gru_n64rom_destroy(&n64rom);
     return lgru_handle_error_noreturn(L, e);
   }
-  e = gru_z64fs_load(z64fs, &n64rom.blob, ftab_start_ptr);
+  e = gru_z64fs_load(z64fs, &n64rom.blob, ftab_start_ptr, compression_ptr);
   if (e) {
     gru_n64rom_destroy(&n64rom);
     return lgru_handle_error_noreturn(L, e);
@@ -183,14 +189,21 @@ static int lgru_gru_z64fs_load_blob(lua_State *L)
   struct gru_blob *blob = lgru_checkclass(L, 1, "gru_blob");
   size_t ftab_start;
   size_t *ftab_start_ptr = NULL;
+  int compression;
+  int *compression_ptr = NULL;
   if (lua_isinteger(L, 2)) {
     ftab_start = luaL_checkinteger(L, 2);
     ftab_start_ptr = &ftab_start;
   }
+  if (lua_isinteger(L, 3)) {
+    compression = luaL_checkinteger(L, 3);
+    compression_ptr = &compression;
+  }
   struct gru_z64fs *z64fs = lgru_z64fs_create(L);
   if (!z64fs)
     return lgru_handle_error_noreturn(L, GRU_ERROR_MEMORY);
-  enum gru_error e = gru_z64fs_load(z64fs, blob, ftab_start_ptr);
+  enum gru_error e = gru_z64fs_load(z64fs, blob, ftab_start_ptr,
+                                    compression_ptr);
   if (e)
     return lgru_handle_error_noreturn(L, e);
   return 1;

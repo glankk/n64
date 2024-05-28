@@ -20,11 +20,18 @@ static int lgru_z64fs_load(lua_State *L)
   struct gru_blob *blob = lgru_checkclass(L, 2, "gru_blob");
   size_t ftab_start;
   size_t *ftab_start_ptr = NULL;
+  int compression;
+  int *compression_ptr = NULL;
   if (lua_isinteger(L, 3)) {
     ftab_start = luaL_checkinteger(L, 3);
     ftab_start_ptr = &ftab_start;
   }
-  return lgru_handle_error(L, gru_z64fs_load(z64fs, blob, ftab_start_ptr));
+  if (lua_isinteger(L, 4)) {
+    compression = luaL_checkinteger(L, 4);
+    compression_ptr = &compression;
+  }
+  return lgru_handle_error(L, gru_z64fs_load(z64fs, blob, ftab_start_ptr,
+                                             compression_ptr));
 }
 
 static int lgru_z64fs_assemble_blob(lua_State *L)
@@ -638,6 +645,23 @@ static int lgru_z64fs_null(lua_State *L)
   return 1;
 }
 
+static int lgru_z64fs_compression(lua_State *L)
+{
+  struct gru_z64fs *z64fs = lgru_checkclass(L, 1, "gru_z64fs");
+  lua_pushinteger(L, gru_z64fs_compression(z64fs));
+  return 1;
+}
+
+static int lgru_z64fs_set_compression(lua_State *L)
+{
+  struct gru_z64fs *z64fs = lgru_checkclass(L, 1, "gru_z64fs");
+  int compression = luaL_checkinteger(L, 2);
+  enum gru_error e = gru_z64fs_set_compression(z64fs, compression);
+  if (e)
+    return lgru_handle_error_noreturn(L, e);
+  return 0;
+}
+
 static int lgru_z64fs_gc(lua_State *L)
 {
   struct gru_z64fs *z64fs = lgru_checkclass(L, 1, "gru_z64fs");
@@ -771,6 +795,10 @@ void lgru_z64fs_register(lua_State *L)
     lua_setfield(L, -2, "compressed");
     lua_pushcfunction(L, lgru_z64fs_set_compressed);
     lua_setfield(L, -2, "set_compressed");
+    lua_pushcfunction(L, lgru_z64fs_compression);
+    lua_setfield(L, -2, "compression");
+    lua_pushcfunction(L, lgru_z64fs_set_compression);
+    lua_setfield(L, -2, "set_compression");
     lua_pushcfunction(L, lgru_z64fs_null);
     lua_setfield(L, -2, "null");
     /* meta */

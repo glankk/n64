@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <zlib.h>
 #include <vector/vector.h>
 #include <config.h>
 #include "gru.h"
@@ -195,6 +196,127 @@ enum gru_error gru_util_yaz0_decode(void **data_ptr, size_t *size_ptr)
 error:
   free(output);
   return GRU_ERROR_DATA;
+}
+
+static enum gru_error zlib_error(int e) {
+  switch (e) {
+    case Z_ERRNO:         return -1;
+    case Z_NEED_DICT:
+    case Z_STREAM_ERROR:
+    case Z_DATA_ERROR:    return GRU_ERROR_DATA;
+    case Z_MEM_ERROR:
+    case Z_BUF_ERROR:     return GRU_ERROR_MEMORY;
+    case Z_VERSION_ERROR: return GRU_ERROR_PARAM;
+    default:              return GRU_SUCCESS;
+  }
+}
+
+enum gru_error gru_util_deflate_encode(void **data_ptr, size_t *size_ptr)
+{
+#define CHUNK 16384
+  int ret;
+  size_t src_size = *size_ptr;
+  uint8_t *src = *data_ptr;
+  size_t output_size = 0;
+  z_stream strm;
+  struct vector code;
+  vector_init(&code, sizeof(uint8_t));
+  strm.zalloc = Z_NULL;
+  strm.zfree = Z_NULL;
+  strm.opaque = Z_NULL;
+  ret = deflateInit2(&strm, 9, Z_DEFLATED, -15, 9, Z_DEFAULT_STRATEGY);
+  if (ret != Z_OK)
+    return zlib_error(ret);
+  strm.avail_in = src_size;
+  strm.next_in = src;
+  strm.avail_out = 0;
+  do {
+      if (strm.avail_out < CHUNK) {
+        if (!vector_push_back(&code, CHUNK - strm.avail_out, NULL)) {
+          ret = GRU_ERROR_MEMORY;
+          goto exit;
+        }
+      }
+      strm.avail_out = CHUNK;
+      strm.next_out = vector_at(&code, output_size);
+      ret = deflate(&strm, Z_FINISH);
+      if (ret < 0) {
+        ret = zlib_error(ret);
+        goto exit;
+      }
+      output_size += CHUNK - strm.avail_out;
+  } while (ret != Z_STREAM_END);
+  uint32_t crc = gru_util_htole32(gru_util_crc32(src, src_size));
+  uint32_t len = gru_util_htole32(src_size);
+  uint8_t *output = malloc(output_size + sizeof(crc) + sizeof(len));
+  if (!output) {
+    ret = GRU_ERROR_MEMORY;
+    goto exit;
+  }
+  memcpy(output, code.begin, output_size);
+  memcpy(&output[output_size], &crc, sizeof(crc));
+  output_size += sizeof(crc);
+  memcpy(&output[output_size], &len, sizeof(len));
+  output_size += sizeof(len);
+  *data_ptr = output;
+  *size_ptr = output_size;
+  ret = GRU_SUCCESS;
+exit:
+  vector_destroy(&code);
+  deflateEnd(&strm);
+  return ret;
+#undef CHUNK
+}
+
+enum gru_error gru_util_deflate_decode(void **data_ptr, size_t *size_ptr)
+{
+#define CHUNK 16384
+  int ret;
+  size_t src_size = *size_ptr;
+  uint8_t *src = *data_ptr;
+  size_t output_size = 0;
+  z_stream strm;
+  struct vector data;
+  vector_init(&data, sizeof(uint8_t));
+  strm.zalloc = Z_NULL;
+  strm.zfree = Z_NULL;
+  strm.opaque = Z_NULL;
+  strm.avail_in = src_size;
+  strm.next_in = src;
+  ret = inflateInit2(&strm, -15);
+  if (ret != Z_OK)
+    return zlib_error(ret);
+  strm.avail_out = 0;
+  do {
+      if (strm.avail_out < CHUNK) {
+        if (!vector_push_back(&data, CHUNK - strm.avail_out, NULL)) {
+          ret = GRU_ERROR_MEMORY;
+          goto exit;
+        }
+      }
+      strm.avail_out = CHUNK;
+      strm.next_out = vector_at(&data, output_size);
+      ret = inflate(&strm, Z_NO_FLUSH);
+      if (ret < 0 || ret == Z_NEED_DICT) {
+        ret = zlib_error(ret);
+        goto exit;
+      }
+      output_size += CHUNK - strm.avail_out;
+  } while (ret != Z_STREAM_END);
+  uint8_t *output = malloc(output_size);
+  if (!output) {
+    ret = GRU_ERROR_MEMORY;
+    goto exit;
+  }
+  memcpy(output, data.begin, output_size);
+  *data_ptr = output;
+  *size_ptr = output_size;
+  ret = GRU_SUCCESS;
+exit:
+  vector_destroy(&data);
+  inflateEnd(&strm);
+  return ret;
+#undef CHUNK
 }
 
 static uint32_t *crc32_table()

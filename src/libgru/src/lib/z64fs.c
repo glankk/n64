@@ -426,19 +426,29 @@ static gru_bool_t ftab_validate(struct gru_blob *blob, size_t ftab_start,
 }
 
 static gru_bool_t ftab_locate(struct gru_blob *blob, size_t *ftab_start_out,
-                              size_t *ftab_length_out, size_t *ftab_index_out)
+                              size_t *ftab_length_out, size_t *ftab_index_out,
+                              int *compression_out)
 {
-  const char search_string[] = "zelda@";
-  const size_t search_size = sizeof(search_string) - 1;
-  const size_t search_offset = 0x30;
-  for (size_t i = 0; i + search_offset < blob->size; ++i)
-    if (memcmp(blob_at(blob, i), search_string, search_size) == 0)
-      if (ftab_validate(blob, i + search_offset,
-                        ftab_length_out, ftab_index_out))
-      {
-        *ftab_start_out = i + search_offset;
-        return GRU_TRUE;
-      }
+  const char *search_string_tbl[] = { "zelda@", "build@" };
+  const size_t search_offset_tbl[] = { 0x30, 0x40 };
+  const int compression_tbl[] = { 0, 1 };
+  for (size_t i = 0;
+       i < sizeof(search_string_tbl) / sizeof*(search_string_tbl); i++)
+  {
+    const char *search_string = search_string_tbl[i];
+    const size_t search_size = strlen(search_string);
+    const size_t search_offset = search_offset_tbl[i];
+    const int compression = compression_tbl[i];
+    for (size_t p = 0; p + search_offset < blob->size; ++p)
+      if (memcmp(blob_at(blob, p), search_string, search_size) == 0)
+        if (ftab_validate(blob, p + search_offset,
+                          ftab_length_out, ftab_index_out))
+        {
+          *ftab_start_out = p + search_offset;
+          *compression_out = compression;
+          return GRU_TRUE;
+        }
+  }
   return GRU_FALSE;
 }
 
@@ -520,6 +530,7 @@ enum gru_error gru_z64fs_init(struct gru_z64fs *z64fs)
   z64fs->ftab_pvolatile = GRU_TRUE;
   z64fs->vrom_volatile = GRU_FALSE;
   z64fs->prom_volatile = GRU_FALSE;
+  z64fs->compression = 0;
   struct z64_file *ftab = vector_push_back(&z64fs->files, 1, NULL);
   if (!ftab) {
     vector_destroy(&z64fs->files);
@@ -564,7 +575,7 @@ void gru_z64fs_destroy(struct gru_z64fs *z64fs)
 }
 
 enum gru_error gru_z64fs_load(struct gru_z64fs *z64fs, struct gru_blob *blob,
-                              size_t *ftab_start_in)
+                              size_t *ftab_start_in, int *compression_in)
 {
   vector_clear(&z64fs->files);
   size_t ftab_start;
@@ -573,9 +584,15 @@ enum gru_error gru_z64fs_load(struct gru_z64fs *z64fs, struct gru_blob *blob,
     ftab_start = *ftab_start_in;
     if (!ftab_validate(blob, ftab_start, &ftab_length, &z64fs->ftab_index))
       return GRU_ERROR_DATA;
+    z64fs->compression = 0;
   }
-  else if (!ftab_locate(blob, &ftab_start, &ftab_length, &z64fs->ftab_index))
+  else if (!ftab_locate(blob, &ftab_start, &ftab_length, &z64fs->ftab_index,
+                        &z64fs->compression))
+  {
     return GRU_ERROR_DATA;
+  }
+  if (compression_in)
+    z64fs->compression = *compression_in;
   for (size_t i = 0; i < z64fs->files.size; ++i) {
     struct z64_file *file = vector_at(&z64fs->files, i);
     if (file->prom_data)
@@ -1013,7 +1030,11 @@ enum gru_error gru_z64fs_insert(struct gru_z64fs *z64fs,
   void *file_data;
   if (compress) {
     file_data = blob->data;
-    enum gru_error e = gru_util_yaz0_encode(&file_data, &file_size);
+    enum gru_error e = GRU_ERROR_PARAM;
+    if (z64fs->compression == 0)
+      e = gru_util_yaz0_encode(&file_data, &file_size);
+    else if (z64fs->compression == 1)
+      e = gru_util_deflate_encode(&file_data, &file_size);
     if (e)
       return e;
     file.prom_end = 0x00000001;
@@ -1143,7 +1164,11 @@ enum gru_error gru_z64fs_replace(struct gru_z64fs *z64fs, size_t index,
   void *file_data;
   if (compress) {
     file_data = blob->data;
-    enum gru_error e = gru_util_yaz0_encode(&file_data, &file_size);
+    enum gru_error e = GRU_ERROR_PARAM;
+    if (z64fs->compression == 0)
+      e = gru_util_yaz0_encode(&file_data, &file_size);
+    else if (z64fs->compression == 1)
+      e = gru_util_deflate_encode(&file_data, &file_size);
     if (e)
       return e;
     file->prom_end = 0x00000001;
@@ -1253,7 +1278,11 @@ enum gru_error gru_z64fs_get(struct gru_z64fs *z64fs, size_t index,
   blob->size = file->prom_size;
   if (decompress && file_is_compressed(file)) {
     blob->data = file->prom_data;
-    enum gru_error e = gru_util_yaz0_decode(&blob->data, &blob->size);
+    enum gru_error e = GRU_ERROR_PARAM;
+    if (z64fs->compression == 0)
+      e = gru_util_yaz0_decode(&blob->data, &blob->size);
+    else if (z64fs->compression == 1)
+      e = gru_util_deflate_decode(&blob->data, &blob->size);
     if (e)
       return e;
   }
@@ -1678,6 +1707,21 @@ enum gru_error gru_z64fs_set_compressed(struct gru_z64fs *z64fs,
   struct z64_file *file = vector_at(&z64fs->files, index);
   file->prom_end = (compressed ? 0x00000001 : 0x00000000);
   return z64fs_update(z64fs);
+}
+
+int gru_z64fs_compression(struct gru_z64fs *z64fs)
+{
+  return z64fs->compression;
+}
+
+enum gru_error gru_z64fs_set_compression(struct gru_z64fs *z64fs,
+                                         int compression)
+{
+  if (compression < 0 || compression > 1) {
+    return GRU_ERROR_PARAM;
+  }
+  z64fs->compression = compression;
+  return GRU_SUCCESS;
 }
 
 enum gru_error gru_z64fs_null(struct gru_z64fs *z64fs,
