@@ -192,35 +192,59 @@ exit:
   return result;
 }
 
+static int is_0x_prefix(char *p, int str_size, int offset) {
+  return offset + 1 <= str_size && p[offset] == '0' && (p[offset + 1] == 'x' || p[offset + 1] == 'X');
+}
+
+static int is_comma(char *p, int str_size, int offset) {
+  return offset <= str_size && p[offset] == ',';
+}
+
 static int from_line(struct vector *gfx_v, int argc, char *argv[], int argp,
-                     int max, int offset)
+                     int max, int off)
 {
   int result = 0;
 
-  int pos = 0;
+  int off_count = 0;
   while (argp < argc) {
     char *p = argv[argp++];
-    while (*p) {
-      unsigned char byte = 0;
-      for (int i = 0; i < 2 && *p; ++i) {
-        int c = *p++;
-        if (c >= '0' && c <= '9')
-          c = c - '0';
-        else if (c >= 'a' && c <= 'f')
-          c = c - 'a' + 10;
-        else if (c >= 'A' && c <= 'F')
-          c = c - 'A' + 10;
-        else {
-          fprintf(stderr, "%s: invalid input data: %c\n", prog_name, c);
-          goto err;
-        }
-        byte = byte * 16 + c;
+    int str_size = strlen(p);
+    int offset = 0;
+
+    while (offset <= str_size) {
+      if (is_comma(p, str_size, offset)) {
+        offset++;
       }
-      if (pos++ >= offset && !gfx_v_ate(gfx_v, max)) {
-        int n = gfx_v->element_size / sizeof(byte);
-        if (!vector_push_back(gfx_v, n, &byte)) {
-          fprintf(stderr, "%s: out of memory\n", prog_name);
-          goto err;
+      
+      if (is_0x_prefix(p, str_size, offset)) {
+        offset += 2;
+      }
+
+      int start = offset;
+      while (offset <= str_size && offset < start + 8 && !is_comma(p, str_size, offset) && !is_0x_prefix(p, str_size, offset)) {
+        offset++;
+      }
+      int end = offset;
+
+      if (end - start <= 0) {
+        offset++;
+        continue;
+      }
+
+      char num[9];
+      memset(num, 0, sizeof(num));
+      strncpy(num, &p[start], end - start);
+
+      unsigned int v = strtoumax(num, 0, 16);
+
+      for (int i = 0; i < 4; i++) {
+        unsigned char byte = (v >> (24 - i * 8)) & 0xFF;
+        if (off_count++ >= off && !gfx_v_ate(gfx_v, max)) {
+          int n = gfx_v->element_size / sizeof(byte);
+          if (!vector_push_back(gfx_v, n, &byte)) {
+            fprintf(stderr, "%s: out of memory\n", prog_name);
+            goto err;
+          }
         }
       }
     }
