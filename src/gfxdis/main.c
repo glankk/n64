@@ -1,5 +1,6 @@
 #include <swap.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
@@ -32,7 +33,7 @@ static const char *prog_name = "gfxdis.f3dex2";
 static int usage(void)
 {
   fprintf(stderr,
-          "gfxdis-0.6: display list disassembler\n"
+          "gfxdis-0.7: display list disassembler\n"
           "written by: glank\n"
           "build date: " __TIME__ ", " __DATE__ "\n"
           "usage:\n"
@@ -51,7 +52,8 @@ static int usage(void)
           "  -a <offset>   start disassembling at <offset>\n"
           "  -f <file>     disassemble <file>, '-' for stdin\n"
           "  -d <data>     disassemble hexadecimal byte codes from the "
-          "command line\n",
+          "command line\n"
+          "  -w <data>     same as -d, but using word-sized (32-bit) units\n",
           prog_name);
   return -1;
 }
@@ -193,7 +195,7 @@ exit:
 }
 
 static int from_line(struct vector *gfx_v, int argc, char *argv[], int argp,
-                     int max, int offset)
+                     int max, int offset, int u)
 {
   int result = 0;
 
@@ -201,8 +203,15 @@ static int from_line(struct vector *gfx_v, int argc, char *argv[], int argp,
   while (argp < argc) {
     char *p = argv[argp++];
     while (*p) {
-      unsigned char byte = 0;
-      for (int i = 0; i < 2 && *p; ++i) {
+      uint32_t d = 0;
+      if (p[0] == '0' && (p[1] == 'x' || p[1] == 'X')) {
+        p += 2;
+        if (!*p || *p == ',') {
+          fprintf(stderr, "%s: unexpected end of input\n", prog_name);
+          goto err;
+        }
+      }
+      for (int i = 0; i < 2 * u && *p && *p != ','; ++i) {
         int c = *p++;
         if (c >= '0' && c <= '9')
           c = c - '0';
@@ -214,13 +223,17 @@ static int from_line(struct vector *gfx_v, int argc, char *argv[], int argp,
           fprintf(stderr, "%s: invalid input data: %c\n", prog_name, c);
           goto err;
         }
-        byte = byte * 16 + c;
+        d = (d << 4) + c;
       }
+      if (*p == ',')
+        p++;
       if (pos++ >= offset && !gfx_v_ate(gfx_v, max)) {
-        int n = gfx_v->element_size / sizeof(byte);
-        if (!vector_push_back(gfx_v, n, &byte)) {
-          fprintf(stderr, "%s: out of memory\n", prog_name);
-          goto err;
+	for (int i = 0; i < u; i++) {
+          unsigned char byte = d >> (8 * (u - 1 - i));
+          if (!vector_push_back(gfx_v, 1, &byte)) {
+            fprintf(stderr, "%s: out of memory\n", prog_name);
+            goto err;
+          }
         }
       }
     }
@@ -258,6 +271,8 @@ int main(int argc, char *argv[])
   const char *opt_a = NULL;
   const char *opt_f = NULL;
   const char *opt_d = NULL;
+  const char *opt_w = NULL;
+  int n_input_opt = 0;
   while (argp < argc) {
     _Bool param = 0;
     const char **p_opt;
@@ -284,11 +299,21 @@ int main(int argc, char *argv[])
       p_opt = &opt_a;
     }
     else if (strcmp(argv[argp], "-f") == 0) {
+      if (opt_f == NULL)
+        n_input_opt++;
       param = 1;
       p_opt = &opt_f;
     }
-    else if (strcmp(argv[argp], "-d") == 0)
+    else if (strcmp(argv[argp], "-d") == 0) {
+      if (opt_d == NULL)
+        n_input_opt++;
       p_opt = &opt_d;
+    }
+    else if (strcmp(argv[argp], "-w") == 0) {
+      if (opt_w == NULL)
+        n_input_opt++;
+      p_opt = &opt_w;
+    }
     else
       break;
     if (param) {
@@ -307,8 +332,8 @@ int main(int argc, char *argv[])
     goto err;
   }
 
-  if ((opt_d != NULL) == (opt_f != NULL)) {
-    fprintf(stderr, "%s: specify either -f or -d\n", prog_name);
+  if (n_input_opt != 1) {
+    fprintf(stderr, "%s: specify either -f, -d, or -w\n", prog_name);
     goto err;
   }
 
@@ -327,7 +352,9 @@ int main(int argc, char *argv[])
   if (opt_f)
     result = from_file(&gfx_v, opt_f, max, offset);
   else if (opt_d)
-    result = from_line(&gfx_v, argc, argv, argp, max, offset);
+    result = from_line(&gfx_v, argc, argv, argp, max, offset, 1);
+  else if (opt_w)
+    result = from_line(&gfx_v, argc, argv, argp, max, offset, 4);
   if (result)
     goto exit;
 
