@@ -102,6 +102,9 @@ src-gcc:
 
 src-newlib:
 	$(WGET) - "$(NEWLIB_URL)" | tar xz
+	if patch --dry-run -d $(NEWLIB_VERSION) -p 1 <"$(srcdir)/config/newlib/fix-libgloss.diff"; then \
+		patch -d $(NEWLIB_VERSION) -p 1 <"$(srcdir)/config/newlib/fix-libgloss.diff"; \
+	fi
 	touch $(@)
 
 src-gdb:

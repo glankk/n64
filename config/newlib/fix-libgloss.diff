@@ -1,0 +1,236 @@
+diff --git a/libgloss/glue.h b/libgloss/glue.h
+index 98c0a6ad22..1ff388c215 100644
+--- a/libgloss/glue.h
++++ b/libgloss/glue.h
+@@ -29,5 +29,6 @@ extern char _end[];                /* _end is set in the linker command file */
+ /* only one prcess support, as this is OS dependant */
+ #define __MYPID 1
+ 
+-int outbyte (char);
++extern int outbyte (char);
++extern void print (const char *);
+ 
+diff --git a/libgloss/kill.c b/libgloss/kill.c
+index a0eaee75ba..4b9b73636d 100644
+--- a/libgloss/kill.c
++++ b/libgloss/kill.c
+@@ -14,6 +14,8 @@
+  */
+ #include "glue.h"
+ 
++extern void _exit (int) __attribute__((__noreturn__));
++
+ /*
+  * kill -- go out via exit...
+  */
+diff --git a/libgloss/mips/cfe_mem.c b/libgloss/mips/cfe_mem.c
+index 87caabf8c2..8f8590aedb 100644
+--- a/libgloss/mips/cfe_mem.c
++++ b/libgloss/mips/cfe_mem.c
+@@ -47,7 +47,7 @@ void *get_mem_info (struct s_mem *);
+ extern char _end[];
+ 
+ /* Address immediately after available memory.  */
+-static unsigned long memtop;
++static void *memtop;
+ 
+ /* Program stack size.  */
+ static unsigned long stack_size;
+@@ -63,15 +63,15 @@ __libcfe_meminit (void)
+     {
+       uint64_t start, length, type;
+       int i, rv;
+-      long end_segbits, end_pa;
++      uintptr_t end_segbits, end_pa;
+ 
+       /* Note that this only works if _end and the program live in kseg0
+          or kseg1.  Not a problem with the default linker script, but
+          if you're writing your own, keep it in mind.  For more complex
+          memory allocation needs, you're encouraged to copy this file
+          and syscalls.c (for sbrk()), and reimplement as appropriate.  */
+-      end_segbits = (long)_end & ~ 0x1fffffffL;
+-      end_pa = (long)_end & 0x1fffffffL;
++      end_segbits = (uintptr_t)_end & ~ 0x1fffffffL;
++      end_pa = (uintptr_t)_end & 0x1fffffffL;
+ 
+       for (i = 0; ; i++)
+         {
+@@ -92,7 +92,7 @@ __libcfe_meminit (void)
+ 	     a winner.  */
+           if (end_pa >= start && end_pa < (start + length))
+             {
+-              memtop = (start + length) | end_segbits;
++              memtop = (void*)(uintptr_t)((start + length) | end_segbits);
+               break;
+             }
+         }
+@@ -107,7 +107,7 @@ __libcfe_meminit (void)
+ 
+   /* Chop the top of memory to a 32-byte aligned location, and
+      round the stack size up to a 32-byte multiple.  */
+-  memtop = memtop & ~(unsigned long)31;
++  memtop = (void*)((uintptr_t)memtop & ~(uintptr_t)31);
+   stack_size = (stack_size + 31) & ~(unsigned long)31;
+ }
+ 
+diff --git a/libgloss/mips/cma101.c b/libgloss/mips/cma101.c
+index e8f381864b..f39925cf13 100644
+--- a/libgloss/mips/cma101.c
++++ b/libgloss/mips/cma101.c
+@@ -133,6 +133,7 @@ set_pclock (void)
+   return;
+ }
+ 
++extern void __cpu_timer_poll (int);
+ #define PCLOCK_WAIT(x)  __cpu_timer_poll((x) * pclock)
+ 
+ /* NOTE: On the Cogent CMA101 board the LCD controller will sometimes
+@@ -178,6 +179,7 @@ lcd_display (int line, const char *msg)
+ extern unsigned int __buserr_count(void);
+ extern void __default_buserr_handler(void);
+ extern void __restore_buserr_handler(void);
++extern void __cpu_flush(void);
+ 
+ /* Allow the user to provide his/her own defaults.  */
+ unsigned int __sizemem_default;
+@@ -261,15 +263,13 @@ __sizemem ()
+ /* Provided as a function, so as to avoid reading the I/O location
+    multiple times: */
+ static int
+-convertbcd(byte)
+-     unsigned char byte;
++convertbcd(unsigned char byte)
+ {
+   return ((((byte >> 4) & 0xF) * 10) + (byte & 0xF));
+ }
+ 
+ time_t
+-time (_timer)
+-     time_t *_timer;
++time (time_t *_timer)
+ {
+   time_t result = 0;
+   struct tm tm;
+diff --git a/libgloss/mips/nullmon.c b/libgloss/mips/nullmon.c
+index 0b519bf7b6..cabbec7eba 100644
+--- a/libgloss/mips/nullmon.c
++++ b/libgloss/mips/nullmon.c
+@@ -45,8 +45,7 @@ struct s_mem
+ };
+ 
+ void
+-get_mem_info (mem)
+-     struct s_mem *mem;
++get_mem_info (struct s_mem *mem)
+ {
+   mem->size = BOARD_MEM_SIZE - (_end - _ftext);
+ }
+diff --git a/libgloss/mips/syscalls.c b/libgloss/mips/syscalls.c
+index 3ab5436740..b502ac438e 100644
+--- a/libgloss/mips/syscalls.c
++++ b/libgloss/mips/syscalls.c
+@@ -4,23 +4,26 @@
+ 
+ #include "regs.S"
+ 
++struct s_mem {
++  unsigned int size;
++  unsigned int icsize;
++  unsigned int dcsize;
++};
++
++void *get_mem_info (struct s_mem *);
++
+ extern char _end[];
+ 
+ /* FIXME: This is not ideal, since we do a get_mem_info() call for
+    every sbrk() call. */
+ char *
+-sbrk (nbytes)
+-     int nbytes;
++sbrk (int nbytes)
+ {
+   static char *heap_ptr = _end;
+   static char *heap_start = _end;
+   char        *base;
+-  struct s_mem {
+-    unsigned int size;
+-    unsigned int icsize;
+-    unsigned int dcsize;
+-  } mem;
+-  unsigned int avail = 0;
++  struct s_mem mem;
++  ptrdiff_t avail = 0;
+ 
+   /* The sizeof (s_mem.size) must be 4 bytes.  The compiler should be
+      able to eliminate this check */
+@@ -31,8 +34,8 @@ sbrk (nbytes)
+   /* NOTE: The value returned from the get_mem_info call is the amount
+      of memory, and not the address of the (last byte + 1) */
+ 
+-  if (((size_t)heap_ptr >= heap_start) && ((size_t)heap_ptr < (heap_start + mem.size))) {
+-    avail = (heap_start + mem.size) - (size_t)heap_ptr;
++  if (((uintptr_t)heap_ptr >= heap_start) && ((uintptr_t)heap_ptr < (heap_start + mem.size))) {
++    avail = (heap_start + mem.size) - heap_ptr;
+     base = heap_ptr;
+   } /* else will fail since "nbytes" will be greater than zeroed "avail" value */
+ 
+diff --git a/libgloss/mips/test.c b/libgloss/mips/test.c
+index a993479146..b580ea933c 100644
+--- a/libgloss/mips/test.c
++++ b/libgloss/mips/test.c
+@@ -1,4 +1,7 @@
+-main()
++extern int outbyte(unsigned char byte);
++extern void print (const char *);
++
++int main()
+ {
+   outbyte ('&');
+   outbyte ('@');
+@@ -9,5 +12,5 @@ main()
+   
+   print ("\r\nDone...");
+ 
+-  return;
++  return 0;
+ }
+diff --git a/libgloss/print.c b/libgloss/print.c
+index 76d543b675..b2dd809c3a 100644
+--- a/libgloss/print.c
++++ b/libgloss/print.c
+@@ -18,7 +18,7 @@
+  * print -- do a raw print of a string
+  */ 
+ void
+-print (char *ptr)
++print (const char *ptr)
+ {
+   while (*ptr) {
+     outbyte (*ptr++);
+diff --git a/libgloss/putnum.c b/libgloss/putnum.c
+index 6e1051e240..c368c4136c 100644
+--- a/libgloss/putnum.c
++++ b/libgloss/putnum.c
+@@ -14,8 +14,6 @@
+  */
+ #include "glue.h"
+ 
+-extern void print (char *ptr);
+-
+ /*
+  * putnum -- print a 32 bit number in hex
+  */
+diff --git a/libgloss/write.c b/libgloss/write.c
+index 757141291b..bc6aa69667 100644
+--- a/libgloss/write.c
++++ b/libgloss/write.c
+@@ -14,8 +14,6 @@
+  */
+ #include "glue.h"
+ 
+-extern int  outbyte (char x);
+-
+ /*
+  * write -- write bytes to the serial port. Ignore fd, since
+  *          stdout and stderr are the same. Since we have no filesystem,
