@@ -91,7 +91,7 @@ $(DISTCLEANPROGS):
 
 src-binutils:
 	$(WGET) - "$(BINUTILS_URL)" | tar xz
-	patch -d binutils/ld -p 1 <"$(srcdir)/config/ld/ld.diff"
+	patch -d $(BINUTILS_VERSION)/ld -p 1 <"$(srcdir)/config/ld/ld.diff"
 	cp "$(srcdir)/config/ld/emulparams/"* $(BINUTILS_VERSION)/ld/emulparams
 	cp "$(srcdir)/config/ld/emultempl/"* $(BINUTILS_VERSION)/ld/emultempl
 	cat "$(srcdir)/config/ld/configure.tgt.ultra" >>$(BINUTILS_VERSION)/ld/configure.tgt
