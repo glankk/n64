@@ -20,26 +20,11 @@ AC_SUBST([CFLAGS_FOR_TARGET])
 AC_SUBST([CXXFLAGS_FOR_TARGET])
 CFLAGS_FOR_TARGET="-Os -g -ffunction-sections -fdata-sections $CFLAGS_FOR_TARGET"
 CXXFLAGS_FOR_TARGET="-Os -g -ffunction-sections -fdata-sections $CXXFLAGS_FOR_TARGET"
-AC_SUBST([CONFIG_BINUTILS])
-AC_SUBST([CONFIG_GCC])
-AC_SUBST([CONFIG_NEWLIB])
-AC_SUBST([CONFIG_GDB])
-AC_ARG_WITH([configure-binutils],
-            [AS_HELP_STRING([--with-configure-binutils=<params>],
-                            [additional parameters to pass to configure for binutils])],
-            [CONFIG_BINUTILS="$withval"])
-AC_ARG_WITH([configure-gcc],
-            [AS_HELP_STRING([--with-configure-gcc=<params>],
-                            [additional parameters to pass to configure for gcc])],
-            [CONFIG_GCC="$withval"])
-AC_ARG_WITH([configure-newlib],
-            [AS_HELP_STRING([--with-configure-newlib=<params>],
-                            [additional parameters to pass to configure for newlib])],
-            [CONFIG_NEWLIB="$withval"])
-AC_ARG_WITH([configure-gdb],
-            [AS_HELP_STRING([--with-configure-gdb=<params>],
-                            [additional parameters to pass to configure for gdb])],
-            [CONFIG_GDB="$withval"])
+AC_SUBST([CONFIG_TOOLCHAIN])
+AC_ARG_WITH([configure-toolchain],
+            [AS_HELP_STRING([--with-configure-toolchain=<params>],
+                            [additional parameters to pass to toolchain configure script])],
+            [CONFIG_TOOLCHAIN="$withval"])
 AC_ARG_WITH([toolchain],
             [AS_HELP_STRING([--without-toolchain],
                             [do not check any toolchain package versions])],
@@ -49,7 +34,6 @@ AC_ARG_WITH([toolchain],
 AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_MKDIR_P
-AC_PROG_LN_S
 AC_CHECK_PROGS([WGET], [curl wget])
 AS_IF([test "x$WGET" = xcurl], [WGET="curl -o"; WGET_Q="curl -s -o";],
       [test "x$WGET" = xwget], [WGET="wget -O"; WGET_Q="wget -q -O";])
