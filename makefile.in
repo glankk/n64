@@ -5,13 +5,12 @@ srcdir                        = @srcdir@
 target                        = mips64
 tooldir                       = $(exec_prefix)/$(target)
 sysroot                       = $(tooldir)/n64-sysroot
-export PATH                  := $(DESTDIR)$(bindir):$(PATH)
 PROGS                         = ed64rdb gfxdis grc libgru libgs luapatch
-ALLPROGS                      = $(foreach prog,$(PROGS),all-$(prog))
-INSTALLPROGS                  = $(foreach prog,$(PROGS),install-$(prog))
-INSTALLSTRIPPROGS             = $(foreach prog,$(PROGS),install-strip-$(prog))
-CLEANPROGS                    = $(foreach prog,$(PROGS),clean-$(prog))
-DISTCLEANPROGS                = $(foreach prog,$(PROGS),distclean-$(prog))
+ALLPROGS                      = $(PROGS:%=all-%)
+INSTALLPROGS                  = $(PROGS:%=install-%)
+INSTALLSTRIPPROGS             = $(PROGS:%=install-strip-%)
+CLEANPROGS                    = $(PROGS:%=clean-%)
+DISTCLEANPROGS                = $(PROGS:%=distclean-%)
 BINUTILS_VERSION              = @BINUTILS_VERSION@
 GCC_VERSION                   = @GCC_VERSION@
 NEWLIB_VERSION                = @NEWLIB_VERSION@
@@ -20,11 +19,14 @@ BINUTILS_URL                  = https://ftp.gnu.org/gnu/binutils/$(BINUTILS_VERS
 GCC_URL                       = https://ftp.gnu.org/gnu/gcc/$(GCC_VERSION)/$(GCC_VERSION).tar.gz
 NEWLIB_URL                    = https://sourceware.org/pub/newlib/$(NEWLIB_VERSION).tar.gz
 GDB_URL                       = https://ftp.gnu.org/gnu/gdb/$(GDB_VERSION).tar.gz
+BINUTILS_SUBDIRS              = bfd binutils cpu gas ld libctf libsframe opcodes
+NEWLIB_SUBDIRS                = libgloss newlib
+GDB_SUBDIRS                   = gdb gdbsupport gnulib readline sim
+BINUTILS_SYMLINKS             = $(BINUTILS_SUBDIRS:%=$(GCC_VERSION)/%)
+NEWLIB_SYMLINKS               = $(NEWLIB_SUBDIRS:%=$(GCC_VERSION)/%)
+GDB_SYMLINKS                  = $(GDB_SUBDIRS:%=$(GCC_VERSION)/%)
 GCC_IN_TREE_DEPS              = @GCC_IN_TREE_DEPS@
-CONFIG_BINUTILS               = @CONFIG_BINUTILS@
-CONFIG_GCC                    = @CONFIG_GCC@
-CONFIG_NEWLIB                 = @CONFIG_NEWLIB@
-CONFIG_GDB                    = @CONFIG_GDB@
+CONFIG_TOOLCHAIN              = @CONFIG_TOOLCHAIN@
 LDFLAGS                       = @LDFLAGS@
 CFLAGS_FOR_TARGET             = @CFLAGS_FOR_TARGET@
 CXXFLAGS_FOR_TARGET           = @CXXFLAGS_FOR_TARGET@
@@ -33,113 +35,141 @@ MKDIR_P                       = @MKDIR_P@
 LN_S                          = @LN_S@
 WGET                          = @WGET@
 
-.PHONY                        : all install install-full install-full-nospc clean distclean quickclean
-.PHONY                        : all-progs $(ALLPROGS) install-progs $(INSTALLPROGS) install-strip-progs $(INSTALLSTRIPPROGS) clean-progs $(CLEANPROGS) distclean-progs $(DISTCLEANPROGS)
-.PHONY                        : binutils-nospc configure-binutils clean-binutils gcc-nospc configure-gcc clean-gcc newlib-nospc configure-newlib clean-newlib gdb-nospc configure-gdb clean-gdb
-.PHONY                        : clean-local-exec uninstall-local-exec clean-sys uninstall-sys install-toolchain
-.SECONDARY                    : binutils.tar.gz binutils build-binutils/config.status all-binutils install-binutils
-.SECONDARY                    : gcc.tar.gz gcc build-gcc/config.status all-gcc-executables install-gcc-executables all-gcc install-gcc
-.SECONDARY                    : newlib.tar.gz newlib build-newlib/config.status all-newlib install-newlib
-.SECONDARY                    : gdb.tar.gz gdb build-gdb/config.status all-gdb install-gdb
+all:
 
-all                           : all-progs
-install                       : install-progs
-install-strip                 : install-strip-progs
-clean                         : clean-progs clean-binutils clean-gcc clean-newlib clean-gdb clean-local-exec clean-sys
-distclean                     : distclean-progs distclean-binutils distclean-gcc distclean-newlib distclean-gdb distclean-local-exec distclean-sys
+.PHONY: all install install-full clean distclean
+.PHONY: all-progs $(ALLPROGS) install-progs $(INSTALLPROGS) install-strip-progs $(INSTALLSTRIPPROGS) clean-progs $(CLEANPROGS) distclean-progs $(DISTCLEANPROGS)
+.PHONY: src-all clean-src-binutils clean-src-gcc clean-src-newlib clean-src-gdb clean-src-all
+.PHONY: symlinks-binutils symlinks-gcc symlinks-newlib symlinks-gdb symlinks-all clean-symlinks-binutils clean-symlinks-gcc clean-symlinks-newlib clean-symlinks-gdb clean-symlinks-all
+.PHONY: prepare-toolchain configure-toolchain all-toolchain install-toolchain clean-toolchain
+.PHONY: install-sys
+
+all: all-progs
+
+install: install-progs
+
+install-strip: install-strip-progs
+
+clean: clean-progs clean-src-all clean-toolchain
+
+distclean: distclean-progs
 	rm -f config.log config.status src/config.h makefile
-quickclean                    : clean-progs quickclean-binutils quickclean-gcc quickclean-newlib quickclean-gdb clean-local-exec clean-sys
 
-install-full                  :
+install-full:
+	$(MAKE) all-toolchain
 	$(MAKE) install-toolchain
 	$(MAKE) all-progs
 	$(MAKE) install-progs
 	$(MAKE) install-sys
-install-full-nospc            :
-	$(MAKE) binutils-nospc
-	$(MAKE) install-binutils
-	$(MAKE) clean-binutils
-	$(MAKE) gcc-nospc
-	$(MAKE) install-gcc-executables
-	$(MAKE) newlib-nospc
-	$(MAKE) install-newlib
-	$(MAKE) clean-newlib
-	$(MAKE) install-gcc
-	$(MAKE) clean-gcc
-	$(MAKE) gdb-nospc
-	$(MAKE) install-gdb
-	$(MAKE) clean-gdb
-	$(MAKE) all-progs
-	$(MAKE) install-progs
-	$(MAKE) clean-progs
-	$(MAKE) install-sys
 
-all-progs                     : $(ALLPROGS)
-$(ALLPROGS)                   :
-	cd src/$(patsubst all-%,%,$@) && $(MAKE) all
-install-progs                 : $(INSTALLPROGS)
-$(INSTALLPROGS)               :
-	cd src/$(patsubst install-%,%,$@) && $(MAKE) install
-install-strip-progs           : $(INSTALLSTRIPPROGS)
-$(INSTALLSTRIPPROGS)          :
-	cd src/$(patsubst install-strip-%,%,$@) && $(MAKE) install-strip
-clean-progs                   : $(CLEANPROGS)
-$(CLEANPROGS)                 :
-	cd src/$(patsubst clean-%,%,$@) && $(MAKE) clean
-distclean-progs               : $(DISTCLEANPROGS)
-$(DISTCLEANPROGS)             :
-	cd src/$(patsubst distclean-%,%,$@) && $(MAKE) distclean
+all-progs: $(ALLPROGS)
 
-binutils.tar.gz               :
-	$(WGET) binutils.tar.gz "$(BINUTILS_URL)"
-binutils                      : | binutils.tar.gz
-	if test ! -d binutils; then mkdir binutils; fi
-	tar xfv binutils.tar.gz --strip-components=1 -C binutils
-binutils-nospc                :
-	if test ! -d binutils; then mkdir binutils; fi
-	$(WGET) - "$(BINUTILS_URL)" | tar xzv --strip-components=1 -C binutils
-build-binutils/config.status  : | binutils
-	if test ! -d build-binutils; then mkdir build-binutils; fi
-	cd build-binutils && ../binutils/configure \
-		--prefix="$(prefix)" \
-		--target=$(target) \
-		--with-sysroot="$(sysroot)" \
-		--disable-nls \
-		LDFLAGS="$(LDFLAGS)" \
-		CFLAGS_FOR_TARGET="$(CFLAGS_FOR_TARGET)" \
-		CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)" \
-		$(CONFIG_BINUTILS)
-configure-binutils            : build-binutils/config.status
-all-binutils                  : | build-binutils/config.status
-	cd build-binutils && $(MAKE) all
-	touch $@
-install-binutils              : | all-binutils
-	cd build-binutils && $(MAKE) install
-	touch $@
-clean-binutils                :
-	rm -rf binutils.tar.gz binutils build-binutils all-binutils
-distclean-binutils            :
-	rm -f install-binutils
-quickclean-binutils           :
-	rm -rf build-binutils all-binutils
+$(ALLPROGS):
+	cd src/$(@:all-%=%) && $(MAKE) all
 
-gcc.tar.gz                    :
-	$(WGET) gcc.tar.gz "$(GCC_URL)"
-gcc                           : | gcc.tar.gz
-	if test ! -d gcc; then mkdir gcc; fi
-	tar xfv gcc.tar.gz --strip-components=1 -C gcc
+install-progs: $(INSTALLPROGS)
+
+$(INSTALLPROGS):
+	cd src/$(@:install-%=%) && $(MAKE) install
+
+install-strip-progs: $(INSTALLSTRIPPROGS)
+
+$(INSTALLSTRIPPROGS):
+	cd src/$(@:install-strip-%=%) && $(MAKE) install-strip
+
+clean-progs: $(CLEANPROGS)
+
+$(CLEANPROGS):
+	cd src/$(@:clean-%=%) && $(MAKE) clean
+
+distclean-progs: $(DISTCLEANPROGS)
+
+$(DISTCLEANPROGS):
+	cd src/$(@:distclean-%=%) && $(MAKE) distclean
+
+%/:
+	$(MKDIR_P) $(@)
+
+src-binutils:
+	$(WGET) - "$(BINUTILS_URL)" | tar xz
+	touch $(@)
+
+src-gcc:
+	$(WGET) - "$(GCC_URL)" | tar xz
 	if [ x"$(GCC_IN_TREE_DEPS)" = x"yes" ]; then \
-		cd gcc && ./contrib/download_prerequisites; \
+		cd $(GCC_VERSION) && ./contrib/download_prerequisites; \
 	fi
-gcc-nospc                     :
-	if test ! -d gcc; then mkdir gcc; fi
-	$(WGET) - "$(GCC_URL)" | tar xzv --strip-components=1 -C gcc
-	if [ x"$(GCC_IN_TREE_DEPS)" = x"yes" ]; then \
-		cd gcc && ./contrib/download_prerequisites; \
-	fi
-build-gcc/config.status       : | gcc
-	if test ! -d build-gcc; then mkdir build-gcc; fi
-	cd build-gcc && ../gcc/configure \
+	touch $(@)
+
+src-newlib:
+	$(WGET) - "$(NEWLIB_URL)" | tar xz
+	touch $(@)
+
+src-gdb:
+	$(WGET) - "$(GDB_URL)" | tar xz
+	touch $(@)
+
+src-all: src-binutils src-gcc src-newlib src-gdb
+
+clean-src-binutils:
+	rm -rf $(BINUTILS_VERSION)
+	rm -f src-binutils
+
+clean-src-gcc:
+	rm -rf $(GCC_VERSION)
+	rm -f src-gcc
+
+clean-src-newlib:
+	rm -rf $(NEWLIB_VERSION)
+	rm -f src-newlib
+
+clean-src-gdb:
+	rm -rf $(GDB_VERSION)
+	rm -f src-gdb
+
+clean-src-all: clean-src-binutils clean-src-gcc clean-src-newlib clean-src-gdb
+
+$(BINUTILS_SYMLINKS): src-binutils | $(GCC_VERSION)/
+	$(LN_S) $(@:$(GCC_VERSION)/%=../$(BINUTILS_VERSION)/%) $(@)
+	touch $(@)
+
+$(NEWLIB_SYMLINKS): src-newlib | $(GCC_VERSION)/
+	$(LN_S) $(@:$(GCC_VERSION)/%=../$(NEWLIB_VERSION)/%) $(@)
+	touch $(@)
+
+$(GDB_SYMLINKS): src-gdb | $(GCC_VERSION)/
+	$(LN_S) $(@:$(GCC_VERSION)/%=../$(GDB_VERSION)/%) $(@)
+	touch $(@)
+
+symlinks-binutils: $(BINUTILS_SYMLINKS)
+
+symlinks-gcc:
+
+symlinks-newlib: $(NEWLIB_SYMLINKS)
+
+symlinks-gdb: $(GDB_SYMLINKS)
+
+symlinks-all: symlinks-binutils symlinks-gcc symlinks-newlib symlinks-gdb
+
+clean-symlinks-binutils:
+	rm -f $(BINUTILS_SYMLINKS)
+
+clean-symlinks-gcc:
+
+clean-symlinks-newlib:
+	rm -f $(NEWLIB_SYMLINKS)
+
+clean-symlinks-gdb:
+	rm -f $(GDB_SYMLINKS)
+
+clean-symlinks-all: clean-symlinks-binutils clean-symlinks-gcc clean-symlinks-newlib clean-symlinks-gdb
+
+prepare-toolchain: src-all symlinks-all
+
+configure-toolchain: build-toolchain/config.status
+
+build-toolchain/config.status: prepare-toolchain | build-toolchain/
+	cd build-toolchain && ../$(GCC_VERSION)/configure \
 		--prefix="$(prefix)" \
 		--target=$(target) \
 		--with-gnu-as \
@@ -147,6 +177,12 @@ build-gcc/config.status       : | gcc
 		--with-arch=vr4300 \
 		--with-abi=32 \
 		--with-newlib \
+		--enable-newlib-global-atexit \
+		--disable-newlib-fvwrite-in-streamio \
+		--disable-newlib-wide-orient \
+		--disable-newlib-unbuf-stream-opt \
+		--disable-newlib-supplied-syscalls \
+		--enable-lite-exit \
 		--with-sysroot="$(sysroot)" \
 		--with-native-system-header-dir="//usr/include" \
 		--enable-languages=c,c++,lto \
@@ -157,131 +193,17 @@ build-gcc/config.status       : | gcc
 		LDFLAGS="$(LDFLAGS)" \
 		CFLAGS_FOR_TARGET="$(CFLAGS_FOR_TARGET)" \
 		CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)" \
-		$(CONFIG_GCC)
-configure-gcc                 : build-gcc/config.status
-all-gcc-executables           : | build-gcc/config.status
-	cd build-gcc && $(MAKE) all-gcc
-	touch $@
-install-gcc-executables       : | all-gcc-executables
-	cd build-gcc && $(MAKE) install-gcc
-	touch $@
-all-gcc                       : | build-gcc/config.status install-binutils install-newlib
-	cd build-gcc && $(MAKE) all
-	touch $@
-install-gcc                   : | all-gcc
-	cd build-gcc && $(MAKE) install
-	touch $@
-clean-gcc                     :
-	rm -rf gcc.tar.gz gcc build-gcc all-gcc-executables all-gcc
-distclean-gcc                 :
-	rm -f install-gcc-executables install-gcc
-quickclean-gcc                :
-	rm -rf build-gcc all-gcc-executables all-gcc
+		$(CONFIG_TOOLCHAIN)
 
-newlib.tar.gz                 :
-	$(WGET) newlib.tar.gz "$(NEWLIB_URL)"
-newlib                        : | newlib.tar.gz
-	if test ! -d newlib; then mkdir newlib; fi
-	tar xfv newlib.tar.gz --strip-components=1 -C newlib
-newlib-nospc                  :
-	if test ! -d newlib; then mkdir newlib; fi
-	$(WGET) - "$(NEWLIB_URL)" | tar xzv --strip-components=1 -C newlib
-build-newlib/config.status    : | newlib install-binutils install-gcc-executables
-	if test ! -d build-newlib; then mkdir build-newlib; fi
-	cd build-newlib && ../newlib/configure \
-		--prefix="$(prefix)" \
-		--target=$(target) \
-		--with-newlib \
-		--enable-newlib-global-atexit \
-		--disable-newlib-fvwrite-in-streamio \
-		--disable-newlib-wide-orient \
-		--disable-newlib-unbuf-stream-opt \
-		--disable-newlib-supplied-syscalls \
-		--enable-lite-exit \
-		LDFLAGS="$(LDFLAGS)" \
-		CFLAGS_FOR_TARGET="$(CFLAGS_FOR_TARGET) -fpermissive" \
-		CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET) -fpermissive" \
-		$(CONFIG_NEWLIB)
-configure-newlib              : build-newlib/config.status
-all-newlib                    : | build-newlib/config.status install-binutils install-gcc-executables
-	cd build-newlib && $(MAKE) all
-	touch $@
-install-newlib                : | all-newlib
-	cd build-newlib && $(MAKE) install
-	touch $@
-clean-newlib                  :
-	rm -rf newlib.tar.gz newlib build-newlib all-newlib
-distclean-newlib              :
-	rm -f install-newlib
-quickclean-newlib             :
-	rm -rf build-newlib all-newlib
+all-toolchain: configure-toolchain
+	cd build-toolchain && $(MAKE) all
 
-gdb.tar.gz                    :
-	$(WGET) gdb.tar.gz "$(GDB_URL)"
-gdb                           : | gdb.tar.gz
-	if test ! -d gdb; then mkdir gdb; fi
-	tar xfv gdb.tar.gz --strip-components=1 -C gdb
-gdb-nospc                     :
-	if test ! -d gdb; then mkdir gdb; fi
-	$(WGET) - "$(GDB_URL)" | tar xzv --strip-components=1 -C gdb
-build-gdb/config.status       : | gdb
-	if test ! -d build-gdb; then mkdir build-gdb; fi
-	cd build-gdb && ../gdb/configure \
-		--prefix="$(prefix)" \
-		--target=$(target) \
-		--with-sysroot="$(sysroot)" \
-		--disable-nls \
-		LDFLAGS="$(LDFLAGS)" \
-		CFLAGS_FOR_TARGET="$(CFLAGS_FOR_TARGET)" \
-		CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)" \
-		$(CONFIG_GDB)
-configure-gdb                 : build-gdb/config.status
-all-gdb                       : | build-gdb/config.status
-	cd build-gdb && $(MAKE) all
-	touch $@
-install-gdb                   : | all-gdb
-	cd build-gdb && $(MAKE) install
-	touch $@
-clean-gdb                     :
-	rm -rf gdb.tar.gz gdb build-gdb all-gdb
-distclean-gdb                 :
-	rm -f install-gdb
-quickclean-gdb                :
-	rm -rf build-gdb all-gdb
+install-toolchain: configure-toolchain
+	cd build-toolchain && $(MAKE) install
 
-install-local-exec            :
-	$(MKDIR_P) "$(DESTDIR)$(tooldir)/bin"
-	for f in "$(DESTDIR)$(bindir)/"*; do \
-		if test -f "$$f"; then \
-			f="$${f##*/}"; \
-			(cd "$(DESTDIR)$(tooldir)/bin" && rm -f "$${f##$(target)-}" && $(LN_S) -f "$(bindir)/$$f" "$${f##$(target)-}"); \
-		fi \
-	done
-	touch $@
-clean-local-exec              :
-distclean-local-exec          :
-	rm -f install-local-exec
-uninstall-local-exec          :
-	for f in "$(DESTDIR)$(bindir)/"*; do \
-		if test -f "$$f"; then \
-			f="$${f##*/}"; \
-			(cd "$(DESTDIR)$(tooldir)/bin" && rm -f "$${f##$(target)-}"); \
-		fi \
-	done
-	-rm -df "$(DESTDIR)$(tooldir)/bin"
-	rm -f install-local-exec
+clean-toolchain:
+	rm -rf build-toolchain
 
-install-sys                   :
+install-sys:
 	$(MKDIR_P) "$(DESTDIR)$(sysroot)/usr"
 	cp -R -p "$(srcdir)/include" "$(srcdir)/lib" "$(DESTDIR)$(sysroot)/usr"
-	touch $@
-clean-sys                     :
-distclean-sys                 :
-	rm -f install-sys
-uninstall-sys                 :
-	(cd "$(srcdir)/include" && find . -depth -exec rm -df "$(DESTDIR)$(sysroot)/usr/include/"\{\} \;)
-	(cd "$(srcdir)/lib" && find . -depth -exec rm -df "$(DESTDIR)$(sysroot)/usr/lib/"\{\} \;)
-	-rm -df "$(DESTDIR)$(sysroot)/usr"
-	rm -f install-sys
-
-install-toolchain             : install-binutils install-gcc install-newlib install-gdb
