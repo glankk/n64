@@ -41,7 +41,7 @@ elif type apt >/dev/null 2>&1; then
 elif type pacman >/dev/null 2>&1; then
   if test "x`uname -o`" = xMsys; then
     echo Found pacman with \`uname -o\` = "Msys", assuming MSYS2.
-    DEPS="$DEPS mingw-w64-i686-gcc mingw-w64-i686-lua mingw-w64-i686-zlib mingw-w64-i686-jansson mingw-w64-i686-libusb mingw-w64-i686-gmp"
+    DEPS="$DEPS mingw-w64-x86_64-gcc mingw-w64-x86_64-lua mingw-w64-x86_64-zlib mingw-w64-x86_64-jansson mingw-w64-x86_64-libusb mingw-w64-x86_64-gmp"
     PKM="pacman"
   else
     echo Found pacman, assuming Arch.

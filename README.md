@@ -65,7 +65,7 @@ want to use the included `luapatch` program with BizHawk, you should set the
 
 ### Building From Source
 1.  If you're on Windows, download and install MSYS2 from
-    [here](https://msys2.github.io/). Open a `MSYS2 MinGW 32-bit` shell.
+    [here](https://msys2.github.io/). Open a `MSYS2 MinGW 64-bit` shell.
 2.  Clone the repository and navigate into it by running
     `git clone https://github.com/glankk/n64 && cd n64`.
 3.  Optionally, have the included script try to install the prerequisite
@@ -76,13 +76,12 @@ want to use the included `luapatch` program with BizHawk, you should set the
     append ` --enable-vc` to the configure command. To produce portable Windows
     executables (that don't need additional dynamic libraries) under MSYS2,
     append ` --enable-static-executables` to the configure command.
-5.  Install the GNU Toolchain for MIPS by running `make install-toolchain`. You
-    may want to use make's `-j` option speed up this process.
+5.  Install the GNU Toolchain for MIPS by running `make all-toolchain && make
+    install-toolchain`. You may want to use make's `-j` option speed up this
+    process.
 6.  Compile and install the included programs by running `make && make
     install`.
 7.  Install the included headers and libraries by running `make install-sys`.
-    Optionally, install prefixless binaries to `your-prefix/mips64/bin` by
-    running `make install-local-exec`.
 8.  The n64 tools and MIPS toolchain will have been installed to `/opt/n64` (or
     the prefix you chose). Add `/opt/n64/bin` to your `PATH` variable (or
     `your-prefix/bin`, `C:\msys64\opt\n64\bin` on Windows). If you're using
