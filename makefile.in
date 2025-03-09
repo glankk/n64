@@ -92,11 +92,11 @@ $(DISTCLEANPROGS):
 
 src-binutils:
 	$(WGET) - "$(BINUTILS_URL)" | tar xz
-	patch -d binutils/ld -p 1 < "$(srcdir)/config/ld/ld.diff"
+	patch -d binutils/ld -p 1 <"$(srcdir)/config/ld/ld.diff"
 	cp "$(srcdir)/config/ld/emulparams/"* $(BINUTILS_VERSION)/ld/emulparams
 	cp "$(srcdir)/config/ld/emultempl/"* $(BINUTILS_VERSION)/ld/emultempl
-	cat "$(srcdir)/config/ld/configure.tgt.ultra" >> $(BINUTILS_VERSION)/ld/configure.tgt
-	cat "$(srcdir)/config/bfd/config.bfd.ultra" >> $(BINUTILS_VERSION)/bfd/config.bfd
+	cat "$(srcdir)/config/ld/configure.tgt.ultra" >>$(BINUTILS_VERSION)/ld/configure.tgt
+	cat "$(srcdir)/config/bfd/config.bfd.ultra" >>$(BINUTILS_VERSION)/bfd/config.bfd
 	touch $(@)
 
 src-gcc:
@@ -105,27 +105,30 @@ src-gcc:
 		cd $(GCC_VERSION) && ./contrib/download_prerequisites; \
 	fi
 	cp "$(srcdir)/config/gcc/mips/"* $(GCC_VERSION)/gcc/config/mips
-	cat "$(srcdir)/config/gcc/config.gcc.ultra" >> $(GCC_VERSION)/gcc/config.gcc
+	cat "$(srcdir)/config/gcc/config.gcc.ultra" >>$(GCC_VERSION)/gcc/config.gcc
 	touch $(@)
 
 src-newlib:
 	$(WGET) - "$(NEWLIB_URL)" | tar xz
+	if patch --dry-run -d $(NEWLIB_VERSION) -p 1 <"$(srcdir)/config/newlib/fix-libgloss.diff"; then \
+		patch -d $(NEWLIB_VERSION) -p 1 <"$(srcdir)/config/newlib/fix-libgloss.diff"; \
+	fi
 	touch $(@)
 
 src-gdb:
 	$(WGET) - "$(GDB_URL)" | tar xz
-	if patch --dry-run -d $(GDB_VERSION) -p 1 < "$(srcdir)/config/gdb/gdb-11.2-release.diff"; then \
-		patch -d $(GDB_VERSION) -p 1 < "$(srcdir)/config/gdb/gdb-11.2-release.diff"; \
-	elif patch --dry-run -d $(GDB_VERSION) -p 1 < "$(srcdir)/config/gdb/gdb-12.1-release.diff"; then \
-		patch -d $(GDB_VERSION) -p 1 < "$(srcdir)/config/gdb/gdb-12.1-release.diff"; \
-	elif patch --dry-run -d $(GDB_VERSION) -p 1 < "$(srcdir)/config/gdb/gdb-14.1-release.diff"; then \
-		patch -d $(GDB_VERSION) -p 1 < "$(srcdir)/config/gdb/gdb-14.1-release.diff"; \
-	elif patch --dry-run -d $(GDB_VERSION) -p 1 < "$(srcdir)/config/gdb/gdb-16.2-release.diff"; then \
-		patch -d $(GDB_VERSION) -p 1 < "$(srcdir)/config/gdb/gdb-16.2-release.diff"; \
+	if patch --dry-run -d $(GDB_VERSION) -p 1 <"$(srcdir)/config/gdb/gdb-11.2-release.diff"; then \
+		patch -d $(GDB_VERSION) -p 1 <"$(srcdir)/config/gdb/gdb-11.2-release.diff"; \
+	elif patch --dry-run -d $(GDB_VERSION) -p 1 <"$(srcdir)/config/gdb/gdb-12.1-release.diff"; then \
+		patch -d $(GDB_VERSION) -p 1 <"$(srcdir)/config/gdb/gdb-12.1-release.diff"; \
+	elif patch --dry-run -d $(GDB_VERSION) -p 1 <"$(srcdir)/config/gdb/gdb-14.1-release.diff"; then \
+		patch -d $(GDB_VERSION) -p 1 <"$(srcdir)/config/gdb/gdb-14.1-release.diff"; \
+	elif patch --dry-run -d $(GDB_VERSION) -p 1 <"$(srcdir)/config/gdb/gdb-16.2-release.diff"; then \
+		patch -d $(GDB_VERSION) -p 1 <"$(srcdir)/config/gdb/gdb-16.2-release.diff"; \
 	else \
 		false; \
 	fi
-	cat "$(srcdir)/config/bfd/config.bfd.ultra" >> $(GDB_VERSION)/bfd/config.bfd
+	cat "$(srcdir)/config/bfd/config.bfd.ultra" >>$(GDB_VERSION)/bfd/config.bfd
 	touch $(@)
 
 src-all: src-binutils src-gcc src-newlib src-gdb
