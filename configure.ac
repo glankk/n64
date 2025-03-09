@@ -45,7 +45,6 @@ AC_ARG_WITH([toolchain],
 AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_MKDIR_P
-AC_PROG_LN_S
 AC_CHECK_PROGS([WGET], [curl wget])
 AS_IF([test "x$WGET" = xcurl], [WGET="curl -o"; WGET_Q="curl -s -o";],
       [test "x$WGET" = xwget], [WGET="wget -O"; WGET_Q="wget -q -O";])

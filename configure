@@ -651,7 +651,6 @@ ZLIB
 LIBLUA
 LIBM
 WGET
-LN_S
 MKDIR_P
 INSTALL_DATA
 INSTALL_SCRIPT
@@ -3701,17 +3700,6 @@ fi
 fi
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $MKDIR_P" >&5
 printf "%s\n" "$MKDIR_P" >&6; }
-
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether ln -s works" >&5
-printf %s "checking whether ln -s works... " >&6; }
-LN_S=$as_ln_s
-if test "$LN_S" = "ln -s"; then
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-printf "%s\n" "yes" >&6; }
-else
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no, using $LN_S" >&5
-printf "%s\n" "no, using $LN_S" >&6; }
-fi
 
 for ac_prog in curl wget
 do

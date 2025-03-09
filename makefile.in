@@ -32,7 +32,6 @@ CFLAGS_FOR_TARGET             = @CFLAGS_FOR_TARGET@
 CXXFLAGS_FOR_TARGET           = @CXXFLAGS_FOR_TARGET@
 INSTALL                       = @INSTALL@
 MKDIR_P                       = @MKDIR_P@
-LN_S                          = @LN_S@
 WGET                          = @WGET@
 
 all:
@@ -130,24 +129,24 @@ clean-src-gdb:
 clean-src-all: clean-src-binutils clean-src-gcc clean-src-newlib clean-src-gdb
 
 $(BINUTILS_SYMLINKS): src-binutils | $(GCC_VERSION)/
-	$(LN_S) $(@:$(GCC_VERSION)/%=../$(BINUTILS_VERSION)/%) $(@)
+	cd $(GCC_VERSION) && ln -sf $(@:$(GCC_VERSION)/%=../$(BINUTILS_VERSION)/%) $(@:$(GCC_VERSION)/%=./%)
 	touch $(@)
 
 $(NEWLIB_SYMLINKS): src-newlib | $(GCC_VERSION)/
-	$(LN_S) $(@:$(GCC_VERSION)/%=../$(NEWLIB_VERSION)/%) $(@)
+	cd $(GCC_VERSION) && ln -sf $(@:$(GCC_VERSION)/%=../$(NEWLIB_VERSION)/%) $(@:$(GCC_VERSION)/%=./%)
 	touch $(@)
 
 $(GDB_SYMLINKS): src-gdb | $(GCC_VERSION)/
-	$(LN_S) $(@:$(GCC_VERSION)/%=../$(GDB_VERSION)/%) $(@)
+	cd $(GCC_VERSION) && ln -sf $(@:$(GCC_VERSION)/%=../$(GDB_VERSION)/%) $(@:$(GCC_VERSION)/%=./%)
 	touch $(@)
 
-symlinks-binutils: $(BINUTILS_SYMLINKS)
+symlinks-binutils: | $(BINUTILS_SYMLINKS)
 
 symlinks-gcc:
 
-symlinks-newlib: $(NEWLIB_SYMLINKS)
+symlinks-newlib: | $(NEWLIB_SYMLINKS)
 
-symlinks-gdb: $(GDB_SYMLINKS)
+symlinks-gdb: | $(GDB_SYMLINKS)
 
 symlinks-all: symlinks-binutils symlinks-gcc symlinks-newlib symlinks-gdb
 
