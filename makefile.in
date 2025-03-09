@@ -59,7 +59,6 @@ install-full:
 	$(MAKE) install-toolchain
 	$(MAKE) all-progs
 	$(MAKE) install-progs
-	$(MAKE) install-compat-exec
 	$(MAKE) install-sys
 
 all-progs: $(ALLPROGS)
