@@ -103,6 +103,15 @@ src-gcc:
 	if [ x"$(GCC_IN_TREE_DEPS)" = x"yes" ]; then \
 		cd $(GCC_VERSION) && ./contrib/download_prerequisites; \
 	fi
+	for d in $(BINUTILS_SUBDIRS); do \
+		sed -i s@module_srcdir=$${d}\\b@module_srcdir=../$(BINUTILS_VERSION)/$${d}@g $(GCC_VERSION)/Makefile.in; \
+	done
+	for d in $(NEWLIB_SUBDIRS); do \
+		sed -i s@module_srcdir=$${d}\\b@module_srcdir=../$(NEWLIB_VERSION)/$${d}@g $(GCC_VERSION)/Makefile.in; \
+	done
+	for d in $(GDB_SUBDIRS); do \
+		sed -i s@module_srcdir=$${d}\\b@module_srcdir=../$(GDB_VERSION)/$${d}@g $(GCC_VERSION)/Makefile.in; \
+	done
 	cp "$(srcdir)/config/gcc/mips/"* $(GCC_VERSION)/gcc/config/mips
 	cat "$(srcdir)/config/gcc/config.gcc.ultra" >>$(GCC_VERSION)/gcc/config.gcc
 	touch $(@)
