@@ -39,7 +39,7 @@ all:
 .PHONY: all install install-full clean distclean
 .PHONY: all-progs $(ALLPROGS) install-progs $(INSTALLPROGS) install-strip-progs $(INSTALLSTRIPPROGS) clean-progs $(CLEANPROGS) distclean-progs $(DISTCLEANPROGS)
 .PHONY: src-all clean-src-binutils clean-src-gcc clean-src-newlib clean-src-gdb clean-src-all
-.PHONY: symlinks-binutils symlinks-gcc symlinks-newlib symlinks-gdb symlinks-all clean-symlinks-binutils clean-symlinks-gcc clean-symlinks-newlib clean-symlinks-gdb clean-symlinks-all
+.PHONY: symlinks-binutils symlinks-newlib symlinks-gdb symlinks-all clean-symlinks-binutils clean-symlinks-newlib clean-symlinks-gdb clean-symlinks-all
 .PHONY: prepare-toolchain configure-toolchain all-toolchain install-toolchain clean-toolchain
 .PHONY: install-sys
 
@@ -142,18 +142,14 @@ $(GDB_SYMLINKS): src-gdb | $(GCC_VERSION)/
 
 symlinks-binutils: | $(BINUTILS_SYMLINKS)
 
-symlinks-gcc:
-
 symlinks-newlib: | $(NEWLIB_SYMLINKS)
 
 symlinks-gdb: | $(GDB_SYMLINKS)
 
-symlinks-all: symlinks-binutils symlinks-gcc symlinks-newlib symlinks-gdb
+symlinks-all: symlinks-binutils symlinks-newlib symlinks-gdb
 
 clean-symlinks-binutils:
 	rm -f $(BINUTILS_SYMLINKS)
-
-clean-symlinks-gcc:
 
 clean-symlinks-newlib:
 	rm -f $(NEWLIB_SYMLINKS)
@@ -161,7 +157,7 @@ clean-symlinks-newlib:
 clean-symlinks-gdb:
 	rm -f $(GDB_SYMLINKS)
 
-clean-symlinks-all: clean-symlinks-binutils clean-symlinks-gcc clean-symlinks-newlib clean-symlinks-gdb
+clean-symlinks-all: clean-symlinks-binutils clean-symlinks-newlib clean-symlinks-gdb
 
 prepare-toolchain: src-all symlinks-all
 
