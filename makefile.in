@@ -163,7 +163,9 @@ prepare-toolchain: src-all symlinks-all
 
 configure-toolchain: build-toolchain/config.status
 
-build-toolchain/config.status: prepare-toolchain | build-toolchain/
+build-toolchain/config.status: src-binutils src-gcc src-newlib src-gdb
+build-toolchain/config.status: | $(BINUTILS_SYMLINKS) $(NEWLIB_SYMLINKS) $(GDB_SYMLINKS)
+build-toolchain/config.status: | build-toolchain/
 	cd build-toolchain && ../$(GCC_VERSION)/configure \
 		--prefix="$(prefix)" \
 		--target=$(target) \
@@ -190,10 +192,10 @@ build-toolchain/config.status: prepare-toolchain | build-toolchain/
 		CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)" \
 		$(CONFIG_TOOLCHAIN)
 
-all-toolchain: configure-toolchain
+all-toolchain: build-toolchain/config.status
 	cd build-toolchain && $(MAKE) all
 
-install-toolchain: configure-toolchain
+install-toolchain: build-toolchain/config.status
 	cd build-toolchain && $(MAKE) install
 
 clean-toolchain:
