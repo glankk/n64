@@ -15,10 +15,10 @@ BINUTILS_VERSION              = @BINUTILS_VERSION@
 GCC_VERSION                   = @GCC_VERSION@
 NEWLIB_VERSION                = @NEWLIB_VERSION@
 GDB_VERSION                   = @GDB_VERSION@
-BINUTILS_URL                  = https://ftp.gnu.org/gnu/binutils/$(BINUTILS_VERSION).tar.gz
-GCC_URL                       = https://ftp.gnu.org/gnu/gcc/$(GCC_VERSION)/$(GCC_VERSION).tar.gz
+BINUTILS_URL                  = https://ftp.gnu.org/gnu/binutils/$(BINUTILS_VERSION).tar.xz
+GCC_URL                       = https://ftp.gnu.org/gnu/gcc/$(GCC_VERSION)/$(GCC_VERSION).tar.xz
 NEWLIB_URL                    = https://sourceware.org/pub/newlib/$(NEWLIB_VERSION).tar.gz
-GDB_URL                       = https://ftp.gnu.org/gnu/gdb/$(GDB_VERSION).tar.gz
+GDB_URL                       = https://ftp.gnu.org/gnu/gdb/$(GDB_VERSION).tar.xz
 BINUTILS_SUBDIRS              = bfd binutils cpu gas ld libctf libsframe opcodes
 NEWLIB_SUBDIRS                = libgloss newlib
 GDB_SUBDIRS                   = gdb gdbsupport gnulib readline sim
@@ -90,7 +90,7 @@ $(DISTCLEANPROGS):
 	$(MKDIR_P) $(@)
 
 src-binutils:
-	$(WGET) - "$(BINUTILS_URL)" | tar xz
+	$(WGET) - "$(BINUTILS_URL)" | tar xJ
 	patch -d $(BINUTILS_VERSION)/ld -p 1 <"$(srcdir)/config/ld/ld.diff"
 	cp "$(srcdir)/config/ld/emulparams/"* $(BINUTILS_VERSION)/ld/emulparams
 	cp "$(srcdir)/config/ld/emultempl/"* $(BINUTILS_VERSION)/ld/emultempl
@@ -99,7 +99,7 @@ src-binutils:
 	touch $(@)
 
 src-gcc:
-	$(WGET) - "$(GCC_URL)" | tar xz
+	$(WGET) - "$(GCC_URL)" | tar xJ
 	if [ x"$(GCC_IN_TREE_DEPS)" = x"yes" ]; then \
 		cd $(GCC_VERSION) && ./contrib/download_prerequisites; \
 	fi
@@ -115,7 +115,7 @@ src-newlib:
 	touch $(@)
 
 src-gdb:
-	$(WGET) - "$(GDB_URL)" | tar xz
+	$(WGET) - "$(GDB_URL)" | tar xJ
 	if patch --dry-run -d $(GDB_VERSION) -p 1 <"$(srcdir)/config/gdb/gdb-11.2-release.diff"; then \
 		patch -d $(GDB_VERSION) -p 1 <"$(srcdir)/config/gdb/gdb-11.2-release.diff"; \
 	elif patch --dry-run -d $(GDB_VERSION) -p 1 <"$(srcdir)/config/gdb/gdb-12.1-release.diff"; then \
