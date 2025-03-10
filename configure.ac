@@ -101,9 +101,9 @@ AS_IF([test "x$with_toolchain" != xno],
         AS_IF([test -z "$BINUTILS_VERSION"],
               [
                 BINUTILS_VERSION=`$WGET_Q - "https://ftp.gnu.org/gnu/binutils/" |
-                                  grep -E -o ">binutils-[[0-9\\\\.]]+tar\\\\.gz<" |
+                                  grep -E -o ">binutils-[[0-9\\\\.]]+tar\\\\.xz<" |
                                   tail -n 1 |
-                                  sed -e s/\\>// -e s/\\\\.tar\\\\.gz\\<//`
+                                  sed -e s/\\>// -e s/\\\\.tar\\\\.xz\\<//`
               ])
         AC_MSG_RESULT([$BINUTILS_VERSION])
         AC_MSG_CHECKING([gcc version])
@@ -128,9 +128,9 @@ AS_IF([test "x$with_toolchain" != xno],
         AS_IF([test -z "$GDB_VERSION"],
               [
                 GDB_VERSION=`$WGET_Q - "https://ftp.gnu.org/gnu/gdb/" |
-                             grep -E -o ">gdb-[[0-9\\\\.]]+tar\\\\.gz<" |
+                             grep -E -o ">gdb-[[0-9\\\\.]]+tar\\\\.xz<" |
                              tail -n 1 |
-                             sed -e s/\\>// -e s/\\\\.tar\\\\.gz\\<//`
+                             sed -e s/\\>// -e s/\\\\.tar\\\\.xz\\<//`
               ])
         AC_MSG_RESULT([$GDB_VERSION])
       ])

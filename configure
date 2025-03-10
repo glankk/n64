@@ -4786,9 +4786,9 @@ printf %s "checking binutils version... " >&6; }
 then :
 
                 BINUTILS_VERSION=`$WGET_Q - "https://ftp.gnu.org/gnu/binutils/" |
-                                  grep -E -o ">binutils-[0-9\\\\.]+tar\\\\.gz<" |
+                                  grep -E -o ">binutils-[0-9\\\\.]+tar\\\\.xz<" |
                                   tail -n 1 |
-                                  sed -e s/\\>// -e s/\\\\.tar\\\\.gz\\<//`
+                                  sed -e s/\\>// -e s/\\\\.tar\\\\.xz\\<//`
 
 fi
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $BINUTILS_VERSION" >&5
@@ -4825,9 +4825,9 @@ printf %s "checking gdb version... " >&6; }
 then :
 
                 GDB_VERSION=`$WGET_Q - "https://ftp.gnu.org/gnu/gdb/" |
-                             grep -E -o ">gdb-[0-9\\\\.]+tar\\\\.gz<" |
+                             grep -E -o ">gdb-[0-9\\\\.]+tar\\\\.xz<" |
                              tail -n 1 |
-                             sed -e s/\\>// -e s/\\\\.tar\\\\.gz\\<//`
+                             sed -e s/\\>// -e s/\\\\.tar\\\\.xz\\<//`
 
 fi
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $GDB_VERSION" >&5
