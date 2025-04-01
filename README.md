@@ -64,13 +64,12 @@ want to use the included `luapatch` program with BizHawk, you should set the
     executables (that don't need additional dynamic libraries) under MSYS2,
     append ` --enable-static-executables` to the configure command.
 5.  Install the GNU Toolchain for MIPS by running `make all-toolchain && make
-    install-toolchain`. You may want to use make's `-j` option speed up this
-    process.
+    install-toolchain`.
 6.  Compile and install the included programs by running `make && make
     install`.
 7.  Install the included headers and libraries by running `make install-sys`.
 8.  The n64 tools and MIPS toolchain will have been installed to `/opt/n64` (or
     the prefix you chose). Add `/opt/n64/bin` to your `PATH` variable (or
-    `your-prefix/bin`, `C:\msys64\opt\n64\bin` on Windows). If you're using
-    MSYS2, also add the path to the directory containing the `make` program
-    (typically `C:\msys64\usr\bin`).
+    `your-prefix/bin`, usually `C:\msys64\opt\n64\bin` on Windows). If you're
+    using MSYS2, also add the path to the directory containing the `make`
+    program (typically `C:\msys64\usr\bin`).

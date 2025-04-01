@@ -32,7 +32,8 @@ elif type pkg >/dev/null 2>&1; then
 elif type brew >/dev/null 2>&1; then
   echo Found brew, assuming macOS.
   echo Note: gsed needs to be in your PATH as 'sed'.
-  DEPS="lua zlib jansson libusb gnu-sed gmp"
+  echo Note: Make with gmake.
+  DEPS="texinfo lua zlib jansson libusb make gnu-sed gmp"
   PKM="brew"
 elif type apt >/dev/null 2>&1; then
   echo Found apt, assuming Debian.
