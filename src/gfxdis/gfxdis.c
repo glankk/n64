@@ -322,11 +322,19 @@ static int strarg_gm(char *buf, uint32_t arg)
   int p = 0;
   if (arg & G_ZBUFFER)
     strappf("G_ZBUFFER");
+#if defined(F3D_GBI) || defined(F3DEX_GBI)
+  // G_TEXTURE_ENABLE == 2
   if (arg & G_TEXTURE_ENABLE) {
     if (p > 0)
       strappf(" | ");
     strappf("G_TEXTURE_ENABLE");
   }
+#elif defined(F3DEX_GBI_2)
+  // G_TEXTURE_ENABLE == 0, so check against it directly
+  if (arg == G_TEXTURE_ENABLE) {
+    strappf("G_TEXTURE_ENABLE");
+  }
+#endif
   if (arg & G_SHADE) {
     if (p > 0)
       strappf(" | ");
@@ -3690,7 +3698,7 @@ int gfx_dis_spGeometryMode(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
 {
   uint32_t clearbits = getfield(~hi, 24, 0);
   uint32_t setbits = lo;
-  if (clearbits == 0 && setbits != 0)
+  if (clearbits == 0)
     return gfx_dis_spSetGeometryMode(insn, hi, lo);
   else if (clearbits != 0 && setbits == 0)
     return gfx_dis_spClearGeometryMode(insn, hi, lo);
