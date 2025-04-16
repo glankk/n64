@@ -320,6 +320,10 @@ static int strarg_tile(char *buf, uint32_t arg)
 static int strarg_gm(char *buf, uint32_t arg)
 {
   int p = 0;
+  if (arg == 0) {
+    strappf("0");
+    return p;
+  }
   if (arg & G_ZBUFFER)
     strappf("G_ZBUFFER");
   if (arg & G_TEXTURE_ENABLE) {
@@ -3690,12 +3694,12 @@ int gfx_dis_spGeometryMode(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
 {
   uint32_t clearbits = getfield(~hi, 24, 0);
   uint32_t setbits = lo;
-  if (clearbits == 0 && setbits != 0)
-    return gfx_dis_spSetGeometryMode(insn, hi, lo);
-  else if (clearbits != 0 && setbits == 0)
-    return gfx_dis_spClearGeometryMode(insn, hi, lo);
-  else if (clearbits == 0x00FFFFFF)
+  if (clearbits == 0x00FFFFFF)
     return gfx_dis_spLoadGeometryMode(insn, hi, lo);
+  else if (clearbits == 0)
+    return gfx_dis_spSetGeometryMode(insn, hi, lo);
+  else if (setbits == 0)
+    return gfx_dis_spClearGeometryMode(insn, hi, lo);
   else {
     insn->def = GFX_ID_SPGEOMETRYMODE;
     insn->n_gfx = 1;
