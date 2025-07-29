@@ -4837,7 +4837,7 @@ fi
 
 ac_config_headers="$ac_config_headers src/config.h"
 
-ac_config_files="$ac_config_files makefile src/ed64rdb/makefile src/gfxdis/makefile src/grc/makefile src/libgru/makefile src/libgs/makefile src/luapatch/makefile"
+ac_config_files="$ac_config_files Makefile src/ed64rdb/Makefile src/gfxdis/Makefile src/grc/Makefile src/libgru/Makefile src/libgs/Makefile src/luapatch/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -5530,13 +5530,13 @@ for ac_config_target in $ac_config_targets
 do
   case $ac_config_target in
     "src/config.h") CONFIG_HEADERS="$CONFIG_HEADERS src/config.h" ;;
-    "makefile") CONFIG_FILES="$CONFIG_FILES makefile" ;;
-    "src/ed64rdb/makefile") CONFIG_FILES="$CONFIG_FILES src/ed64rdb/makefile" ;;
-    "src/gfxdis/makefile") CONFIG_FILES="$CONFIG_FILES src/gfxdis/makefile" ;;
-    "src/grc/makefile") CONFIG_FILES="$CONFIG_FILES src/grc/makefile" ;;
-    "src/libgru/makefile") CONFIG_FILES="$CONFIG_FILES src/libgru/makefile" ;;
-    "src/libgs/makefile") CONFIG_FILES="$CONFIG_FILES src/libgs/makefile" ;;
-    "src/luapatch/makefile") CONFIG_FILES="$CONFIG_FILES src/luapatch/makefile" ;;
+    "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
+    "src/ed64rdb/Makefile") CONFIG_FILES="$CONFIG_FILES src/ed64rdb/Makefile" ;;
+    "src/gfxdis/Makefile") CONFIG_FILES="$CONFIG_FILES src/gfxdis/Makefile" ;;
+    "src/grc/Makefile") CONFIG_FILES="$CONFIG_FILES src/grc/Makefile" ;;
+    "src/libgru/Makefile") CONFIG_FILES="$CONFIG_FILES src/libgru/Makefile" ;;
+    "src/libgs/Makefile") CONFIG_FILES="$CONFIG_FILES src/libgs/Makefile" ;;
+    "src/luapatch/Makefile") CONFIG_FILES="$CONFIG_FILES src/luapatch/Makefile" ;;
 
   *) as_fn_error $? "invalid argument: '$ac_config_target'" "$LINENO" 5;;
   esac
