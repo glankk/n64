@@ -125,5 +125,5 @@ AS_IF([test "x$with_toolchain" != xno],
       ])
 
 AC_CONFIG_HEADERS([src/config.h])
-AC_CONFIG_FILES([makefile src/ed64rdb/makefile src/gfxdis/makefile src/grc/makefile src/libgru/makefile src/libgs/makefile src/luapatch/makefile])
+AC_CONFIG_FILES([Makefile src/ed64rdb/Makefile src/gfxdis/Makefile src/grc/Makefile src/libgru/Makefile src/libgs/Makefile src/luapatch/Makefile])
 AC_OUTPUT

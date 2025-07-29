@@ -4,32 +4,26 @@ bindir                        = @bindir@
 srcdir                        = @srcdir@
 CC                            = @CC@
 CPPFLAGS                      = -I.. -I$(srcdir)/.. -I$(srcdir)/../../include @CPPFLAGS@
-CFLAGS                        = -std=c11 -Wall @CFLAGS@
+CFLAGS                        = -std=gnu11 -Wall @CFLAGS@
 LDFLAGS                       = @LDFLAGS@
-LDLIBS                        =
-SRC                           = $(srcdir)/*.c
-PROGS                         = gfxdis.f3d gfxdis.f3db gfxdis.f3dex gfxdis.f3dexb gfxdis.f3dex2
+LDLIBS                        = @LIBUSB@ @LIBM@
+SRC                           = $(srcdir)/src/lib/*.c $(srcdir)/src/exe/*.c $(srcdir)/../../include/vector/vector.c
+PROGNAME                      = gs
 INSTALL                       = @INSTALL@
 MKDIR_P                       = @MKDIR_P@
 
-gfxdis.f3d                    : CPPFLAGS += -DF3D_GBI
-gfxdis.f3db                   : CPPFLAGS += -DF3D_GBI -DF3D_BETA
-gfxdis.f3dex                  : CPPFLAGS += -DF3DEX_GBI
-gfxdis.f3dexb                 : CPPFLAGS += -DF3DEX_GBI -DF3D_BETA
-gfxdis.f3dex2                 : CPPFLAGS += -DF3DEX_GBI_2
-
 .PHONY                        : all install install-strip clean distclean
 
-all                           : $(PROGS)
+all                           : $(PROGNAME)
 install                       : | $(DESTDIR)$(bindir)
-	$(INSTALL) -p $(PROGS) $(DESTDIR)$(bindir)
+	$(INSTALL) -p $(PROGNAME) $(DESTDIR)$(bindir)
 install-strip                 :
-	$(MAKE) INSTALL="$(INSTALL) -s" install
+	$(MAKE) INSTALL="$(INSTALL) -s"  install
 clean                         :
-	rm -f $(PROGS)
+	rm -f $(PROGNAME)
 distclean                     :
-	rm -f makefile
-$(PROGS)                      : $(SRC)
+	rm -f Makefile
+$(PROGNAME)                   : $(SRC)
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $^ $(LDLIBS) -o $@
 $(DESTDIR)$(bindir)           :
 	$(MKDIR_P) $(DESTDIR)$(bindir)

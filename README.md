@@ -16,7 +16,7 @@ This is a collection of files and tools used to compile and test code for the
 n64.
 
 ## Toolchain
-`install-toolchain` provides `binutils`, `gcc`, `newlib`, and `gdb` targeting
+`toolchain-install` provides `binutils`, `gcc`, `newlib`, and `gdb` targeting
 mips64, with `-march=vr4300` and `-mabi=32` as defaults for `gcc`.
 
 ## Programs
@@ -52,18 +52,65 @@ want to use the included `luapatch` program with BizHawk, you should set the
 `EMUDIR` environment variable to the path to your BizHawk installation.
 
 ## Installation
-### Prebuilt Package (WSL or Debian-based Linux systems)
-1.  From the command line run the following to fetch the package:  
+### Prebuilt packages
+Linux packages are available for Debian-based systems and Arch Linux. The
+prebuilt packages are built from the `n64-ultra` branch and target
+`mips64-ultra-elf`. This repository is split into these packages:
+-   `mips64-ultra-elf-binutils`
+-   `mips64-ultra-elf-gcc`
+-   `mips64-ultra-elf-gcc-libs`
+-   `mips64-ultra-elf-newlib`
+-   `mips64-ultra-elf-gdb`
+-   `mips64-ultra-elf-practicerom-libs`
+-   `practicerom-tools`
+
+The package sources are available
+[here](https://github.com/PracticeROM/packages).
+
+#### Debian, Ubuntu and WSL
+1.  Run the following to install the package repository:
     ```
-    sudo sh -c '(curl https://practicerom.com/public/packages/debian/pgp.pub || wget -O - https://practicerom.com/public/packages/debian/pgp.pub) | apt-key add - && echo deb http://practicerom.com/public/packages/debian staging main >/etc/apt/sources.list.d/practicerom.list && apt update'
+    sudo sh -s << EOF
+        (
+            curl -o /etc/apt/trusted.gpg.d/practicerom.gpg https://practicerom.com/public/packages/practicerom.gpg ||
+            wget -O /etc/apt/trusted.gpg.d/practicerom.gpg https://practicerom.com/public/packages/practicerom.gpg
+        ) &&
+        echo 'deb http://practicerom.com/public/packages/debian unstable main' > /etc/apt/sources.list.d/practicerom.list &&
+        apt update
+    EOF
     ```
 
-2.  Install the package by running `sudo apt install n64-ultra`, or install all
-    practicerom development packages by running
-    `sudo apt install practicerom-dev`. The prebuilt packages are built from
-    the `n64-ultra` branch and target `mips64-ultra-elf`.
+2.  Install indidiual packages by running e.g.
+    `sudo apt install mips64-ultra-elf-gcc`, or install all practicerom
+    development packages with the `practicerom-dev` metapackge:
+    `sudo apt install practicerom-dev`.
 
-### Building From Source
+#### Arch Linux
+1.  Run the following to install the package repository:
+    ```
+    sudo sh -s << EOF
+        pacman-key --init &&
+        (
+            curl https://practicerom.com/public/packages/practicerom.gpg ||
+            wget -O - https://practicerom.com/public/packages/practicerom.gpg
+        ) |
+        tee -p >(pacman-key --add - >/dev/null) |
+        gpg --with-colons --with-fingerprint --show-key - |
+        awk -F: '\$1=="fpr" {print(\$10)}' | head -n 1 |
+        xargs pacman-key --lsign &&
+        (
+            grep -F '[practicerom]' /etc/pacman.conf ||
+            printf '\n[practicerom]\nServer = http://practicerom.com/public/packages/arch\n' >> /etc/pacman.conf
+        ) &&
+        pacman -Sy
+    EOF
+    ```
+
+2.  Install indidiual packages with e.g. `sudo pacman -S mips64-ultra-elf-gcc`,
+    or select practicerom development packages from the `practicerom-dev`
+    group: `sudo pacman -S practicerom-dev`.
+
+### Building from source
 1.  If you're on Windows, download and install MSYS2 from
     [here](https://msys2.github.io/). Open a `MSYS2 MinGW 64-bit` shell.
 2.  Clone the repository and navigate into it by running
@@ -76,8 +123,8 @@ want to use the included `luapatch` program with BizHawk, you should set the
     append ` --enable-vc` to the configure command. To produce portable Windows
     executables (that don't need additional dynamic libraries) under MSYS2,
     append ` --enable-static-executables` to the configure command.
-5.  Install the GNU Toolchain for MIPS by running `make all-toolchain && make
-    install-toolchain`.
+5.  Install the GNU Toolchain for MIPS by running `make toolchain-all && make
+    toolchain-install`.
 6.  Compile and install the included programs by running `make && make
     install`.
 7.  Install the included headers and libraries by running `make install-sys`.

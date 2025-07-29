@@ -36,7 +36,7 @@ WGET                          = @WGET@
 
 all:
 
-.PHONY: all install install-full clean distclean
+.PHONY: all install install-full clean distclean FORCE
 .PHONY: all-progs $(ALLPROGS) install-progs $(INSTALLPROGS) install-strip-progs $(INSTALLSTRIPPROGS) clean-progs $(CLEANPROGS) distclean-progs $(DISTCLEANPROGS)
 .PHONY: src-all clean-src-binutils clean-src-gcc clean-src-newlib clean-src-gdb clean-src-all
 .PHONY: symlinks-binutils symlinks-newlib symlinks-gdb symlinks-all clean-symlinks-binutils clean-symlinks-newlib clean-symlinks-gdb clean-symlinks-all
@@ -52,7 +52,9 @@ install-strip: install-strip-progs
 clean: clean-progs clean-src-all clean-toolchain
 
 distclean: distclean-progs
-	rm -f config.log config.status src/config.h makefile
+	rm -f config.log config.status src/config.h Makefile
+
+FORCE:
 
 install-full:
 	$(MAKE) all-toolchain
@@ -222,11 +224,8 @@ build-toolchain/config.status: | build-toolchain/
 		CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)" \
 		$(CONFIG_TOOLCHAIN)
 
-all-toolchain: build-toolchain/config.status
-	cd build-toolchain && $(MAKE) all
-
-install-toolchain: build-toolchain/config.status
-	cd build-toolchain && $(MAKE) install
+toolchain-%: build-toolchain/config.status FORCE
+	cd build-toolchain && $(MAKE) $(@:toolchain-%=%)
 
 clean-toolchain:
 	rm -rf build-toolchain

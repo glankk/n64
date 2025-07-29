@@ -22,7 +22,7 @@ install-strip                 :
 clean                         :
 	rm -f $(PROGNAME)
 distclean                     :
-	rm -f makefile
+	rm -f Makefile
 $(PROGNAME)                   : $(SRC)
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $^ $(LDLIBS) -o $@
 $(DESTDIR)$(bindir)           :
