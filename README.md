@@ -87,7 +87,7 @@ The package sources are available
         xargs pacman-key --lsign &&
         (
             grep -F '[practicerom]' /etc/pacman.conf ||
-            printf '\n[practicerom]\nServer = http://practicerom.com/public/packages/arch\n' >> /etc/pacman.conf
+            printf '\n[practicerom]\nServer = http://practicerom.com/public/packages/archlinux\n' >> /etc/pacman.conf
         ) &&
         pacman -Sy
     EOF
