@@ -62,7 +62,7 @@ The package sources are available
             curl -o /etc/apt/trusted.gpg.d/practicerom.gpg https://practicerom.com/public/packages/practicerom.gpg ||
             wget -O /etc/apt/trusted.gpg.d/practicerom.gpg https://practicerom.com/public/packages/practicerom.gpg
         ) &&
-        echo 'deb http://practicerom.com/public/packages/debian unstable main' > /etc/apt/sources.list.d/practicerom.list &&
+        echo 'deb [arch=amd64] http://practicerom.com/public/packages/debian unstable main' > /etc/apt/sources.list.d/practicerom.list &&
         apt update
     EOF
     ```
