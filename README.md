@@ -59,10 +59,10 @@ The package sources are available
     ```
     sudo sh -s << EOF
         (
-            curl -o /etc/apt/trusted.gpg.d/practicerom.gpg https://practicerom.com/public/packages/practicerom.gpg ||
-            wget -O /etc/apt/trusted.gpg.d/practicerom.gpg https://practicerom.com/public/packages/practicerom.gpg
+            curl -o /usr/share/keyrings/practicerom-archive-keyring.gpg https://practicerom.com/public/packages/debian/practicerom-archive-keyring.gpg ||
+            wget -O /usr/share/keyrings/practicerom-archive-keyring.gpg https://practicerom.com/public/packages/debian/practicerom-archive-keyring.gpg
         ) &&
-        echo 'deb [arch=amd64] http://practicerom.com/public/packages/debian unstable main' > /etc/apt/sources.list.d/practicerom.list &&
+        echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/practicerom-archive-keyring.gpg] http://practicerom.com/public/packages/debian unstable main' > /etc/apt/sources.list.d/practicerom.list &&
         apt update
     EOF
     ```
