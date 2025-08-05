@@ -53,62 +53,8 @@ want to use the included `luapatch` program with BizHawk, you should set the
 
 ## Installation
 ### Prebuilt packages
-Linux packages are available for Debian-based systems and Arch Linux. The
-prebuilt packages are built from the `n64-ultra` branch and target
-`mips64-ultra-elf`. This repository is split into these packages:
--   `mips64-ultra-elf-binutils`
--   `mips64-ultra-elf-gcc`
--   `mips64-ultra-elf-gcc-libs`
--   `mips64-ultra-elf-newlib`
--   `mips64-ultra-elf-gdb`
--   `mips64-ultra-elf-practicerom-libs`
--   `practicerom-tools`
-
-The package sources are available
-[here](https://github.com/PracticeROM/packages).
-
-#### Debian, Ubuntu and WSL
-1.  Run the following to install the package repository:
-    ```
-    sudo sh -s << EOF
-        (
-            curl -o /usr/share/keyrings/practicerom-archive-keyring.gpg https://practicerom.com/public/packages/debian/practicerom-archive-keyring.gpg ||
-            wget -O /usr/share/keyrings/practicerom-archive-keyring.gpg https://practicerom.com/public/packages/debian/practicerom-archive-keyring.gpg
-        ) &&
-        echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/practicerom-archive-keyring.gpg] http://practicerom.com/public/packages/debian unstable main' > /etc/apt/sources.list.d/practicerom.list &&
-        apt update
-    EOF
-    ```
-
-2.  Install indidiual packages by running e.g.
-    `sudo apt install mips64-ultra-elf-gcc`, or install all practicerom
-    development packages with the `practicerom-dev` metapackge:
-    `sudo apt install practicerom-dev`.
-
-#### Arch Linux
-1.  Run the following to install the package repository:
-    ```
-    sudo sh -s << EOF
-        pacman-key --init &&
-        (
-            curl https://practicerom.com/public/packages/practicerom.gpg ||
-            wget -O - https://practicerom.com/public/packages/practicerom.gpg
-        ) |
-        tee -p >(pacman-key --add - >/dev/null) |
-        gpg --with-colons --with-fingerprint --show-key - |
-        awk -F: '\$1=="fpr" {print(\$10)}' | head -n 1 |
-        xargs pacman-key --lsign &&
-        (
-            grep -F '[practicerom]' /etc/pacman.conf ||
-            printf '\n[practicerom]\nServer = http://practicerom.com/public/packages/archlinux\n' >> /etc/pacman.conf
-        ) &&
-        pacman -Sy
-    EOF
-    ```
-
-2.  Install indidiual packages with e.g. `sudo pacman -S mips64-ultra-elf-gcc`,
-    or select practicerom development packages from the `practicerom-dev`
-    group: `sudo pacman -S practicerom-dev`.
+Binary packages are available, see https://github.com/PracticeROM/packages.
+Packages are built from the `n64-ultra` branch and target `mips64-ultra-elf`
 
 ### Building from source
 1.  If you're on Windows, download and install MSYS2 from
