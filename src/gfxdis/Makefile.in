@@ -10,6 +10,7 @@ LDLIBS                        =
 SRC                           = $(srcdir)/*.c
 PROGS                         = gfxdis.f3d gfxdis.f3db gfxdis.f3dex gfxdis.f3dexb gfxdis.f3dex2
 INSTALL                       = @INSTALL@
+INSTALL_STRIP                 = @INSTALL_STRIP@
 MKDIR_P                       = @MKDIR_P@
 
 gfxdis.f3d                    : CPPFLAGS += -DF3D_GBI
@@ -22,9 +23,9 @@ gfxdis.f3dex2                 : CPPFLAGS += -DF3DEX_GBI_2
 
 all                           : $(PROGS)
 install                       : | $(DESTDIR)$(bindir)
-	$(INSTALL) -p $(PROGS) $(DESTDIR)$(bindir)
+	$(INSTALL) $(PROGS) $(DESTDIR)$(bindir)
 install-strip                 :
-	$(MAKE) INSTALL="$(INSTALL) -s" install
+	$(MAKE) INSTALL="$(INSTALL_STRIP)" install
 clean                         :
 	rm -f $(PROGS)
 distclean                     :

@@ -30,7 +30,6 @@ CONFIG_TOOLCHAIN              = @CONFIG_TOOLCHAIN@
 LDFLAGS                       = @LDFLAGS@
 CFLAGS_FOR_TARGET             = @CFLAGS_FOR_TARGET@
 CXXFLAGS_FOR_TARGET           = @CXXFLAGS_FOR_TARGET@
-INSTALL                       = @INSTALL@
 MKDIR_P                       = @MKDIR_P@
 WGET                          = @WGET@
 
