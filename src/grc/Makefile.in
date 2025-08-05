@@ -10,15 +10,16 @@ LDLIBS                        = -ljansson @LIBM@
 SRC                           = $(srcdir)/*.c
 PROGNAME                      = grc
 INSTALL                       = @INSTALL@
+INSTALL_STRIP                 = @INSTALL_STRIP@
 MKDIR_P                       = @MKDIR_P@
 
 .PHONY                        : all install install-strip clean distclean
 
 all                           : $(PROGNAME)
 install                       : | $(DESTDIR)$(bindir)
-	$(INSTALL) -p $(PROGNAME) $(DESTDIR)$(bindir)
+	$(INSTALL) $(PROGNAME) $(DESTDIR)$(bindir)
 install-strip                 :
-	$(MAKE) INSTALL="$(INSTALL) -s" install
+	$(MAKE) INSTALL="$(INSTALL_STRIP)" install
 clean                         :
 	rm -f $(PROGNAME)
 distclean                     :

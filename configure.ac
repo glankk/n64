@@ -33,6 +33,13 @@ AC_ARG_WITH([toolchain],
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_INSTALL
+AC_CHECK_TOOL([STRIP], [strip], :)
+AC_SUBST([INSTALL_STRIP])
+AC_MSG_CHECKING([install -s])
+AS_IF([$INSTALL --strip-program=$STRIP -d . 2>/dev/null],
+      [INSTALL_STRIP="$INSTALL --strip-program=$STRIP -s"],
+      [INSTALL_STRIP="STRIPPROG=$STRIP $INSTALL -s"])
+AC_MSG_RESULT([$INSTALL_STRIP])
 AC_PROG_MKDIR_P
 AC_CHECK_PROGS([WGET], [curl wget])
 AS_IF([test "x$WGET" = xcurl], [WGET="curl -o"; WGET_Q="curl -s -o";],
