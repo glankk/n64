@@ -3922,7 +3922,7 @@ int gfx_dis_spDma_io(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
     insn->arg[0] = flag;
     insn->arg[1] = getfield(hi, 10, 13) * 8;
     insn->arg[2] = lo;
-    insn->arg[3] = getfield(hi, 12, 10) + 1;
+    insn->arg[3] = getfield(hi, 12, 0) + 1;
     insn->strarg[1] = strarg_x16;
     insn->strarg[2] = strarg_x32;
     insn->strarg[3] = strarg_x16;
@@ -3936,7 +3936,7 @@ int gfx_dis_spDmaRead(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
   insn->n_gfx = 1;
   insn->arg[0] = getfield(hi, 10, 13) * 8;
   insn->arg[1] = lo;
-  insn->arg[2] = getfield(hi, 12, 10) + 1;
+  insn->arg[2] = getfield(hi, 12, 0) + 1;
   insn->strarg[0] = strarg_x16;
   insn->strarg[1] = strarg_x32;
   insn->strarg[2] = strarg_x16;
@@ -3949,7 +3949,7 @@ int gfx_dis_spDmaWrite(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
   insn->n_gfx = 1;
   insn->arg[0] = getfield(hi, 10, 13) * 8;
   insn->arg[1] = lo;
-  insn->arg[2] = getfield(hi, 12, 10) + 1;
+  insn->arg[2] = getfield(hi, 12, 0) + 1;
   insn->strarg[0] = strarg_x16;
   insn->strarg[1] = strarg_x32;
   insn->strarg[2] = strarg_x16;
