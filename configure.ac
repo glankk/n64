@@ -109,8 +109,8 @@ AS_IF([test "x$with_toolchain" != xno],
               [
                 BINUTILS_VERSION=`$WGET_Q - "https://ftp.gnu.org/gnu/binutils/" |
                                   grep -E -o ">binutils-[[0-9\\\\.]]+tar\\\\.xz<" |
-                                  tail -n 1 |
-                                  sed -e s/\\>// -e s/\\\\.tar\\\\.xz\\<//`
+                                  sed -e s/\\>// -e s/\\\\.tar\\\\.xz\\<// |
+                                  sort -V | tail -n 1`
               ])
         AC_MSG_RESULT([$BINUTILS_VERSION])
         AC_MSG_CHECKING([gcc version])
@@ -118,8 +118,8 @@ AS_IF([test "x$with_toolchain" != xno],
               [
                 GCC_VERSION=`$WGET_Q - "https://ftp.gnu.org/gnu/gcc/" |
                              grep -E -o ">gcc-[[0-9\\\\.]]+/<" |
-                             tail -n 1 |
-                             sed -e s/\\>// -e s/\\\\/\\<//`
+                             sed -e s/\\>// -e s/\\\\/\\<// |
+                             sort -V | tail -n 1`
               ])
         AC_MSG_RESULT([$GCC_VERSION])
         AC_MSG_CHECKING([newlib version])
@@ -127,8 +127,8 @@ AS_IF([test "x$with_toolchain" != xno],
               [
                 NEWLIB_VERSION=`$WGET_Q - "https://sourceware.org/pub/newlib/" |
                                 grep -E -o ">newlib-[[0-9\\\\.]]+tar\\\\.gz<" |
-                                head -n 1 |
-                                sed -e s/\\>// -e s/\\\\.tar\\\\.gz\\<//`
+                                sed -e s/\\>// -e s/\\\\.tar\\\\.gz\\<// |
+                                sort -V | tail -n 1`
               ])
         AC_MSG_RESULT([$NEWLIB_VERSION])
         AC_MSG_CHECKING([gdb version])
@@ -136,8 +136,8 @@ AS_IF([test "x$with_toolchain" != xno],
               [
                 GDB_VERSION=`$WGET_Q - "https://ftp.gnu.org/gnu/gdb/" |
                              grep -E -o ">gdb-[[0-9\\\\.]]+tar\\\\.xz<" |
-                             tail -n 1 |
-                             sed -e s/\\>// -e s/\\\\.tar\\\\.xz\\<//`
+                             sed -e s/\\>// -e s/\\\\.tar\\\\.xz\\<// |
+                             sort -V | tail -n 1`
               ])
         AC_MSG_RESULT([$GDB_VERSION])
       ])
