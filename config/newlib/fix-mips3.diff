@@ -1,3 +1,18 @@
+diff --git a/libgloss/mips/hal/crt0.S b/libgloss/mips/hal/crt0.S
+index 8ca028402..9b15d8290 100644
+--- a/libgloss/mips/hal/crt0.S
++++ b/libgloss/mips/hal/crt0.S
+@@ -144,7 +144,10 @@ _start:
+ 	beq	t1,zero,2f
+ 	or	va0,va0,t2		/* Enable 64-bit FPU registers.  */
+ 	li	t2,CFG5_MSAEN
++	.set	push
++	.set	mips32
+ 	mtc0	t2,C0_CONFIG,5		/* Enable MSA.  */
++	.set	pop
+ 	b	2f
+ 
+ 1:
 diff --git a/libgloss/mips/include/mips/cpu.h b/libgloss/mips/include/mips/cpu.h
 index d67a0585b..ce53f402d 100644
 --- a/libgloss/mips/include/mips/cpu.h
