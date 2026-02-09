@@ -92,7 +92,7 @@ $(DISTCLEANPROGS):
 
 src-binutils:
 	$(WGET) - "$(BINUTILS_URL)" | tar xJ
-	patch -d $(BINUTILS_VERSION)/ld -p 1 <"$(srcdir)/config/ld/ld.diff"
+	patch -t -N -d $(BINUTILS_VERSION)/ld -p 1 <"$(srcdir)/config/ld/ld.diff"
 	cp "$(srcdir)/config/ld/emulparams/"* $(BINUTILS_VERSION)/ld/emulparams
 	cp "$(srcdir)/config/ld/emultempl/"* $(BINUTILS_VERSION)/ld/emultempl
 	cat "$(srcdir)/config/ld/configure.tgt.ultra" >>$(BINUTILS_VERSION)/ld/configure.tgt
@@ -120,23 +120,23 @@ src-gcc:
 src-newlib:
 	$(WGET) - "$(NEWLIB_URL)" | tar xz
 	# for newlib < newlib-4.6.0.20260123
-	if patch --dry-run -d $(NEWLIB_VERSION) -p 1 <"$(srcdir)/config/newlib/fix-libgloss.diff"; then \
-		patch -d $(NEWLIB_VERSION) -p 1 <"$(srcdir)/config/newlib/fix-libgloss.diff"; \
+	if patch -t -N --dry-run -d $(NEWLIB_VERSION) -p 1 <"$(srcdir)/config/newlib/fix-libgloss.diff"; then \
+		patch -t -N -d $(NEWLIB_VERSION) -p 1 <"$(srcdir)/config/newlib/fix-libgloss.diff"; \
 	fi
 	touch $(@)
 
 src-gdb:
 	$(WGET) - "$(GDB_URL)" | tar xJ
-	if patch --dry-run -d $(GDB_VERSION) -p 1 <"$(srcdir)/config/gdb/gdb-11.2-release.diff"; then \
-		patch -d $(GDB_VERSION) -p 1 <"$(srcdir)/config/gdb/gdb-11.2-release.diff"; \
-	elif patch --dry-run -d $(GDB_VERSION) -p 1 <"$(srcdir)/config/gdb/gdb-12.1-release.diff"; then \
-		patch -d $(GDB_VERSION) -p 1 <"$(srcdir)/config/gdb/gdb-12.1-release.diff"; \
-	elif patch --dry-run -d $(GDB_VERSION) -p 1 <"$(srcdir)/config/gdb/gdb-14.1-release.diff"; then \
-		patch -d $(GDB_VERSION) -p 1 <"$(srcdir)/config/gdb/gdb-14.1-release.diff"; \
-	elif patch --dry-run -d $(GDB_VERSION) -p 1 <"$(srcdir)/config/gdb/gdb-16.2-release.diff"; then \
-		patch -d $(GDB_VERSION) -p 1 <"$(srcdir)/config/gdb/gdb-16.2-release.diff"; \
-	elif patch --dry-run -d $(GDB_VERSION) -p 1 <"$(srcdir)/config/gdb/gdb-17.1-release.diff"; then \
-		patch -d $(GDB_VERSION) -p 1 <"$(srcdir)/config/gdb/gdb-17.1-release.diff"; \
+	if patch -t -N --dry-run -d $(GDB_VERSION) -p 1 <"$(srcdir)/config/gdb/gdb-11.2-release.diff"; then \
+		patch -t -N -d $(GDB_VERSION) -p 1 <"$(srcdir)/config/gdb/gdb-11.2-release.diff"; \
+	elif patch -t -N --dry-run -d $(GDB_VERSION) -p 1 <"$(srcdir)/config/gdb/gdb-12.1-release.diff"; then \
+		patch -t -N -d $(GDB_VERSION) -p 1 <"$(srcdir)/config/gdb/gdb-12.1-release.diff"; \
+	elif patch -t -N --dry-run -d $(GDB_VERSION) -p 1 <"$(srcdir)/config/gdb/gdb-14.1-release.diff"; then \
+		patch -t -N -d $(GDB_VERSION) -p 1 <"$(srcdir)/config/gdb/gdb-14.1-release.diff"; \
+	elif patch -t -N --dry-run -d $(GDB_VERSION) -p 1 <"$(srcdir)/config/gdb/gdb-16.2-release.diff"; then \
+		patch -t -N -d $(GDB_VERSION) -p 1 <"$(srcdir)/config/gdb/gdb-16.2-release.diff"; \
+	elif patch -t -N --dry-run -d $(GDB_VERSION) -p 1 <"$(srcdir)/config/gdb/gdb-17.1-release.diff"; then \
+		patch -t -N -d $(GDB_VERSION) -p 1 <"$(srcdir)/config/gdb/gdb-17.1-release.diff"; \
 	else \
 		false; \
 	fi
