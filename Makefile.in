@@ -112,7 +112,11 @@ src-gcc:
 
 src-newlib:
 	$(WGET) - "$(NEWLIB_URL)" | tar xz
-	# for newlib < newlib-4.6.0.20260123
+	# for newlib = 4.6.0.20260123
+	if patch -t -N --dry-run -d $(NEWLIB_VERSION) -p 1 <"$(srcdir)/config/newlib/fix-mips3.diff"; then \
+		patch -t -N -d $(NEWLIB_VERSION) -p 1 <"$(srcdir)/config/newlib/fix-mips3.diff"; \
+	fi
+	# for newlib < 4.6.0.20260123
 	if patch -t -N --dry-run -d $(NEWLIB_VERSION) -p 1 <"$(srcdir)/config/newlib/fix-libgloss.diff"; then \
 		patch -t -N -d $(NEWLIB_VERSION) -p 1 <"$(srcdir)/config/newlib/fix-libgloss.diff"; \
 	fi

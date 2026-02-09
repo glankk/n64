@@ -1,0 +1,79 @@
+diff --git a/libgloss/mips/include/mips/cpu.h b/libgloss/mips/include/mips/cpu.h
+index d67a0585b..ce53f402d 100644
+--- a/libgloss/mips/include/mips/cpu.h
++++ b/libgloss/mips/include/mips/cpu.h
+@@ -34,9 +34,9 @@
+ #endif
+ 
+ #ifndef SR_IMASK
+-#if __mips == 64
++#if defined(__mips64)
+ #include <mips/m64c0.h>
+-#elif __mips == 32
++#else
+ #include <mips/m32c0.h>
+ #endif
+ #endif /* SR_IMASK */
+diff --git a/libgloss/mips/include/mips/fpa.h b/libgloss/mips/include/mips/fpa.h
+index 622a88a5c..27eb940c2 100644
+--- a/libgloss/mips/include/mips/fpa.h
++++ b/libgloss/mips/include/mips/fpa.h
+@@ -26,6 +26,4 @@
+  * POSSIBILITY OF SUCH DAMAGE.
+ */
+ 
+-#if __mips == 32 || __mips == 64
+ #include <mips/m32c1.h>
+-#endif
+diff --git a/libgloss/mips/include/mips/m32tlb.h b/libgloss/mips/include/mips/m32tlb.h
+index 83d781e27..fa15c6798 100644
+--- a/libgloss/mips/include/mips/m32tlb.h
++++ b/libgloss/mips/include/mips/m32tlb.h
+@@ -33,10 +33,6 @@
+ #ifndef _M32TLB_H_
+ #define _M32TLB_H_
+ 
+-#if __mips != 32 && __mips != 64
+-#error use -mips32 or -mips64 option with this file
+-#endif
+-
+ #include <mips/notlb.h>
+ #ifndef __ASSEMBLER__
+ 
+diff --git a/libgloss/mips/include/mips/m64tlb.h b/libgloss/mips/include/mips/m64tlb.h
+index 4894d256a..2d1f3c038 100644
+--- a/libgloss/mips/include/mips/m64tlb.h
++++ b/libgloss/mips/include/mips/m64tlb.h
+@@ -32,10 +32,6 @@
+ #ifndef _M64TLB_H_
+ #define _M64TLB_H_
+ 
+-#if __mips != 32 && __mips != 64
+-#error use -mips32 or -mips64 option with this file
+-#endif
+-
+ #include <mips/notlb.h>
+ 
+ #ifndef __ASSEMBLER__
+diff --git a/libgloss/mips/include/mips/mips64.h b/libgloss/mips/include/mips/mips64.h
+index 2602a354d..36ccc135d 100644
+--- a/libgloss/mips/include/mips/mips64.h
++++ b/libgloss/mips/include/mips/mips64.h
+@@ -37,7 +37,7 @@ extern "C" {
+ 
+ #ifndef __ASSEMBLER__
+ 
+-#if __mips == 64 && ! __mips16
++#if defined(__mips64) && ! __mips16
+ 
+ /* 64-bit count leading zeroes */
+ #if !defined(mips_dclz)
+@@ -103,7 +103,7 @@ extern "C" {
+     __v; \
+ })
+ 
+-#endif /* __mips == 64 && ! __mips16 */
++#endif /* defined(__mips64) && ! __mips16 */
+ 
+ #endif /* !__ASSEMBLER__ */
+ 
