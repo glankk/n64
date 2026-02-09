@@ -4888,8 +4888,8 @@ then :
 
                 BINUTILS_VERSION=`$WGET_Q - "https://ftp.gnu.org/gnu/binutils/" |
                                   grep -E -o ">binutils-[0-9\\\\.]+tar\\\\.xz<" |
-                                  tail -n 1 |
-                                  sed -e s/\\>// -e s/\\\\.tar\\\\.xz\\<//`
+                                  sed -e s/\\>// -e s/\\\\.tar\\\\.xz\\<// |
+                                  sort -V | tail -n 1`
 
 fi
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $BINUTILS_VERSION" >&5
@@ -4901,8 +4901,8 @@ then :
 
                 GCC_VERSION=`$WGET_Q - "https://ftp.gnu.org/gnu/gcc/" |
                              grep -E -o ">gcc-[0-9\\\\.]+/<" |
-                             tail -n 1 |
-                             sed -e s/\\>// -e s/\\\\/\\<//`
+                             sed -e s/\\>// -e s/\\\\/\\<// |
+                             sort -V | tail -n 1`
 
 fi
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $GCC_VERSION" >&5
@@ -4914,8 +4914,8 @@ then :
 
                 NEWLIB_VERSION=`$WGET_Q - "https://sourceware.org/pub/newlib/" |
                                 grep -E -o ">newlib-[0-9\\\\.]+tar\\\\.gz<" |
-                                head -n 1 |
-                                sed -e s/\\>// -e s/\\\\.tar\\\\.gz\\<//`
+                                sed -e s/\\>// -e s/\\\\.tar\\\\.gz\\<// |
+                                sort -V | tail -n 1`
 
 fi
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $NEWLIB_VERSION" >&5
@@ -4927,8 +4927,8 @@ then :
 
                 GDB_VERSION=`$WGET_Q - "https://ftp.gnu.org/gnu/gdb/" |
                              grep -E -o ">gdb-[0-9\\\\.]+tar\\\\.xz<" |
-                             tail -n 1 |
-                             sed -e s/\\>// -e s/\\\\.tar\\\\.xz\\<//`
+                             sed -e s/\\>// -e s/\\\\.tar\\\\.xz\\<// |
+                             sort -V | tail -n 1`
 
 fi
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $GDB_VERSION" >&5
