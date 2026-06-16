@@ -3134,9 +3134,9 @@ int gfx_dis_spModifyVertex(struct gfx_insn *insn, uint32_t hi, uint32_t lo)
   insn->strarg[1] = strarg_mwo_point;
   insn->strarg[2] = strarg_x32;
   _Bool err = 0;
-  if (offset % 40 != G_MWO_POINT_RGBA ||
-      offset % 40 != G_MWO_POINT_ST ||
-      offset % 40 != G_MWO_POINT_XYSCREEN ||
+  if (offset % 40 != G_MWO_POINT_RGBA &&
+      offset % 40 != G_MWO_POINT_ST &&
+      offset % 40 != G_MWO_POINT_XYSCREEN &&
       offset % 40 != G_MWO_POINT_ZSCREEN)
   {
     insn->strarg[1] = strarg_invd;
