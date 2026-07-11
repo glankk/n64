@@ -2,11 +2,34 @@
 set -e
 
 DEPS="wget tar make diffutils texinfo"
-RCDEPS="$DEPS gcc g++ lua5.3 zlib jansson libusb-1.0 libgmp"
+RCDEPS="$DEPS gcc g++ lua5.3-or-5.4 zlib jansson libusb-1.0 libgmp"
 PKM=""
 
-echo Checking platform...
-if type yum >/dev/null 2>&1; then
+OS=`uname -s 2>/dev/null || echo unknown`
+ARCH=`uname -m 2>/dev/null || echo unknown`
+echo "Checking platform ($OS/$ARCH)..."
+
+if test "x$OS" = xDarwin; then
+  BREW=""
+  for candidate in "`command -v brew 2>/dev/null || true`" /opt/homebrew/bin/brew /usr/local/bin/brew; do
+    if test -n "$candidate" && test -x "$candidate"; then
+      BREW="$candidate"
+      break
+    fi
+  done
+  if test -n "$BREW"; then
+    echo "Found Homebrew, assuming macOS."
+    if test "x$ARCH" = xarm64; then
+      echo "Detected Apple Silicon; native arm64 dependencies will be installed."
+    fi
+    DEPS="pkg-config texinfo gnu-sed lua zlib jansson libusb gmp mpfr libmpc make xz"
+    PKM="brew"
+  else
+    echo "Homebrew was not found. Install it first, then rerun this script."
+    echo "Make sure these packages are installed: $RCDEPS"
+    exit 1
+  fi
+elif type yum >/dev/null 2>&1; then
   echo Found yum, assuming Red Hat.
   DEPS="$DEPS gcc gcc-c++ lua-devel zlib-devel jansson-devel libusb-devel gmp-devel"
   PKM="yum"
@@ -17,31 +40,25 @@ elif type zypper >/dev/null 2>&1; then
 elif type emerge >/dev/null 2>&1; then
   echo Found emerge, assuming Gentoo.
   if type equo >/dev/null 2>&1; then
-    read -p "Warning: Also found equo. If you're running Sabayon, then this will probably not work. Continue? (y/n) " yn
+    printf "Warning: Also found equo. If you're running Sabayon, this may not work. Continue? (y/n) "
+    read yn
     case "$yn" in [Yy]*) ;; *) exit;; esac
   fi
   DEPS="$DEPS gcc lua:5.3 zlib jansson libusb gmp"
   PKM="emerge"
 elif type pkg >/dev/null 2>&1; then
   echo Found pkg, assuming FreeBSD.
-  echo Note: Configure with 'CPPFLAGS=-I/usr/local/include LDFLAGS=-L/usr/local/lib'.
-  echo Note: gsed needs to be in your PATH as 'sed'.
-  echo Note: Make with gmake.
-  DEPS="texinfo lua53 zlib jansson gmake gsed gmp"
+  echo "Note: Configure with 'CPPFLAGS=-I/usr/local/include LDFLAGS=-L/usr/local/lib'."
+  echo "Note: Make with gmake."
+  DEPS="texinfo lua53 zlib jansson gmake gmp"
   PKM="pkg"
-elif type brew >/dev/null 2>&1; then
-  echo Found brew, assuming macOS.
-  echo Note: gsed needs to be in your PATH as 'sed'.
-  echo Note: Make with gmake.
-  DEPS="texinfo lua zlib jansson libusb make gnu-sed gmp"
-  PKM="brew"
 elif type apt >/dev/null 2>&1; then
   echo Found apt, assuming Debian.
   DEPS="$DEPS gcc g++ liblua5.3-dev zlib1g-dev libjansson-dev libusb-1.0-0-dev libgmp-dev"
   PKM="apt"
 elif type pacman >/dev/null 2>&1; then
-  if test "x`uname -o`" = xMsys; then
-    echo Found pacman with \`uname -o\` = "Msys", assuming MSYS2.
+  if test "x`uname -o 2>/dev/null || true`" = xMsys; then
+    echo "Found pacman with \`uname -o\` = Msys, assuming MSYS2."
     DEPS="$DEPS mingw-w64-x86_64-gcc mingw-w64-x86_64-lua mingw-w64-x86_64-zlib mingw-w64-x86_64-jansson mingw-w64-x86_64-libusb mingw-w64-x86_64-gmp"
     PKM="pacman"
   else
@@ -61,7 +78,7 @@ else
     zypper) zypper install -y $DEPS;;
     emerge) emerge -n --autounmask-write $DEPS || ( dispatch-conf && emerge -n $DEPS );;
     pkg)    pkg install $DEPS;;
-    brew)   brew install $DEPS;;
+    brew)   "$BREW" install $DEPS;;
     apt)    apt install -y $DEPS;;
     pacman) pacman -S --needed --noconfirm $DEPS;;
   esac

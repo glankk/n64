@@ -1,0 +1,35 @@
+#!/usr/bin/env sh
+# Portably update a GCC top-level module_srcdir assignment. This replaces the
+# previous GNU-sed-only use of sed -i and GNU word-boundary matching.
+set -eu
+
+if test "$#" -ne 3; then
+  echo "usage: $0 FILE MODULE REPLACEMENT" >&2
+  exit 2
+fi
+
+file=$1
+module=$2
+replacement=$3
+tmp="${file}.n64-tmp.$$"
+trap 'rm -f "$tmp"' EXIT HUP INT TERM
+
+awk -v module="$module" -v replacement="$replacement" '
+{
+  needle = "module_srcdir=" module
+  content = $0
+  sub(/^[[:space:]]*/, "", content)
+  indent_length = length($0) - length(content)
+  if (index(content, needle) == 1) {
+    suffix = substr(content, length(needle) + 1)
+    if (suffix == "" || suffix ~ /^[[:space:]]/) {
+      indent = substr($0, 1, indent_length)
+      $0 = indent "module_srcdir=" replacement suffix
+    }
+  }
+  print
+}
+' "$file" > "$tmp"
+
+mv "$tmp" "$file"
+trap - EXIT HUP INT TERM
