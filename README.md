@@ -34,9 +34,8 @@ mips64, with `-march=vr4300` and `-mabi=32` as defaults for `gcc`.
 
 ## Prerequisites
 You'll need to have these packages installed: `wget tar make diffutils texinfo
-gcc g++ lua5.3-or-5.4 zlib jansson libusb-1.0 libgmp libmpfr libmpc`. See
-Installation, step 3. If you
-want to use the included `luapatch` program with BizHawk, you should set the
+gcc g++ lua zlib jansson libusb-1.0 libgmp libmpfr libmpc`. See Installation,
+step 3. If you want to use the included `luapatch` program with BizHawk, you should set the
 `EMUDIR` environment variable to the path to your BizHawk installation.
 
 ## Installation
@@ -44,64 +43,22 @@ want to use the included `luapatch` program with BizHawk, you should set the
 Binary packages are available, see https://github.com/PracticeROM/packages.
 Packages are built from the `n64-ultra` branch and target `mips64-ultra-elf`
 
-### macOS on Apple Silicon
-The build supports native `arm64` hosts.
-Install Apple's command-line tools 
-and Homebrew first, then run:
+### macOS
+Install the Xcode command-line tools and Homebrew, then run `./install_deps`.
+Use `gmake` for the toolchain targets. Homebrew dependency paths and keg-only
+GNU sed and texinfo tools are detected automatically during configuration.
 
-```sh
-xcode-select --install  # skip this when already installed
-./install_deps
-./configure --prefix="$HOME/.local/n64"
-gmake toolchain-all
-gmake toolchain-install
-gmake
-gmake install
-gmake install-sys
-export PATH="$HOME/.local/n64/bin:$PATH"
-```
+On Apple Silicon, current independently released GDB and binutils sources may
+not be compatible when combined. Configure with `--disable-toolchain-gdb` when
+GDB is not needed. Homebrew formulae may select this option automatically; use
+`--enable-toolchain-gdb` only with a compatible source combination.
 
-`configure` automatically detects Homebrew in `/opt/homebrew` (Apple Silicon)
-or `/usr/local` (Intel), adds formula-specific include/library paths, passes the
-installed GMP/MPFR/MPC locations to the combined GCC/GDB build, and exposes the
-keg-only `texinfo` tools to recursive builds. Homebrew's `gmake` is used for
-the toolchain build. `install_deps` also installs GNU sed and `configure` exposes its `gnubin` directory only to recursive toolchain builds; the host shell does not need a permanent PATH change. A user-writable prefix is recommended; using `/opt/n64` may require
-administrator privileges during installation.
-
-The toolchain package versions are selected by the existing version checks. To
-reproduce a build with exact versions, set the full archive stem before running
-`configure`, for example:
-
-```sh
-BINUTILS_VERSION=binutils-X.Y \
-GCC_VERSION=gcc-X.Y.Z \
-NEWLIB_VERSION=newlib-X.Y.Z.YYYYMMDD \
-GDB_VERSION=gdb-X.Y \
-./configure --prefix="$HOME/.local/n64"
-```
-
-The included newlib patches continue to be applied conditionally, so older
-newlib releases and `newlib-4.6.0.20260123` or later remain supported without
-forcing a version change.
-
-GDB is optional for OoTR. It is disabled by default only on Apple Silicon to
-avoid incompatibilities between independently selected current GDB and
-binutils releases. Use `--enable-toolchain-gdb` when GDB is explicitly needed.
-
-The existing GNU and Sourceware download URLs remain the default. To use local
-archives instead, put files named like `binutils-X.Y.tar.xz`,
-`gcc-X.Y.Z.tar.xz`, `newlib-X.Y.Z.YYYYMMDD.tar.gz`, and `gdb-X.Y.tar.xz` in one
-directory and configure with:
-
-```sh
-N64_TOOLCHAIN_ARCHIVE_DIR=/absolute/path/to/archives \
-./configure --prefix="$HOME/.local/n64"
-```
-
-Individual files can instead be selected with `BINUTILS_ARCHIVE`,
-`GCC_ARCHIVE`, `NEWLIB_ARCHIVE`, and `GDB_ARCHIVE`. When building completely
-offline, either provide a GCC source tree that already contains its prerequisite
-sources or add `--disable-gcc-in-tree-deps` and use installed GMP/MPFR/MPC.
+### Local toolchain archives
+Network downloads remain the default. To use local archives, set
+`N64_TOOLCHAIN_ARCHIVE_DIR` to a directory containing files named like
+`binutils-X.Y.tar.xz`, `gcc-X.Y.Z.tar.xz`, `newlib-X.Y.Z.YYYYMMDD.tar.gz`, and
+`gdb-X.Y.tar.xz`. Individual archives can be selected with `BINUTILS_ARCHIVE`,
+`GCC_ARCHIVE`, `NEWLIB_ARCHIVE`, and `GDB_ARCHIVE`.
 
 ### Building from source
 1.  If you're on Windows, download and install MSYS2 from
@@ -109,9 +66,8 @@ sources or add `--disable-gcc-in-tree-deps` and use installed GMP/MPFR/MPC.
 2.  Clone the repository and navigate into it by running
     `git clone https://github.com/glankk/n64 && cd n64`.
 3.  Optionally, have the included script try to install the prerequisite
-    packages automatically by running `./install_deps`. On macOS this uses
-    Homebrew without root; system package managers on other platforms may need
-    administrator privileges.
+    packages automatically by running `./install_deps`. Homebrew runs without
+    root; other package managers may require administrator privileges.
 4.  Configure the package with `./configure --prefix=/opt/n64`. You may use
     another installation prefix if you wish. To enable Wii VC compatibility,
     append ` --enable-vc` to the configure command. To produce portable Windows

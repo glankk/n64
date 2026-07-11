@@ -2560,15 +2560,14 @@ fi
 # Check whether --enable-toolchain-gdb was given.
 if test ${enable_toolchain_gdb+y}
 then :
-  enableval=$enable_toolchain_gdb; enable_toolchain_gdb="$enableval"
+  enableval=$enable_toolchain_gdb;
 else case e in #(
-  e) enable_toolchain_gdb=auto ;;
+  e) enable_toolchain_gdb=yes ;;
 esac
 fi
 
 
-# Host platform setup. Keep this independent from the target architecture: the
-# target remains mips64 on every supported host.
+# Host platform setup. The target remains mips64 on every supported host.
 
 
 
@@ -2579,21 +2578,7 @@ TOOLCHAIN_PATH=
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: host platform: $HOST_OS/$HOST_ARCH" >&5
 printf "%s\n" "$as_me: host platform: $HOST_OS/$HOST_ARCH" >&6;}
 
-# GDB is not required by the OoTR ASM build. Independently selected current
-# GDB and binutils releases can expose incompatible internal opcodes APIs on
-# Apple Silicon, so keep every existing host unchanged and disable only this
-# optional component by default on Darwin/arm64. It can be re-enabled with
-# --enable-toolchain-gdb.
-if test "x$enable_toolchain_gdb" = xauto
-then :
-  if test "x$HOST_OS" = xDarwin && test "x$HOST_ARCH" = xarm64
-then :
-  enable_toolchain_gdb=no
-else case e in #(
-  e) enable_toolchain_gdb=yes ;;
-esac
-fi
-fi
+# GDB and the simulator are optional toolchain components.
 if test "x$enable_toolchain_gdb" = xno
 then :
 
@@ -2612,6 +2597,14 @@ printf "%s\n" "$as_me: toolchain GDB component: $enable_toolchain_gdb" >&6;}
 # therefore do not alter Linux, BSD, or MSYS2 builds.
 if test "x$HOST_OS" = xDarwin
 then :
+
+        if test "x$HOST_ARCH" = xarm64
+then :
+  case " $CONFIG_TOOLCHAIN " in
+                 *" --disable-werror"*) ;;
+                 *) CONFIG_TOOLCHAIN="$CONFIG_TOOLCHAIN --disable-werror" ;;
+               esac
+fi
 
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for Homebrew" >&5
 printf %s "checking for Homebrew... " >&6; }
@@ -2687,9 +2680,8 @@ fi
             fi
           fi
 
-          # GDB's top-level configure does not reliably discover Homebrew's
-          # libraries on Apple Silicon. Pass explicit prefixes unless the user
-          # already supplied an override via --with-configure-toolchain.
+          # Pass Homebrew's prerequisite prefixes to the recursive GNU
+          # toolchain configure unless the user supplied an override.
           if test -n "$n64_gmp_prefix"; then
             case " $CONFIG_TOOLCHAIN " in
               *" --with-gmp="*) ;;

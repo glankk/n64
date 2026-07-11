@@ -224,7 +224,6 @@ build-toolchain/config.status: | build-toolchain/
 		--disable-multilib \
 		--disable-threads \
 		--disable-nls \
-		--disable-werror \
 		CPPFLAGS="$(CPPFLAGS)" \
 		LDFLAGS="$(LDFLAGS)" \
 		CFLAGS_FOR_TARGET="$(CFLAGS_FOR_TARGET)" \

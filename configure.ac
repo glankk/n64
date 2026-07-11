@@ -43,11 +43,9 @@ AC_ARG_WITH([toolchain],
 AC_ARG_ENABLE([toolchain-gdb],
               [AS_HELP_STRING([--disable-toolchain-gdb],
                               [do not build the optional GDB and simulator components])],
-              [enable_toolchain_gdb="$enableval"],
-              [enable_toolchain_gdb=auto])
+              [], [enable_toolchain_gdb=yes])
 
-# Host platform setup. Keep this independent from the target architecture: the
-# target remains mips64 on every supported host.
+# Host platform setup. The target remains mips64 on every supported host.
 AC_ARG_VAR([HOMEBREW_PREFIX], [Homebrew prefix to use on macOS])
 AC_SUBST([HOST_OS])
 AC_SUBST([HOST_ARCH])
@@ -57,15 +55,7 @@ HOST_ARCH=`uname -m 2>/dev/null || echo unknown`
 TOOLCHAIN_PATH=
 AC_MSG_NOTICE([host platform: $HOST_OS/$HOST_ARCH])
 
-# GDB is not required by the OoTR ASM build. Independently selected current
-# GDB and binutils releases can expose incompatible internal opcodes APIs on
-# Apple Silicon, so keep every existing host unchanged and disable only this
-# optional component by default on Darwin/arm64. It can be re-enabled with
-# --enable-toolchain-gdb.
-AS_IF([test "x$enable_toolchain_gdb" = xauto],
-      [AS_IF([test "x$HOST_OS" = xDarwin && test "x$HOST_ARCH" = xarm64],
-             [enable_toolchain_gdb=no],
-             [enable_toolchain_gdb=yes])])
+# GDB and the simulator are optional toolchain components.
 AS_IF([test "x$enable_toolchain_gdb" = xno],
       [
         case " $CONFIG_TOOLCHAIN " in
@@ -81,6 +71,12 @@ AC_MSG_NOTICE([toolchain GDB component: $enable_toolchain_gdb])
 # therefore do not alter Linux, BSD, or MSYS2 builds.
 AS_IF([test "x$HOST_OS" = xDarwin],
       [
+        AS_IF([test "x$HOST_ARCH" = xarm64],
+              [case " $CONFIG_TOOLCHAIN " in
+                 *" --disable-werror"*) ;;
+                 *) CONFIG_TOOLCHAIN="$CONFIG_TOOLCHAIN --disable-werror" ;;
+               esac])
+
         AC_MSG_CHECKING([for Homebrew])
         n64_brew=
         for n64_brew_candidate in brew /opt/homebrew/bin/brew /usr/local/bin/brew; do
@@ -148,9 +144,8 @@ AS_IF([test "x$HOST_OS" = xDarwin],
             fi
           fi
 
-          # GDB's top-level configure does not reliably discover Homebrew's
-          # libraries on Apple Silicon. Pass explicit prefixes unless the user
-          # already supplied an override via --with-configure-toolchain.
+          # Pass Homebrew's prerequisite prefixes to the recursive GNU
+          # toolchain configure unless the user supplied an override.
           if test -n "$n64_gmp_prefix"; then
             case " $CONFIG_TOOLCHAIN " in
               *" --with-gmp="*) ;;
