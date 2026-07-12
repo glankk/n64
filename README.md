@@ -49,9 +49,9 @@ Use `gmake` for the toolchain targets. Homebrew dependency paths and keg-only
 GNU sed and texinfo tools are detected automatically during configuration.
 
 On Apple Silicon, current independently released GDB and binutils sources may
-not be compatible when combined. Configure with `--disable-toolchain-gdb` when
-GDB is not needed. Homebrew formulae may select this option automatically; use
-`--enable-toolchain-gdb` only with a compatible source combination.
+not be compatible when combined. GDB is enabled by default for source builds;
+configure with `--disable-toolchain-gdb` when it is not needed. Homebrew
+formulae may select this option automatically on affected hosts.
 
 ### Local toolchain archives
 Network downloads remain the default. To use local archives, set

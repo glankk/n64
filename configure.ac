@@ -43,7 +43,10 @@ AC_ARG_WITH([toolchain],
 AC_ARG_ENABLE([toolchain-gdb],
               [AS_HELP_STRING([--disable-toolchain-gdb],
                               [do not build the optional GDB and simulator components])],
-              [], [enable_toolchain_gdb=yes])
+              [AS_IF([test "x$enableval" != xno],
+                     [AC_MSG_ERROR([GDB is enabled by default; only --disable-toolchain-gdb is supported])])
+               enable_toolchain_gdb=no],
+              [enable_toolchain_gdb=yes])
 
 # Host platform setup. The target remains mips64 on every supported host.
 AC_ARG_VAR([HOMEBREW_PREFIX], [Homebrew prefix to use on macOS])

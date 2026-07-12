@@ -2560,7 +2560,11 @@ fi
 # Check whether --enable-toolchain-gdb was given.
 if test ${enable_toolchain_gdb+y}
 then :
-  enableval=$enable_toolchain_gdb;
+  enableval=$enable_toolchain_gdb; if test "x$enableval" != xno
+then :
+  as_fn_error $? "GDB is enabled by default; only --disable-toolchain-gdb is supported" "$LINENO" 5
+fi
+               enable_toolchain_gdb=no
 else case e in #(
   e) enable_toolchain_gdb=yes ;;
 esac
