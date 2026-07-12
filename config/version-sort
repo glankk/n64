@@ -1,0 +1,19 @@
+#!/usr/bin/env sh
+# Sort archive stems containing dotted numeric versions without GNU sort -V.
+# Input examples: gcc-15.1.0, newlib-4.6.0.20260123.
+set -e
+LC_ALL=C awk '
+{
+  original = $0
+  version = $0
+  sub(/^[^0-9]*/, "", version)
+  count = split(version, part, ".")
+  key = ""
+  for (i = 1; i <= 12; ++i) {
+    value = (i <= count ? part[i] : 0)
+    sub(/[^0-9].*$/, "", value)
+    key = key sprintf("%012d", value + 0)
+  }
+  print key "\t" original
+}
+' | LC_ALL=C sort | cut -f2-

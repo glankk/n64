@@ -6,6 +6,8 @@
 #include <lua5.3/lualib.h>
 #elif defined(HAVE_LUA53_LUA_H)
 #include <lua53/lualib.h>
+#elif defined(HAVE_LUA_LUA_H)
+#include <lua/lualib.h>
 #elif defined(HAVE_LUA_H)
 #include <lualib.h>
 #endif

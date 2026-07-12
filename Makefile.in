@@ -19,6 +19,11 @@ BINUTILS_URL                  = https://ftp.gnu.org/gnu/binutils/$(BINUTILS_VERS
 GCC_URL                       = https://ftp.gnu.org/gnu/gcc/$(GCC_VERSION)/$(GCC_VERSION).tar.xz
 NEWLIB_URL                    = https://sourceware.org/pub/newlib/$(NEWLIB_VERSION).tar.gz
 GDB_URL                       = https://ftp.gnu.org/gnu/gdb/$(GDB_VERSION).tar.xz
+N64_TOOLCHAIN_ARCHIVE_DIR     = @N64_TOOLCHAIN_ARCHIVE_DIR@
+BINUTILS_ARCHIVE              = @BINUTILS_ARCHIVE@
+GCC_ARCHIVE                   = @GCC_ARCHIVE@
+NEWLIB_ARCHIVE                = @NEWLIB_ARCHIVE@
+GDB_ARCHIVE                   = @GDB_ARCHIVE@
 BINUTILS_SUBDIRS              = bfd binutils cpu gas ld libctf libsframe opcodes
 NEWLIB_SUBDIRS                = libgloss newlib
 GDB_SUBDIRS                   = gdb gdbsupport gnulib readline sim
@@ -27,11 +32,17 @@ NEWLIB_SYMLINKS               = $(NEWLIB_SUBDIRS:%=$(GCC_VERSION)/%)
 GDB_SYMLINKS                  = $(GDB_SUBDIRS:%=$(GCC_VERSION)/%)
 GCC_IN_TREE_DEPS              = @GCC_IN_TREE_DEPS@
 CONFIG_TOOLCHAIN              = @CONFIG_TOOLCHAIN@
+CPPFLAGS                      = @CPPFLAGS@
 LDFLAGS                       = @LDFLAGS@
 CFLAGS_FOR_TARGET             = @CFLAGS_FOR_TARGET@
 CXXFLAGS_FOR_TARGET           = @CXXFLAGS_FOR_TARGET@
 MKDIR_P                       = @MKDIR_P@
 WGET                          = @WGET@
+TOOLCHAIN_PATH                = @TOOLCHAIN_PATH@
+
+ifneq ($(strip $(TOOLCHAIN_PATH)),)
+export PATH := $(TOOLCHAIN_PATH):$(PATH)
+endif
 
 all:
 
@@ -91,27 +102,33 @@ $(DISTCLEANPROGS):
 	$(MKDIR_P) $(@)
 
 src-binutils:
-	$(WGET) - "$(BINUTILS_URL)" | tar xJ
+	archive="$(BINUTILS_ARCHIVE)"; \
+	if test -z "$$archive" && test -n "$(N64_TOOLCHAIN_ARCHIVE_DIR)"; then archive="$(N64_TOOLCHAIN_ARCHIVE_DIR)/$(BINUTILS_VERSION).tar.xz"; fi; \
+	if test -n "$$archive"; then test -f "$$archive" || { echo "Missing local archive: $$archive" >&2; exit 1; }; cat "$$archive"; else $(WGET) - "$(BINUTILS_URL)"; fi | tar xJ
 	touch $(@)
 
 src-gcc:
-	$(WGET) - "$(GCC_URL)" | tar xJ
+	archive="$(GCC_ARCHIVE)"; \
+	if test -z "$$archive" && test -n "$(N64_TOOLCHAIN_ARCHIVE_DIR)"; then archive="$(N64_TOOLCHAIN_ARCHIVE_DIR)/$(GCC_VERSION).tar.xz"; fi; \
+	if test -n "$$archive"; then test -f "$$archive" || { echo "Missing local archive: $$archive" >&2; exit 1; }; cat "$$archive"; else $(WGET) - "$(GCC_URL)"; fi | tar xJ
 	if [ x"$(GCC_IN_TREE_DEPS)" = x"yes" ]; then \
 		cd $(GCC_VERSION) && ./contrib/download_prerequisites; \
 	fi
 	for d in $(BINUTILS_SUBDIRS); do \
-		sed -i s@module_srcdir=$${d}\\b@module_srcdir=../$(BINUTILS_VERSION)/$${d}@g $(GCC_VERSION)/Makefile.in; \
+		"$(srcdir)/config/replace-module-srcdir" "$(GCC_VERSION)/Makefile.in" "$${d}" "../$(BINUTILS_VERSION)/$${d}"; \
 	done
 	for d in $(NEWLIB_SUBDIRS); do \
-		sed -i s@module_srcdir=$${d}\\b@module_srcdir=../$(NEWLIB_VERSION)/$${d}@g $(GCC_VERSION)/Makefile.in; \
+		"$(srcdir)/config/replace-module-srcdir" "$(GCC_VERSION)/Makefile.in" "$${d}" "../$(NEWLIB_VERSION)/$${d}"; \
 	done
 	for d in $(GDB_SUBDIRS); do \
-		sed -i s@module_srcdir=$${d}\\b@module_srcdir=../$(GDB_VERSION)/$${d}@g $(GCC_VERSION)/Makefile.in; \
+		"$(srcdir)/config/replace-module-srcdir" "$(GCC_VERSION)/Makefile.in" "$${d}" "../$(GDB_VERSION)/$${d}"; \
 	done
 	touch $(@)
 
 src-newlib:
-	$(WGET) - "$(NEWLIB_URL)" | tar xz
+	archive="$(NEWLIB_ARCHIVE)"; \
+	if test -z "$$archive" && test -n "$(N64_TOOLCHAIN_ARCHIVE_DIR)"; then archive="$(N64_TOOLCHAIN_ARCHIVE_DIR)/$(NEWLIB_VERSION).tar.gz"; fi; \
+	if test -n "$$archive"; then test -f "$$archive" || { echo "Missing local archive: $$archive" >&2; exit 1; }; cat "$$archive"; else $(WGET) - "$(NEWLIB_URL)"; fi | tar xz
 	# for newlib = 4.6.0.20260123
 	if patch -t -N --dry-run -d $(NEWLIB_VERSION) -p 1 <"$(srcdir)/config/newlib/fix-mips3.diff"; then \
 		patch -t -N -d $(NEWLIB_VERSION) -p 1 <"$(srcdir)/config/newlib/fix-mips3.diff"; \
@@ -123,7 +140,9 @@ src-newlib:
 	touch $(@)
 
 src-gdb:
-	$(WGET) - "$(GDB_URL)" | tar xJ
+	archive="$(GDB_ARCHIVE)"; \
+	if test -z "$$archive" && test -n "$(N64_TOOLCHAIN_ARCHIVE_DIR)"; then archive="$(N64_TOOLCHAIN_ARCHIVE_DIR)/$(GDB_VERSION).tar.xz"; fi; \
+	if test -n "$$archive"; then test -f "$$archive" || { echo "Missing local archive: $$archive" >&2; exit 1; }; cat "$$archive"; else $(WGET) - "$(GDB_URL)"; fi | tar xJ
 	touch $(@)
 
 src-all: src-binutils src-gcc src-newlib src-gdb
@@ -205,6 +224,7 @@ build-toolchain/config.status: | build-toolchain/
 		--disable-multilib \
 		--disable-threads \
 		--disable-nls \
+		CPPFLAGS="$(CPPFLAGS)" \
 		LDFLAGS="$(LDFLAGS)" \
 		CFLAGS_FOR_TARGET="$(CFLAGS_FOR_TARGET)" \
 		CXXFLAGS_FOR_TARGET="$(CXXFLAGS_FOR_TARGET)" \

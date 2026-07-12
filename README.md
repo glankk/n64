@@ -34,8 +34,8 @@ mips64, with `-march=vr4300` and `-mabi=32` as defaults for `gcc`.
 
 ## Prerequisites
 You'll need to have these packages installed: `wget tar make diffutils texinfo
-gcc g++ lua5.3 jansson libusb-1.0 libgmp`. See Installation, step 4. If you
-want to use the included `luapatch` program with BizHawk, you should set the
+gcc g++ lua zlib jansson libusb-1.0 libgmp libmpfr libmpc`. See Installation,
+step 3. If you want to use the included `luapatch` program with BizHawk, you should set the
 `EMUDIR` environment variable to the path to your BizHawk installation.
 
 ## Installation
@@ -43,14 +43,31 @@ want to use the included `luapatch` program with BizHawk, you should set the
 Binary packages are available, see https://github.com/PracticeROM/packages.
 Packages are built from the `n64-ultra` branch and target `mips64-ultra-elf`
 
+### macOS
+Install the Xcode command-line tools and Homebrew, then run `./install_deps`.
+Use `gmake` for the toolchain targets. Homebrew dependency paths and keg-only
+GNU sed and texinfo tools are detected automatically during configuration.
+
+On Apple Silicon, current independently released GDB and binutils sources may
+not be compatible when combined. GDB is enabled by default for source builds;
+configure with `--disable-toolchain-gdb` when it is not needed. Homebrew
+formulae may select this option automatically on affected hosts.
+
+### Local toolchain archives
+Network downloads remain the default. To use local archives, set
+`N64_TOOLCHAIN_ARCHIVE_DIR` to a directory containing files named like
+`binutils-X.Y.tar.xz`, `gcc-X.Y.Z.tar.xz`, `newlib-X.Y.Z.YYYYMMDD.tar.gz`, and
+`gdb-X.Y.tar.xz`. Individual archives can be selected with `BINUTILS_ARCHIVE`,
+`GCC_ARCHIVE`, `NEWLIB_ARCHIVE`, and `GDB_ARCHIVE`.
+
 ### Building from source
 1.  If you're on Windows, download and install MSYS2 from
     [here](https://msys2.github.io/). Open a `MSYS2 MinGW 64-bit` shell.
 2.  Clone the repository and navigate into it by running
     `git clone https://github.com/glankk/n64 && cd n64`.
 3.  Optionally, have the included script try to install the prerequisite
-    packages automatically by running `./install_deps`. You'll need root
-    privileges for this.
+    packages automatically by running `./install_deps`. Homebrew runs without
+    root; other package managers may require administrator privileges.
 4.  Configure the package with `./configure --prefix=/opt/n64`. You may use
     another installation prefix if you wish. To enable Wii VC compatibility,
     append ` --enable-vc` to the configure command. To produce portable Windows

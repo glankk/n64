@@ -34,6 +34,9 @@
 /* Define to 1 if you have the <lua.h> header file. */
 #undef HAVE_LUA_H
 
+/* Define to 1 if you have the <lua/lua.h> header file. */
+#undef HAVE_LUA_LUA_H
+
 /* Define to 1 if you have the <pty.h> header file. */
 #undef HAVE_PTY_H
 

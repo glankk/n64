@@ -640,6 +640,11 @@ ac_includes_default="\
 ac_header_c_list=
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
+GDB_ARCHIVE
+NEWLIB_ARCHIVE
+GCC_ARCHIVE
+BINUTILS_ARCHIVE
+N64_TOOLCHAIN_ARCHIVE_DIR
 GDB_VERSION
 NEWLIB_VERSION
 GCC_VERSION
@@ -664,6 +669,10 @@ CPPFLAGS
 LDFLAGS
 CFLAGS
 CC
+TOOLCHAIN_PATH
+HOST_ARCH
+HOST_OS
+HOMEBREW_PREFIX
 CONFIG_TOOLCHAIN
 CXXFLAGS_FOR_TARGET
 CFLAGS_FOR_TARGET
@@ -715,10 +724,12 @@ enable_gcc_in_tree_deps
 enable_vc
 with_configure_toolchain
 with_toolchain
+enable_toolchain_gdb
 '
       ac_precious_vars='build_alias
 host_alias
 target_alias
+HOMEBREW_PREFIX
 CC
 CFLAGS
 LDFLAGS
@@ -727,7 +738,12 @@ CPPFLAGS
 BINUTILS_VERSION
 GCC_VERSION
 NEWLIB_VERSION
-GDB_VERSION'
+GDB_VERSION
+N64_TOOLCHAIN_ARCHIVE_DIR
+BINUTILS_ARCHIVE
+GCC_ARCHIVE
+NEWLIB_ARCHIVE
+GDB_ARCHIVE'
 
 
 # Initialize some variables set by options.
@@ -1349,6 +1365,8 @@ Optional Features:
   --disable-gcc-in-tree-deps
                           do not download in-tree gcc prerequisites
   --enable-vc             compile libraries with wii vc compatibility
+  --disable-toolchain-gdb do not build the optional GDB and simulator
+                          components
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -1359,6 +1377,8 @@ Optional Packages:
   --without-toolchain     do not check any toolchain package versions
 
 Some influential environment variables:
+  HOMEBREW_PREFIX
+              Homebrew prefix to use on macOS
   CC          C compiler command
   CFLAGS      C compiler flags
   LDFLAGS     linker flags, e.g. -L<lib dir> if you have libraries in a
@@ -1372,6 +1392,15 @@ Some influential environment variables:
   NEWLIB_VERSION
               manually set the version of newlib to use
   GDB_VERSION manually set the version of gdb to use
+  N64_TOOLCHAIN_ARCHIVE_DIR
+              directory containing local binutils, GCC, newlib, and GDB
+              archives
+  BINUTILS_ARCHIVE
+              local binutils .tar.xz archive
+  GCC_ARCHIVE local GCC .tar.xz archive
+  NEWLIB_ARCHIVE
+              local newlib .tar.gz archive
+  GDB_ARCHIVE local GDB .tar.xz archive
 
 Use these variables to override the choices made by 'configure' or to help
 it to find libraries and programs with nonstandard names/locations.
@@ -2528,6 +2557,156 @@ else case e in #(
 esac
 fi
 
+# Check whether --enable-toolchain-gdb was given.
+if test ${enable_toolchain_gdb+y}
+then :
+  enableval=$enable_toolchain_gdb; if test "x$enableval" != xno
+then :
+  as_fn_error $? "GDB is enabled by default; only --disable-toolchain-gdb is supported" "$LINENO" 5
+fi
+               enable_toolchain_gdb=no
+else case e in #(
+  e) enable_toolchain_gdb=yes ;;
+esac
+fi
+
+
+# Host platform setup. The target remains mips64 on every supported host.
+
+
+
+
+HOST_OS=`uname -s 2>/dev/null || echo unknown`
+HOST_ARCH=`uname -m 2>/dev/null || echo unknown`
+TOOLCHAIN_PATH=
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: host platform: $HOST_OS/$HOST_ARCH" >&5
+printf "%s\n" "$as_me: host platform: $HOST_OS/$HOST_ARCH" >&6;}
+
+# GDB and the simulator are optional toolchain components.
+if test "x$enable_toolchain_gdb" = xno
+then :
+
+        case " $CONFIG_TOOLCHAIN " in
+          *" --disable-gdb"*) ;;
+          *) CONFIG_TOOLCHAIN="$CONFIG_TOOLCHAIN --disable-gdb --disable-sim" ;;
+        esac
+
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: toolchain GDB component: $enable_toolchain_gdb" >&5
+printf "%s\n" "$as_me: toolchain GDB component: $enable_toolchain_gdb" >&6;}
+
+# Apple Silicon Homebrew installs outside the compiler's default search path.
+# Add both the global prefix and formula-specific prefixes (including keg-only
+# formulae such as zlib and texinfo). These flags are only added on Darwin and
+# therefore do not alter Linux, BSD, or MSYS2 builds.
+if test "x$HOST_OS" = xDarwin
+then :
+
+        if test "x$HOST_ARCH" = xarm64
+then :
+  case " $CONFIG_TOOLCHAIN " in
+                 *" --disable-werror"*) ;;
+                 *) CONFIG_TOOLCHAIN="$CONFIG_TOOLCHAIN --disable-werror" ;;
+               esac
+fi
+
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for Homebrew" >&5
+printf %s "checking for Homebrew... " >&6; }
+        n64_brew=
+        for n64_brew_candidate in brew /opt/homebrew/bin/brew /usr/local/bin/brew; do
+          if test "x$n64_brew_candidate" = xbrew; then
+            n64_brew_candidate=`command -v brew 2>/dev/null || true`
+          fi
+          if test -n "$n64_brew_candidate" && test -x "$n64_brew_candidate"; then
+            n64_brew="$n64_brew_candidate"
+            break
+          fi
+        done
+        if test -z "$HOMEBREW_PREFIX" && test -n "$n64_brew"; then
+          HOMEBREW_PREFIX=`"$n64_brew" --prefix 2>/dev/null || true`
+        fi
+        if test -n "$HOMEBREW_PREFIX"
+then :
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $HOMEBREW_PREFIX" >&5
+printf "%s\n" "$HOMEBREW_PREFIX" >&6; }
+else case e in #(
+  e) { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: not found" >&5
+printf "%s\n" "not found" >&6; } ;;
+esac
+fi
+
+        n64_gmp_prefix=
+        n64_mpfr_prefix=
+        n64_mpc_prefix=
+        if test -n "$HOMEBREW_PREFIX"; then
+          test -d "$HOMEBREW_PREFIX/include" && CPPFLAGS="$CPPFLAGS -I$HOMEBREW_PREFIX/include"
+          test -d "$HOMEBREW_PREFIX/lib" && LDFLAGS="$LDFLAGS -L$HOMEBREW_PREFIX/lib"
+
+          for n64_formula in lua zlib jansson libusb gmp mpfr libmpc; do
+            n64_formula_prefix=
+            if test -n "$n64_brew"; then
+              n64_formula_prefix=`"$n64_brew" --prefix "$n64_formula" 2>/dev/null || true`
+            elif test -d "$HOMEBREW_PREFIX/opt/$n64_formula"; then
+              n64_formula_prefix="$HOMEBREW_PREFIX/opt/$n64_formula"
+            fi
+            if test -n "$n64_formula_prefix"; then
+              test -d "$n64_formula_prefix/include" && CPPFLAGS="$CPPFLAGS -I$n64_formula_prefix/include"
+              test -d "$n64_formula_prefix/lib" && LDFLAGS="$LDFLAGS -L$n64_formula_prefix/lib"
+              case "$n64_formula" in
+                gmp) n64_gmp_prefix="$n64_formula_prefix" ;;
+                mpfr) n64_mpfr_prefix="$n64_formula_prefix" ;;
+                libmpc) n64_mpc_prefix="$n64_formula_prefix" ;;
+              esac
+            fi
+          done
+
+          # GCC's libgcc generators rely on GNU sed regular-expression
+          # behaviour. Homebrew installs it keg-only, so expose its unprefixed
+          # tools to the recursive toolchain build on macOS only.
+          if test -d "$HOMEBREW_PREFIX/opt/gnu-sed/libexec/gnubin"; then
+            TOOLCHAIN_PATH="$HOMEBREW_PREFIX/opt/gnu-sed/libexec/gnubin"
+          fi
+
+          # Homebrew's texinfo is keg-only. Export its tools to every recursive
+          # toolchain build through the generated Makefile.
+          if test -d "$HOMEBREW_PREFIX/opt/texinfo/bin"; then
+            if test -n "$TOOLCHAIN_PATH"; then
+              TOOLCHAIN_PATH="$TOOLCHAIN_PATH:$HOMEBREW_PREFIX/opt/texinfo/bin"
+            else
+              TOOLCHAIN_PATH="$HOMEBREW_PREFIX/opt/texinfo/bin"
+            fi
+          fi
+          if test -d "$HOMEBREW_PREFIX/bin"; then
+            if test -n "$TOOLCHAIN_PATH"; then
+              TOOLCHAIN_PATH="$TOOLCHAIN_PATH:$HOMEBREW_PREFIX/bin"
+            else
+              TOOLCHAIN_PATH="$HOMEBREW_PREFIX/bin"
+            fi
+          fi
+
+          # Pass Homebrew's prerequisite prefixes to the recursive GNU
+          # toolchain configure unless the user supplied an override.
+          if test -n "$n64_gmp_prefix"; then
+            case " $CONFIG_TOOLCHAIN " in
+              *" --with-gmp="*) ;;
+              *) CONFIG_TOOLCHAIN="$CONFIG_TOOLCHAIN --with-gmp=$n64_gmp_prefix" ;;
+            esac
+          fi
+          if test -n "$n64_mpfr_prefix"; then
+            case " $CONFIG_TOOLCHAIN " in
+              *" --with-mpfr="*) ;;
+              *) CONFIG_TOOLCHAIN="$CONFIG_TOOLCHAIN --with-mpfr=$n64_mpfr_prefix" ;;
+            esac
+          fi
+          if test -n "$n64_mpc_prefix"; then
+            case " $CONFIG_TOOLCHAIN " in
+              *" --with-mpc="*) ;;
+              *) CONFIG_TOOLCHAIN="$CONFIG_TOOLCHAIN --with-mpc=$n64_mpc_prefix" ;;
+            esac
+          fi
+        fi
+
+fi
 
 # Checks for programs.
 
@@ -4744,6 +4923,12 @@ then :
   printf "%s\n" "#define HAVE_LUA53_LUA_H 1" >>confdefs.h
 
 fi
+ac_fn_c_check_header_compile "$LINENO" "lua/lua.h" "ac_cv_header_lua_lua_h" "$ac_includes_default"
+if test "x$ac_cv_header_lua_lua_h" = xyes
+then :
+  printf "%s\n" "#define HAVE_LUA_LUA_H 1" >>confdefs.h
+
+fi
 ac_fn_c_check_header_compile "$LINENO" "lua.h" "ac_cv_header_lua_h" "$ac_includes_default"
 if test "x$ac_cv_header_lua_h" = xyes
 then :
@@ -4891,12 +5076,61 @@ printf "%s\n" "#define HAVE_DECL_ASPRINTF $ac_have_decl" >>confdefs.h
 
 
 
+
+
+
+
+
+
+# Local archives are optional. Existing network URLs remain the default, but
+# infer archive stems when local files were selected so offline builds do not
+# need to scrape the upstream directory listings.
+if test -z "$BINUTILS_VERSION" && test -n "$BINUTILS_ARCHIVE"
+then :
+  BINUTILS_VERSION=`basename "$BINUTILS_ARCHIVE" .tar.xz`
+fi
+if test -z "$GCC_VERSION" && test -n "$GCC_ARCHIVE"
+then :
+  GCC_VERSION=`basename "$GCC_ARCHIVE" .tar.xz`
+fi
+if test -z "$NEWLIB_VERSION" && test -n "$NEWLIB_ARCHIVE"
+then :
+  NEWLIB_VERSION=`basename "$NEWLIB_ARCHIVE" .tar.gz`
+fi
+if test -z "$GDB_VERSION" && test -n "$GDB_ARCHIVE"
+then :
+  GDB_VERSION=`basename "$GDB_ARCHIVE" .tar.xz`
+fi
+
+if test -n "$N64_TOOLCHAIN_ARCHIVE_DIR"
+then :
+
+        if test -z "$BINUTILS_VERSION"
+then :
+  BINUTILS_VERSION=`for f in "$N64_TOOLCHAIN_ARCHIVE_DIR"/binutils-*.tar.xz; do test -f "$f" && basename "$f" .tar.xz; done | "$srcdir/config/version-sort" | tail -n 1`
+fi
+        if test -z "$GCC_VERSION"
+then :
+  GCC_VERSION=`for f in "$N64_TOOLCHAIN_ARCHIVE_DIR"/gcc-*.tar.xz; do test -f "$f" && basename "$f" .tar.xz; done | "$srcdir/config/version-sort" | tail -n 1`
+fi
+        if test -z "$NEWLIB_VERSION"
+then :
+  NEWLIB_VERSION=`for f in "$N64_TOOLCHAIN_ARCHIVE_DIR"/newlib-*.tar.gz; do test -f "$f" && basename "$f" .tar.gz; done | "$srcdir/config/version-sort" | tail -n 1`
+fi
+        if test -z "$GDB_VERSION"
+then :
+  GDB_VERSION=`for f in "$N64_TOOLCHAIN_ARCHIVE_DIR"/gdb-*.tar.xz; do test -f "$f" && basename "$f" .tar.xz; done | "$srcdir/config/version-sort" | tail -n 1`
+fi
+
+fi
 if test "x$with_toolchain" != xno
 then :
 
-        if test -z "$WGET"
+        if test -z "$WGET" &&
+               (test -z "$BINUTILS_VERSION" || test -z "$GCC_VERSION" ||
+                test -z "$NEWLIB_VERSION" || test -z "$GDB_VERSION")
 then :
-  as_fn_error 1 "don't know how to check package versions, configure --without-toolchain" "$LINENO" 5
+  as_fn_error 1 "don't know how to check package versions; provide local archives and version stems, or configure --without-toolchain" "$LINENO" 5
 fi
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking binutils version" >&5
 printf %s "checking binutils version... " >&6; }
@@ -4906,7 +5140,7 @@ then :
                 BINUTILS_VERSION=`$WGET_Q - "https://ftp.gnu.org/gnu/binutils/" |
                                   grep -E -o ">binutils-[0-9\\\\.]+tar\\\\.xz<" |
                                   sed -e s/\\>// -e s/\\\\.tar\\\\.xz\\<// |
-                                  sort -V | tail -n 1`
+                                  "$srcdir/config/version-sort" | tail -n 1`
 
 fi
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $BINUTILS_VERSION" >&5
@@ -4919,7 +5153,7 @@ then :
                 GCC_VERSION=`$WGET_Q - "https://ftp.gnu.org/gnu/gcc/" |
                              grep -E -o ">gcc-[0-9\\\\.]+/<" |
                              sed -e s/\\>// -e s/\\\\/\\<// |
-                             sort -V | tail -n 1`
+                             "$srcdir/config/version-sort" | tail -n 1`
 
 fi
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $GCC_VERSION" >&5
@@ -4932,7 +5166,7 @@ then :
                 NEWLIB_VERSION=`$WGET_Q - "https://sourceware.org/pub/newlib/" |
                                 grep -E -o ">newlib-[0-9\\\\.]+tar\\\\.gz<" |
                                 sed -e s/\\>// -e s/\\\\.tar\\\\.gz\\<// |
-                                sort -V | tail -n 1`
+                                "$srcdir/config/version-sort" | tail -n 1`
 
 fi
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $NEWLIB_VERSION" >&5
@@ -4945,11 +5179,16 @@ then :
                 GDB_VERSION=`$WGET_Q - "https://ftp.gnu.org/gnu/gdb/" |
                              grep -E -o ">gdb-[0-9\\\\.]+tar\\\\.xz<" |
                              sed -e s/\\>// -e s/\\\\.tar\\\\.xz\\<// |
-                             sort -V | tail -n 1`
+                             "$srcdir/config/version-sort" | tail -n 1`
 
 fi
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $GDB_VERSION" >&5
 printf "%s\n" "$GDB_VERSION" >&6; }
+        if test -z "$BINUTILS_VERSION" || test -z "$GCC_VERSION" ||
+               test -z "$NEWLIB_VERSION" || test -z "$GDB_VERSION"
+then :
+  as_fn_error $? "failed to determine one or more toolchain versions; set BINUTILS_VERSION, GCC_VERSION, NEWLIB_VERSION, and GDB_VERSION explicitly" "$LINENO" 5
+fi
 
 fi
 
